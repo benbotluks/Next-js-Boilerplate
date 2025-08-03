@@ -219,6 +219,8 @@ export class AudioEngine {
       try {
         oscillator.stop();
       } catch (error) {
+        console.error('Failed to stop notes:', error);
+        throw new Error('Failed to stop audio');
         // Oscillator might already be stopped, ignore error
       }
     });

@@ -13,7 +13,7 @@
   - Write unit tests for audio functionality with mocked Web Audio API
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 7.3, 7.4_
 
-- [ ] 3. Build Digital Staff Component
+- [x] 3. Build Digital Staff Component
   - Create DigitalStaff React component with SVG-based staff rendering
   - Implement click handlers for note selection and deselection on staff positions
   - Add visual feedback for selected notes and note limit enforcement
