@@ -4,6 +4,8 @@
  */
 
 import type { Note, SessionResult, UserStatistics } from '@/types/MusicTypes';
+import { errors } from '@playwright/test';
+import { any, string, boolean } from 'zod';
 
 export type StatisticsValidationResult = {
   isValid: boolean;
@@ -222,111 +224,111 @@ export class StatisticsTracker {
         const validAccuracy: Record<number, number> = {};
         Object.entries(statistics.accuracyByDifficulty).forEach(([key, value]) => {
           const difficulty = Number.parseInt(key, 10);
-          if (isNaN(difficulty) || difficulty < 2 || difficulty > 6) {
-            errors.push(`Invalid difficulty level: ${key}`);
-          } else if (typeof value !== 'number' || value < 0 || value > 100) {
-            errors.push(`Invalid accuracy value for difficulty ${key}: ${value}`);
-          } else {
-            validAccuracy[difficulty] = value;
-          }
-        });
-        corrected.accuracyByDifficulty = validAccuracy;
-      }
+          if (isNaNdifficulty) || difficulty < 2 || difficulty > 6) {
+          errors.push(`Invalid difficulty level: ${key}`);
+        } else if (typeof value !== 'number' || value < 0 || value > 100) {
+          errors.push(`Invalid accuracy value for difficulty ${key}: ${value}`);
+        } else {
+          validAccuracy[difficulty] = value;
+        }
+      });
+      corrected.accuracyByDifficulty = validAccuracy;
     }
+  }
 
-    // Validate sessionHistory
-    if (statistics.sessionHistory !== undefined) {
-      if (!Array.isArray(statistics.sessionHistory)) {
-        errors.push('sessionHistory must be an array');
+  // Validate sessionHistory
+  if(statistics.sessionHistory !== undefined) {
+  if (!Array.isArray(statistics.sessionHistory)) {
+    errors.push('sessionHistory must be an array');
+  } else {
+    const validSessions: SessionResult[] = [];
+    statistics.sessionHistory.forEach((session, index) => {
+      const sessionErrors = this.validateSessionResult(session);
+      if (sessionErrors.length === 0) {
+        validSessions.push({
+          ...session,
+          timestamp: new Date(session.timestamp),
+        });
       } else {
-        const validSessions: SessionResult[] = [];
-        statistics.sessionHistory.forEach((session, index) => {
-          const sessionErrors = this.validateSessionResult(session);
-          if (sessionErrors.length === 0) {
-            validSessions.push({
-              ...session,
-              timestamp: new Date(session.timestamp),
-            });
-          } else {
-            errors.push(`Invalid session at index ${index}: ${sessionErrors.join(', ')}`);
-          }
-        });
-        corrected.sessionHistory = validSessions;
+        errors.push(`Invalid session at index ${index}: ${sessionErrors.join(', ')}`);
       }
-    }
+    });
+    corrected.sessionHistory = validSessions;
+  }
+}
 
-    // Ensure correctAnswers doesn't exceed totalAttempts
-    if (corrected.correctAnswers > corrected.totalAttempts) {
-      errors.push('correctAnswers cannot exceed totalAttempts');
-    }
+// Ensure correctAnswers doesn't exceed totalAttempts
+if (corrected.correctAnswers > corrected.totalAttempts) {
+  errors.push('correctAnswers cannot exceed totalAttempts');
+}
 
-    return {
-      isValid: errors.length === 0,
-      errors,
-      correctedStatistics: errors.length === 0 ? corrected : undefined,
-    };
+return {
+  isValid: errors.length === 0,
+  errors,
+  correctedStatistics: errors.length === 0 ? corrected : undefined,
+};
   }
 
   /**
    * Validate a single session result
    */
   private validateSessionResult(session: any): string[] {
-    const errors: string[] = [];
+  const errors: string[] = [];
 
-    if (!session || typeof session !== 'object') {
-      errors.push('session must be an object');
-      return errors;
-    }
-
-    // Validate timestamp
-    if (!session.timestamp) {
-      errors.push('timestamp is required');
-    } else {
-      const date = new Date(session.timestamp);
-      if (isNaN(date.getTime())) {
-        errors.push('timestamp must be a valid date');
-      }
-    }
-
-    // Validate difficulty
-    if (typeof session.difficulty !== 'number' || !Number.isInteger(session.difficulty) || session.difficulty < 2 || session.difficulty > 6) {
-      errors.push('difficulty must be an integer between 2 and 6');
-    }
-
-    // Validate correct
-    if (typeof session.correct !== 'boolean') {
-      errors.push('correct must be a boolean');
-    }
-
-    // Validate notesPlayed
-    if (!Array.isArray(session.notesPlayed)) {
-      errors.push('notesPlayed must be an array');
-    }
-
-    // Validate userAnswer
-    if (!Array.isArray(session.userAnswer)) {
-      errors.push('userAnswer must be an array');
-    }
-
+  if (!session || typeof session !== 'object') {
+    errors.push('session must be an object');
     return errors;
   }
+
+  // Validate timestamp
+  if (!session.timestamp) {
+    errors.push('timestamp is required');
+  } else {
+    const date = new Date(session.timestamp);
+    if (isNaN(date.getTime())) {
+      errors.push('timestamp must be a valid date');
+    }
+  }
+
+  // Validate difficulty
+  if (typeof session.difficulty !== 'number' || !Number.isInteger(session.difficulty) || session.difficulty < 2 || session.difficulty > 6) {
+    errors.push('difficulty must be an integer between 2 and 6');
+  }
+
+  // Validate correct
+  if (typeof session.correct !== 'boolean') {
+    errors.push('correct must be a boolean');
+  }
+
+  // Validate notesPlayed
+  if (!Array.isArray(session.notesPlayed)) {
+    errors.push('notesPlayed must be an array');
+  }
+
+  // Validate userAnswer
+  if (!Array.isArray(session.userAnswer)) {
+    errors.push('userAnswer must be an array');
+  }
+
+  return errors;
+}
 
   /**
    * Check if local storage is available
    */
   public isStorageAvailable(): boolean {
-    try {
-      if (typeof localStorage === 'undefined') {
-        return false;
-      }
-      const test = '__storage_test__';
-      localStorage.setItem(test, test);
-      localStorage.removeItem(test);
-      return true;
-    } catch {
+  try {
+    if (typeof localStorage === 'undefined') {
       return false;
     }
+    const test = '__storage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch {
+    return false;
   }
+}
 }
 
 // Export singleton instance

@@ -4,7 +4,7 @@
  * Provides tree-shaking and bundle optimization
  */
 
-import { TONE_CONFIG, VEXFLOW_CONFIG, TONAL_CONFIG, FEATURE_DETECTION } from './MusicLibraryConfig';
+import { FEATURE_DETECTION, TONE_CONFIG } from './MusicLibraryConfig';
 
 // Type definitions for library imports
 export type ToneModule = typeof import('tone');
@@ -123,8 +123,6 @@ export async function preloadMusicLibraries(): Promise<void> {
       loadTonalNote().catch(() => console.warn('Tonal Note preload failed')),
       loadTonalMidi().catch(() => console.warn('Tonal MIDI preload failed')),
     ]);
-
-    console.log('Music libraries preloaded successfully');
   } catch (error) {
     console.warn('Music library preloading failed:', error);
   }
@@ -140,8 +138,8 @@ export function checkLibraryCompatibility(): {
   overall: boolean;
 } {
   const compatibility = {
-    tone: FEATURE_DETECTION.hasWebAudio(),
-    vexflow: FEATURE_DETECTION.hasSVG() || FEATURE_DETECTION.hasCanvas(),
+    tone: Boolean(FEATURE_DETECTION.hasWebAudio()),
+    vexflow: FEATURE_DETECTION.hasSVG() || Boolean(FEATURE_DETECTION.hasCanvas()),
     tonal: true, // Tonal is pure JavaScript, always compatible
     overall: false,
   };

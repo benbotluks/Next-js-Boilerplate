@@ -102,20 +102,20 @@ export const BUNDLE_CONFIG = {
 export const FEATURE_DETECTION = {
   // Check Web Audio API support
   hasWebAudio: () => {
-    return typeof window !== 'undefined' &&
-      (window.AudioContext || (window as any).webkitAudioContext);
+    return typeof window !== 'undefined'
+      && (window.AudioContext || (window as any).webkitAudioContext);
   },
 
   // Check SVG support for VexFlow
   hasSVG: () => {
-    return typeof document !== 'undefined' &&
-      document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1');
+    return typeof document !== 'undefined'
+      && document.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1');
   },
 
   // Check Canvas support as fallback
   hasCanvas: () => {
-    return typeof document !== 'undefined' &&
-      document.createElement('canvas').getContext;
+    return typeof document !== 'undefined'
+      && document.createElement('canvas').getContext;
   },
 } as const;
 
