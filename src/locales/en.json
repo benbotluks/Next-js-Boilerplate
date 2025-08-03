@@ -4,6 +4,7 @@
     "about_link": "About",
     "counter_link": "Counter",
     "portfolio_link": "Portfolio",
+    "music_test_link": "Music Test",
     "sign_in_link": "Sign in",
     "sign_up_link": "Sign up"
   },
@@ -72,5 +73,15 @@
     "dashboard_link": "Dashboard",
     "user_profile_link": "Manage your account",
     "sign_out": "Sign out"
+  },
+  "MusicTest": {
+    "meta_title": "Music Note Identification",
+    "meta_description": "Test your ear training skills by identifying musical notes played simultaneously. Improve your musical abilities with this interactive note identification game.",
+    "page_title": "Music Note Identification",
+    "page_description": "Test your ear training skills by identifying musical notes",
+    "tab_game": "Game",
+    "tab_settings": "Settings",
+    "tab_statistics": "Statistics",
+    "accessibility_info": "This application is designed to be accessible to all users, including those using screen readers or keyboard navigation."
   }
 }

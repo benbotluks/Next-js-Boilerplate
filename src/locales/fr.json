@@ -4,6 +4,7 @@
     "about_link": "A propos",
     "counter_link": "Compteur",
     "portfolio_link": "Portfolio",
+    "music_test_link": "Test Musical",
     "sign_in_link": "Se connecter",
     "sign_up_link": "S'inscrire"
   },
@@ -72,5 +73,15 @@
     "dashboard_link": "Tableau de bord",
     "user_profile_link": "Gérer votre compte",
     "sign_out": "Se déconnecter"
+  },
+  "MusicTest": {
+    "meta_title": "Identification des Notes Musicales",
+    "meta_description": "Testez vos compétences d'entraînement auditif en identifiant les notes musicales jouées simultanément. Améliorez vos capacités musicales avec ce jeu d'identification de notes interactif.",
+    "page_title": "Identification des Notes Musicales",
+    "page_description": "Testez vos compétences d'entraînement auditif en identifiant les notes musicales",
+    "tab_game": "Jeu",
+    "tab_settings": "Paramètres",
+    "tab_statistics": "Statistiques",
+    "accessibility_info": "Cette application est conçue pour être accessible à tous les utilisateurs, y compris ceux utilisant des lecteurs d'écran ou la navigation au clavier."
   }
 }
