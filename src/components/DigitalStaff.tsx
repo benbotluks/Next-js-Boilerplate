@@ -3,6 +3,7 @@
 import type { DigitalStaffProps, Note } from '@/types/MusicTypes';
 import React from 'react';
 import { STAFF_POSITIONS } from '@/utils/MusicConstants';
+import { getNoteDisplayColor } from '@/utils/AnswerValidation';
 
 const DigitalStaff: React.FC<DigitalStaffProps> = ({
   selectedNotes,
@@ -11,6 +12,7 @@ const DigitalStaff: React.FC<DigitalStaffProps> = ({
   maxNotes,
   showCorrectAnswer = false,
   correctNotes = [],
+  validationResult,
 }) => {
   // Staff dimensions and positioning
   const staffWidth = 400;
@@ -35,7 +37,12 @@ const DigitalStaff: React.FC<DigitalStaffProps> = ({
 
   // Get note color based on state
   const getNoteColor = (note: Note): string => {
-    if (showCorrectAnswer) {
+    if (showCorrectAnswer && validationResult) {
+      // Use enhanced validation result for more detailed feedback
+      const { color } = getNoteDisplayColor(note, validationResult);
+      return color;
+    } else if (showCorrectAnswer) {
+      // Fallback to legacy logic if no validation result provided
       if (correctNotes.includes(note) && selectedNotes.includes(note)) {
         return '#22c55e'; // Green for correct
       } else if (selectedNotes.includes(note)) {
@@ -214,7 +221,27 @@ const DigitalStaff: React.FC<DigitalStaffProps> = ({
       {/* Instructions */}
       <div className="mt-4 max-w-md text-center text-sm text-gray-600">
         Click on the staff positions to select notes.
-        {showCorrectAnswer && (
+        {showCorrectAnswer && validationResult && (
+          <div className="mt-2 space-y-1">
+            <div className="flex justify-center gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-full bg-green-600" />
+                <span>Correct</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-2 w-2 rounded-full bg-red-600" />
+                <span>Incorrect</span>
+              </div>
+              {validationResult.missedNotes.length > 0 && (
+                <div className="flex items-center gap-1">
+                  <div className="h-2 w-2 rounded-full bg-amber-600" />
+                  <span>Missed</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {showCorrectAnswer && !validationResult && (
           <div className="mt-2">
             <span className="text-green-600">Green: Correct</span>
             {' • '}

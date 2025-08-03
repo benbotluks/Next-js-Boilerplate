@@ -62,6 +62,7 @@ export type DigitalStaffProps = {
   maxNotes: number;
   showCorrectAnswer?: boolean;
   correctNotes?: Note[];
+  validationResult?: import('@/utils/AnswerValidation').ValidationResult;
 };
 
 export type GameControllerProps = {
