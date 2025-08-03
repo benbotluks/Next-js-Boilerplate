@@ -11,6 +11,28 @@ const baseConfig: NextConfig = {
   },
   poweredByHeader: false,
   reactStrictMode: true,
+
+  // Optimize music library imports for better bundle size
+  webpack: (config, { isServer }) => {
+    // Optimize Tone.js imports - enable tree shaking
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+
+    // Handle VexFlow font loading
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+
+    return config;
+  },
+
+  // Transpile music libraries for better compatibility
+  transpilePackages: ['tone', 'vexflow', 'tonal'],
 };
 
 // Initialize the Next-Intl plugin

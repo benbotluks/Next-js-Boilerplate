@@ -24,11 +24,11 @@ export function parseNote(noteString: string): { noteName: NoteName; octave: Oct
   let octaveStr: string;
 
   if (noteString.length === 2) {
-    noteName = noteString[0];
-    octaveStr = noteString[1];
+    noteName = noteString[0]!; // Non-null assertion since we've checked length
+    octaveStr = noteString[1]!; // Non-null assertion since we've checked length
   } else {
     noteName = noteString.slice(0, 2);
-    octaveStr = noteString[2];
+    octaveStr = noteString[2]!; // Non-null assertion since we've checked length
   }
 
   const octave = Number.parseInt(octaveStr, 10);
@@ -230,7 +230,7 @@ export function validateUserStatistics(stats: any): {
         }
 
         // Validate session properties
-        if (!session.timestamp || isNaN(new Date(session.timestamp).getTime())) {
+        if (!session.timestamp || Number.isNaN(new Date(session.timestamp).getTime())) {
           errors.push(`Session ${i} has invalid timestamp`);
           continue;
         }
