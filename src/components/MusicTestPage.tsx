@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
 import MusicTestController from './MusicTestController';
 import { SettingsPanel } from './SettingsPanel';
-import { StatisticsDisplay } from './StatisticsDisplay';
+// import { StatisticsDisplay } from './StatisticsDisplay';
 
 type TabType = 'game' | 'settings' | 'statistics';
 
@@ -29,7 +29,7 @@ export function MusicTestPage() {
   // Handle statistics reset
   const handleStatisticsReset = useCallback(() => {
     // Optionally refresh the statistics display or show a message
-    console.log('Statistics reset');
+    console.warn('Statistics reset');
   }, []);
 
   // Keyboard navigation
@@ -95,12 +95,12 @@ export function MusicTestPage() {
       case 'statistics':
         return (
           <div className="mx-auto max-w-4xl">
-            <StatisticsDisplay
+            {/* <StatisticsDisplay
               onReset={handleStatisticsReset}
               showRecentSessions={true}
               maxRecentSessions={10}
               className="rounded-lg border bg-white p-6 shadow-sm"
-            />
+            /> */}
           </div>
         );
       default:

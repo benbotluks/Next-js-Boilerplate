@@ -31,34 +31,35 @@
 
 ### Development
 ```bash
-npm run dev          # Start development server with Turbopack
-npm run build        # Production build
-npm run start        # Start production server
+pnpm dev             # Start development server with Turbopack
+pnpm build           # Production build
+pnpm start           # Start production server
 ```
 
 ### Testing
 ```bash
-npm run test         # Run unit tests
-npm run test:e2e     # Run E2E tests
-npm run storybook    # Start Storybook
+pnpm test            # Run unit tests
+pnpm test:e2e        # Run E2E tests
+pnpm storybook       # Start Storybook
 ```
 
 ### Database
 ```bash
-npm run db:generate  # Generate migrations
-npm run db:studio    # Open Drizzle Studio
+pnpm db:generate     # Generate migrations
+pnpm db:studio       # Open Drizzle Studio
 ```
 
 ### Code Quality
 ```bash
-npm run lint         # Check linting
-npm run lint:fix     # Fix linting issues
-npm run check:types  # Type checking
-npm run check:deps   # Check unused dependencies
-npm run check:i18n   # Validate translations
+pnpm lint            # Check linting
+pnpm lint:fix        # Fix linting issues
+pnpm check:types     # Type checking
+pnpm check:deps      # Check unused dependencies
+pnpm check:i18n      # Validate translations
 ```
 
 ## Build System
 - **Vite** for fast builds and HMR
 - **Turbopack** for Next.js development
-- **Bundle analyzer** available via `npm run build-stats`
+- **Bundle analyzer** available via `pnpm build-stats`
+- **pnpm** as the package manager for fast, efficient dependency management

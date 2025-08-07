@@ -2,8 +2,8 @@
 
 import type { DigitalStaffProps, Note } from '@/types/MusicTypes';
 import React from 'react';
-import { STAFF_POSITIONS } from '@/utils/MusicConstants';
 import { getNoteDisplayColor } from '@/utils/AnswerValidation';
+import { STAFF_POSITIONS } from '@/utils/MusicConstants';
 
 const DigitalStaff: React.FC<DigitalStaffProps> = ({
   selectedNotes,

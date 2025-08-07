@@ -3,11 +3,11 @@
 import type { GameControllerProps, GameState, Note } from '@/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useState } from 'react';
-import { audioEngine } from '@/libs/AudioEngine';
+import { modernAudioEngine as audioEngine } from '@/libs/ModernAudioEngine';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { validateAnswer } from '@/utils/AnswerValidation';
-import DigitalStaff from './DigitalStaff';
 import FeedbackDisplay from './FeedbackDisplay';
+import VexFlowStaff from './VexFlowStaff';
 
 const MusicTestController: React.FC<GameControllerProps> = ({
   initialSettings = {},
@@ -353,7 +353,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </div>
             </div>
 
-            <DigitalStaff
+            <VexFlowStaff
               selectedNotes={gameState.selectedNotes}
               onNoteSelect={handleNoteSelect}
               onNoteDeselect={handleNoteDeselect}
@@ -372,16 +372,6 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               onResetGame={resetGame}
               isPlaying={isPlaying}
               className="mb-6"
-            />
-
-            <DigitalStaff
-              selectedNotes={gameState.selectedNotes}
-              onNoteSelect={() => {}} // Disabled in feedback phase
-              onNoteDeselect={() => {}} // Disabled in feedback phase
-              maxNotes={gameState.difficulty}
-              showCorrectAnswer={true}
-              correctNotes={gameState.currentNotes}
-              validationResult={validationResult}
             />
           </div>
         )}

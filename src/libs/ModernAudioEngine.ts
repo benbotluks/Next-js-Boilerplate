@@ -243,9 +243,14 @@ export class ModernAudioEngine {
    */
   public dispose(): void {
     this.stopNotes();
-    this.isInitialized = false;
+
+    if (this.synths) {
+      this.synths.forEach(synth =>
+        synth.dispose(),
+      );
+      this.isInitialized = false;
+    }
   }
 }
-
 // Export a singleton instance
 export const modernAudioEngine = new ModernAudioEngine();
