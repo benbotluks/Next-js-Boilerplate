@@ -122,14 +122,6 @@ export const detectAccidental = (pitch: Note): 'sharp' | 'flat' | 'natural' | un
 };
 
 /**
- * Get the note name without octave and accidental
- */
-export const getNoteName = (pitch: Note): string => {
-  const match = pitch.match(/^([A-G])/);
-  return match?.[1];
-};
-
-/**
  * Get the octave number from a pitch
  */
 export const getOctave = (pitch: Note): number => {

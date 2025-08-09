@@ -3,8 +3,9 @@
 import type { StaffPosition } from './types/StaffInteraction';
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
+import { useStaffInteraction } from './hooks/useStaffInteraction';
 import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
@@ -45,7 +46,30 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   const rendererRef = useRef<any>(null);
   const staveRef = useRef<any>(null);
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
-  const [hoveredPosition, setHoveredPosition] = useState<StaffPosition | null>(null);
+
+  // Handle note click from staff interaction
+  const handleNoteClick = (position: StaffPosition) => {
+    // Toggle note selection
+    if (selectedNotes.includes(position.pitch)) {
+      onNoteDeselect(position.pitch);
+    } else if (selectedNotes.length < maxNotes) {
+      onNoteSelect(position.pitch);
+    }
+  };
+
+  // Use staff interaction hook
+  const {
+    handleMouseMove,
+    handleMouseClick,
+    handleMouseLeave,
+    hoveredPosition,
+    getCursorStyle,
+  } = useStaffInteraction(
+    containerRef,
+    staffCoordinatesRef,
+    handleNoteClick,
+    disabled,
+  );
 
   // Initialize VexFlow renderer and staff
   useEffect(() => {
@@ -89,57 +113,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       }
     }
   }, [width, height]);
-
-  // Handle mouse events for interaction
-  const handleMouseMove = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!staffCoordinatesRef.current || disabled) {
-      return;
-    }
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-      setHoveredPosition(position);
-    } else {
-      setHoveredPosition(null);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredPosition(null);
-  };
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!staffCoordinatesRef.current || disabled) {
-      return;
-    }
-
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) {
-      return;
-    }
-
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-
-      // Toggle note selection
-      if (selectedNotes.includes(position.pitch)) {
-        onNoteDeselect(position.pitch);
-      } else if (selectedNotes.length < maxNotes) {
-        onNoteSelect(position.pitch);
-      }
-    }
-  };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (disabled) {
@@ -201,12 +174,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         className="h-full w-full cursor-pointer rounded border bg-white p-0"
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        onClick={handleClick}
+        onClick={handleMouseClick}
         onKeyDown={handleKeyDown}
         aria-label="Interactive music staff for note input"
         disabled={disabled}
         style={{
-          cursor: disabled ? 'not-allowed' : (hoveredPosition ? 'pointer' : 'default'),
+          cursor: getCursorStyle(),
         }}
       />
 
