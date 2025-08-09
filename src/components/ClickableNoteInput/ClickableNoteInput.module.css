@@ -1,0 +1,306 @@
+/* Hover and interaction styles for ClickableNoteInput */
+
+.staffContainer {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.staffContainer:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.staffContainer.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.staffContainer.disabled:hover {
+  box-shadow: none;
+}
+
+/* Cursor styles for different interaction states */
+.cursorDefault {
+  cursor: default;
+}
+
+.cursorPointer {
+  cursor: pointer;
+}
+
+.cursorCrosshair {
+  cursor: crosshair;
+}
+
+.cursorNotAllowed {
+  cursor: not-allowed;
+}
+
+/* Hover preview styles */
+.hoverPreview {
+  opacity: 0.6;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.hoverPreview.fadeIn {
+  opacity: 0.6;
+  animation: fadeInPreview 0.15s ease-in-out;
+}
+
+.hoverPreview.fadeOut {
+  opacity: 0;
+  animation: fadeOutPreview 0.15s ease-in-out;
+}
+
+@keyframes fadeInPreview {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOutPreview {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+/* Note selection animations */
+.noteSelected {
+  animation: noteSelect 0.2s ease-in-out;
+}
+
+.noteDeselected {
+  animation: noteDeselect 0.2s ease-in-out;
+}
+
+@keyframes noteSelect {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes noteDeselect {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.9);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Validation state transitions */
+.validationCorrect {
+  animation: validationSuccess 0.4s ease-in-out;
+}
+
+.validationIncorrect {
+  animation: validationError 0.4s ease-in-out;
+}
+
+.validationMissing {
+  animation: validationMissing 0.4s ease-in-out;
+}
+
+@keyframes validationSuccess {
+  0% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 transparent);
+  }
+
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.2) drop-shadow(0 0 8px rgba(16, 185, 129, 0.4));
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes validationError {
+  0% {
+    transform: translateX(0);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+
+  15% {
+    transform: translateX(-3px);
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.4));
+  }
+
+  30% {
+    transform: translateX(3px);
+  }
+
+  45% {
+    transform: translateX(-2px);
+  }
+
+  60% {
+    transform: translateX(2px);
+  }
+
+  75% {
+    transform: translateX(-1px);
+  }
+
+  100% {
+    transform: translateX(0);
+    filter: drop-shadow(0 0 0 transparent);
+  }
+}
+
+@keyframes validationMissing {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+}
+
+/* Validation result overlay */
+.validationOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.validationMessage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  animation: fadeInMessage 0.3s ease-in-out forwards;
+}
+
+.validationMessage.success {
+  color: #10b981;
+  border: 1px solid #10b981;
+}
+
+.validationMessage.error {
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.validationMessage.partial {
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+}
+
+@keyframes fadeInMessage {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Interactive area highlighting */
+.interactiveArea {
+  position: relative;
+}
+
+.interactiveArea::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: rgba(59, 130, 246, 0.1);
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.interactiveArea:hover::before {
+  opacity: 1;
+}
+
+/* Focus indicators for accessibility */
+.staffContainer:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Loading state */
+.loading {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

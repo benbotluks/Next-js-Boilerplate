@@ -3,9 +3,10 @@
 import type { StaffPosition } from './types/StaffInteraction';
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
-import { NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { AccessibilityAnnouncements, KeyboardShortcuts, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
@@ -87,14 +88,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
   // Use staff interaction hook
   const {
-    handleMouseMove,
-    handleMouseClick,
-    handleMouseLeave,
+    handleMouseMove: staffHandleMouseMove,
+    handleMouseClick: staffHandleMouseClick,
+    handleMouseLeave: staffHandleMouseLeave,
     hoveredPosition,
-    isHovering,
     previewAnimation,
     getCursorStyle,
-    getCursorClass,
     isOverInteractiveArea,
   } = useStaffInteraction(
     containerRef,
@@ -102,6 +101,47 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleNoteClick,
     disabled,
   );
+
+  const {
+    focusedPosition,
+    keyboardMode,
+    disableKeyboardMode,
+    handleKeyDown,
+    handleMouseLeave: keyboardHandleMouseLeave,
+  } = useKeyboardNavigation(
+    containerRef,
+    staffCoordinatesRef.current,
+    handleNoteClick,
+    () => {
+      // Delete selected notes
+      const selectedNotesToDelete = selectedNotes.filter(note => note);
+      if (selectedNotesToDelete.length > 0) {
+        selectedNotesToDelete.forEach(note => onNoteDeselect(note));
+      }
+    },
+  );
+
+  // Enhanced mouse handlers that also manage keyboard mode
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    staffHandleMouseMove(event);
+    if (keyboardMode) {
+      disableKeyboardMode();
+    }
+  }, [staffHandleMouseMove, keyboardMode, disableKeyboardMode]);
+
+  const handleMouseClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    staffHandleMouseClick(event);
+    if (keyboardMode) {
+      disableKeyboardMode();
+    }
+  }, [staffHandleMouseClick, keyboardMode, disableKeyboardMode]);
+
+  const handleMouseLeave = useCallback(() => {
+    staffHandleMouseLeave();
+    keyboardHandleMouseLeave();
+  }, [staffHandleMouseLeave, keyboardHandleMouseLeave]);
+
+  // Use keyboard navigation hook
 
   // Initialize VexFlow renderer and staff
   useEffect(() => {
@@ -146,16 +186,44 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
   }, [width, height]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (disabled) {
-      return;
+  // Generate accessibility announcements
+  const getAriaLabel = () => {
+    const baseLabel = 'Interactive music staff for note input';
+    const noteCount = `${selectedNotes.length} of ${maxNotes} notes selected`;
+    const instructions = keyboardMode
+      ? 'Use arrow keys to navigate, Enter or Space to place notes, Delete to remove selected notes, Escape to exit keyboard mode'
+      : 'Click to place notes, Tab to enter keyboard mode';
+
+    return `${baseLabel}. ${noteCount}. ${instructions}`;
+  };
+
+  const getAriaDescription = () => {
+    let description = '';
+
+    if (focusedPosition && keyboardMode) {
+      const pitchName = focusedPosition.pitch;
+      const positionType = focusedPosition.isLine ? 'line' : 'space';
+      const ledgerInfo = focusedPosition.requiresLedgerLine ? ' with ledger line' : '';
+      description += `Focused on ${pitchName} ${positionType}${ledgerInfo}. `;
     }
 
-    // Basic keyboard support - will be enhanced in task 7
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      // TODO: Implement keyboard note placement
+    if (hoveredPosition && !keyboardMode) {
+      description += `Hovering over ${hoveredPosition.pitch}. `;
     }
+
+    if (selectedNotes.length > 0) {
+      description += `Selected notes: ${selectedNotes.join(', ')}. `;
+    }
+
+    if (validationResult) {
+      if (validationResult.isCorrect) {
+        description += 'Answer is correct. ';
+      } else {
+        description += 'Answer is incorrect. ';
+      }
+    }
+
+    return description.trim();
   };
 
   // Render selected notes on the staff
@@ -184,8 +252,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         );
       }
 
-      // Render enhanced hover preview if hovering over an empty position
-      if (hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
+      // Render preview note - prioritize hover over focus
+      if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
+        // Mouse mode: show hover preview
         renderEnhancedPreviewNote(
           stave,
           context,
@@ -194,11 +263,21 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           previewAnimation,
           true, // Show guidelines
         );
+      } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
+        // Keyboard mode: show focus preview
+        renderEnhancedPreviewNote(
+          stave,
+          context,
+          focusedPosition.pitch,
+          focusedPosition.x,
+          previewAnimation,
+          true, // Show guidelines
+        );
       }
     } catch (error) {
       console.error('Failed to render notes:', error);
     }
-  }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition, previewAnimation]);
+  }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition, previewAnimation, focusedPosition, keyboardMode]);
 
   return (
     <div className={`relative ${className}`} style={{ width, height }}>
@@ -208,24 +287,45 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           h-full w-full rounded border bg-white p-0 transition-all duration-200
           ${disabled ? 'cursor-not-allowed opacity-60' : ''}
           ${isOverInteractiveArea() ? 'shadow-md' : ''}
+          ${keyboardMode ? 'ring-2 ring-blue-500/50' : ''}
           ${disabled ? '' : hoveredPosition ? 'cursor-crosshair' : 'cursor-default'}
         `}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleMouseClick}
+
         onContextMenu={(e) => {
           // Handle right-click on staff area
           if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
             handleNoteRightClick(e, hoveredPosition.pitch);
           }
         }}
+        // Accessibility attributes
         role="button"
-        aria-label="Interactive music staff for note input"
+        aria-label={getAriaLabel()}
+        aria-describedby="staff-description"
+        aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
-        onKeyDown={handleKeyDown}
+        // Additional ARIA attributes for screen readers
+        aria-keyshortcuts="Tab ArrowUp ArrowDown Enter Space Delete Escape"
         style={{
           cursor: getCursorStyle(),
         }}
+      />
+
+      {/* Hidden description for screen readers */}
+      <div id="staff-description" className="sr-only">
+        {getAriaDescription()}
+      </div>
+
+      {/* Accessibility Announcements */}
+      <AccessibilityAnnouncements
+        selectedNotes={selectedNotes}
+        focusedPosition={focusedPosition}
+        hoveredPosition={hoveredPosition}
+        keyboardMode={keyboardMode}
+        validationResult={validationResult}
+        maxNotes={maxNotes}
       />
 
       {/* Validation Display */}
@@ -257,6 +357,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         </div>
       )}
 
+      {/* Keyboard Shortcuts Help */}
+      <KeyboardShortcuts className="mt-2" />
+
       {/* Debug info */}
       <div className="mt-2 text-sm text-gray-600">
         Selected:
@@ -267,7 +370,20 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {' '}
         {maxNotes}
         {disabled && <span className="ml-2 text-red-500">(Disabled)</span>}
-        {hoveredPosition && (
+        {keyboardMode && <span className="ml-2 text-blue-500">(Keyboard Mode)</span>}
+        {focusedPosition && keyboardMode && (
+          <span className="ml-2 text-purple-500">
+            Focus:
+            {' '}
+            {focusedPosition.pitch}
+            {' '}
+            (line
+            {' '}
+            {focusedPosition.linePosition}
+            )
+          </span>
+        )}
+        {hoveredPosition && !keyboardMode && (
           <span className="ml-2 text-blue-500">
             Hover:
             {' '}

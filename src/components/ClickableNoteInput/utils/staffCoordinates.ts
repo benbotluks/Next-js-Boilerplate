@@ -122,8 +122,10 @@ export class StaffCoordinates {
     const positions: StaffPosition[] = [];
     const staffX = this.stave.getX() + this.stave.getNoteStartX();
 
-    // Include positions from 3 ledger lines below to 3 ledger lines above
-    for (let linePosition = -6; linePosition <= 14; linePosition++) {
+    // Only include positions that have actual pitch mappings
+    const validLinePositions = [-6, -4, 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14];
+
+    for (const linePosition of validLinePositions) {
       const y = this.getYForLinePosition(linePosition);
       const position = this.screenToStaffPosition(staffX, y);
       positions.push(position);
