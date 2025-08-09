@@ -2,6 +2,33 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import ClickableNoteInput from '../ClickableNoteInput';
 
+// Mock CSS module
+vi.mock('../ClickableNoteInput.module.css', () => ({
+  default: {
+    staffContainer: 'staffContainer',
+    disabled: 'disabled',
+    interactiveArea: 'interactiveArea',
+    cursorDefault: 'cursorDefault',
+    cursorPointer: 'cursorPointer',
+    cursorCrosshair: 'cursorCrosshair',
+    cursorNotAllowed: 'cursorNotAllowed',
+    hoverPreview: 'hoverPreview',
+    fadeIn: 'fadeIn',
+    fadeOut: 'fadeOut',
+    noteSelected: 'noteSelected',
+    noteDeselected: 'noteDeselected',
+    validationCorrect: 'validationCorrect',
+    validationIncorrect: 'validationIncorrect',
+    validationMissing: 'validationMissing',
+    validationOverlay: 'validationOverlay',
+    validationMessage: 'validationMessage',
+    success: 'success',
+    error: 'error',
+    partial: 'partial',
+    loading: 'loading',
+  },
+}));
+
 describe('ClickableNoteInput', () => {
   const defaultProps = {
     selectedNotes: [],

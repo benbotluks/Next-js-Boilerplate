@@ -1,8 +1,10 @@
+import type { ValidationResult } from '../types/StaffInteraction';
 import type { Note } from '@/types/MusicTypes';
+import { useCallback, useMemo } from 'react';
 
 /**
  * Hook for managing note state and operations
- * Will be implemented in task 5.1
+ * Handles adding, removing, and toggling notes with validation
  */
 export const useNoteManagement = (
   selectedNotes: Note[],
@@ -10,13 +12,118 @@ export const useNoteManagement = (
   onNoteDeselect: (note: Note) => void,
   maxNotes: number,
 ) => {
-  // Implementation will be added in task 5.1
+  /**
+   * Validates if a note can be added
+   */
+  const validateNoteAddition = useCallback((note: Note): ValidationResult => {
+    // Check if note already exists
+    if (selectedNotes.includes(note)) {
+      return { valid: false, error: 'Note already exists' };
+    }
+
+    // Check maximum note limit
+    if (selectedNotes.length >= maxNotes) {
+      return { valid: false, error: 'Maximum notes reached' };
+    }
+
+    return { valid: true };
+  }, [selectedNotes, maxNotes]);
+
+  /**
+   * Adds a note if validation passes
+   */
+  const addNote = useCallback((note: Note): boolean => {
+    const validation = validateNoteAddition(note);
+    if (validation.valid) {
+      onNoteSelect(note);
+      return true;
+    }
+    return false;
+  }, [validateNoteAddition, onNoteSelect]);
+
+  /**
+   * Removes a note if it exists
+   */
+  const removeNote = useCallback((note: Note): boolean => {
+    if (selectedNotes.includes(note)) {
+      onNoteDeselect(note);
+      return true;
+    }
+    return false;
+  }, [selectedNotes, onNoteDeselect]);
+
+  /**
+   * Toggles a note (adds if not present, removes if present)
+   */
+  const toggleNote = useCallback((note: Note): boolean => {
+    if (selectedNotes.includes(note)) {
+      return removeNote(note);
+    } else {
+      return addNote(note);
+    }
+  }, [selectedNotes, addNote, removeNote]);
+
+  /**
+   * Checks if a new note can be added
+   */
+  const canAddNote = useCallback((note?: Note): boolean => {
+    if (note) {
+      return validateNoteAddition(note).valid;
+    }
+    return selectedNotes.length < maxNotes;
+  }, [validateNoteAddition, selectedNotes.length, maxNotes]);
+
+  /**
+   * Checks if a note is currently selected
+   */
+  const isNoteSelected = useCallback((note: Note): boolean => {
+    return selectedNotes.includes(note);
+  }, [selectedNotes]);
+
+  /**
+   * Gets the current note count
+   */
+  const noteCount = useMemo(() => selectedNotes.length, [selectedNotes.length]);
+
+  /**
+   * Gets remaining note slots
+   */
+  const remainingSlots = useMemo(() => maxNotes - selectedNotes.length, [maxNotes, selectedNotes.length]);
+
+  /**
+   * Clears all selected notes
+   */
+  const clearAllNotes = useCallback(() => {
+    selectedNotes.forEach(note => onNoteDeselect(note));
+  }, [selectedNotes, onNoteDeselect]);
+
+  /**
+   * Removes multiple notes at once
+   */
+  const removeNotes = useCallback((notes: Note[]) => {
+    notes.forEach((note) => {
+      if (selectedNotes.includes(note)) {
+        onNoteDeselect(note);
+      }
+    });
+  }, [selectedNotes, onNoteDeselect]);
 
   return {
-    addNote: (note: Note) => { },
-    removeNote: (note: Note) => { },
-    toggleNote: (note: Note) => { },
-    canAddNote: () => false,
-    renderedNotes: [] as any[],
+    // Core operations
+    addNote,
+    removeNote,
+    toggleNote,
+    clearAllNotes,
+    removeNotes,
+
+    // Validation and state checks
+    canAddNote,
+    isNoteSelected,
+    validateNoteAddition,
+
+    // State information
+    noteCount,
+    remainingSlots,
+    selectedNotes: selectedNotes as readonly Note[],
   };
 };

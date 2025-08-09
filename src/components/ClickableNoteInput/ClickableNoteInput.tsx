@@ -5,8 +5,11 @@ import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
+import { NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { useNoteManagement } from './hooks/useNoteManagement';
+import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
-import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from './utils/noteRendering';
+import { clearAndRedrawStaff, renderEnhancedPreviewNote, renderNotesOnStaff } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
 const EMPTY_ARRAY: Note[] = [];
@@ -42,19 +45,44 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   disabled = false,
   className = '',
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<any>(null);
   const staveRef = useRef<any>(null);
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
+  // Use note management hook
+  const {
+    toggleNote,
+    canAddNote,
+    removeNotes,
+  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes);
+
+  // Use note selection hook
+  const {
+    contextMenuNote,
+    contextMenuPosition,
+    handleContextMenu,
+    closeContextMenu,
+    handleContextMenuAction,
+    isNoteSelected: isInternallySelected,
+  } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
+
   // Handle note click from staff interaction
   const handleNoteClick = (position: StaffPosition) => {
-    // Toggle note selection
-    if (selectedNotes.includes(position.pitch)) {
-      onNoteDeselect(position.pitch);
-    } else if (selectedNotes.length < maxNotes) {
-      onNoteSelect(position.pitch);
+    if (disabled) {
+      return;
     }
+
+    // Toggle note selection
+    toggleNote(position.pitch);
+  };
+
+  // Handle right-click on notes
+  const handleNoteRightClick = (event: React.MouseEvent, note: Note) => {
+    if (disabled) {
+      return;
+    }
+    handleContextMenu(event, note);
   };
 
   // Use staff interaction hook
@@ -63,7 +91,11 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     handleMouseClick,
     handleMouseLeave,
     hoveredPosition,
+    isHovering,
+    previewAnimation,
     getCursorStyle,
+    getCursorClass,
+    isOverInteractiveArea,
   } = useStaffInteraction(
     containerRef,
     staffCoordinatesRef,
@@ -114,7 +146,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
   }, [width, height]);
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (disabled) {
       return;
     }
@@ -152,36 +184,78 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         );
       }
 
-      // Render hover preview if hovering over an empty position
+      // Render enhanced hover preview if hovering over an empty position
       if (hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
-        renderPreviewNote(
+        renderEnhancedPreviewNote(
           stave,
           context,
           hoveredPosition.pitch,
           hoveredPosition.x,
+          previewAnimation,
+          true, // Show guidelines
         );
       }
     } catch (error) {
       console.error('Failed to render notes:', error);
     }
-  }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition]);
+  }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition, previewAnimation]);
 
   return (
     <div className={`relative ${className}`} style={{ width, height }}>
-      <button
-        type="button"
+      <div
         ref={containerRef}
-        className="h-full w-full cursor-pointer rounded border bg-white p-0"
+        className={`
+          h-full w-full rounded border bg-white p-0 transition-all duration-200
+          ${disabled ? 'cursor-not-allowed opacity-60' : ''}
+          ${isOverInteractiveArea() ? 'shadow-md' : ''}
+          ${disabled ? '' : hoveredPosition ? 'cursor-crosshair' : 'cursor-default'}
+        `}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleMouseClick}
-        onKeyDown={handleKeyDown}
+        onContextMenu={(e) => {
+          // Handle right-click on staff area
+          if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
+            handleNoteRightClick(e, hoveredPosition.pitch);
+          }
+        }}
+        role="button"
         aria-label="Interactive music staff for note input"
-        disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={handleKeyDown}
         style={{
           cursor: getCursorStyle(),
         }}
       />
+
+      {/* Validation Display */}
+      <ValidationDisplay
+        selectedNotes={selectedNotes}
+        correctNotes={correctNotes}
+        validationResult={validationResult}
+        showCorrectAnswer={showCorrectAnswer}
+      />
+
+      {/* Context Menu */}
+      {contextMenuNote && contextMenuPosition && (
+        <NoteContextMenu
+          note={contextMenuNote}
+          position={contextMenuPosition}
+          isSelected={isInternallySelected(contextMenuNote)}
+          onAction={handleContextMenuAction}
+          onClose={closeContextMenu}
+        />
+      )}
+
+      {/* Validation Stats */}
+      {(showCorrectAnswer || validationResult) && (
+        <div className="mt-2 rounded border bg-gray-50 p-2">
+          <ValidationStats
+            selectedNotes={selectedNotes}
+            correctNotes={correctNotes}
+          />
+        </div>
+      )}
 
       {/* Debug info */}
       <div className="mt-2 text-sm text-gray-600">
@@ -205,6 +279,13 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             )
           </span>
         )}
+        {canAddNote()
+          ? (
+              <span className="ml-2 text-green-500">Can add more notes</span>
+            )
+          : (
+              <span className="ml-2 text-orange-500">Maximum notes reached</span>
+            )}
       </div>
     </div>
   );

@@ -1,24 +1,27 @@
 import type { RefObject } from 'react';
 import type { StaffPosition } from '../types/StaffInteraction';
 import type { StaffCoordinates } from '../utils/staffCoordinates';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 /**
  * Hook for managing staff interaction (mouse and touch events)
  * Handles coordinate conversion, hit detection, and hover state management
  */
 export const useStaffInteraction = (
-  containerRef: RefObject<HTMLDivElement> | null,
-  staffCoordinatesRef: RefObject<StaffCoordinates>,
+  containerRef: RefObject<HTMLDivElement | null>,
+  staffCoordinatesRef: RefObject<StaffCoordinates | null>,
   onNoteClick: (position: StaffPosition) => void,
   disabled: boolean = false,
 ) => {
   const [hoveredPosition, setHoveredPosition] = useState<StaffPosition | null>(null);
+  const [isHovering, setIsHovering] = useState(false);
+  const [previewAnimation, setPreviewAnimation] = useState<'fadeIn' | 'fadeOut' | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
-   * Handle mouse move events for hover preview
+   * Handle mouse move events for hover preview with smooth transitions
    */
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef || !staffCoordinatesRef.current || disabled) {
       return;
     }
@@ -31,18 +34,49 @@ export const useStaffInteraction = (
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
+    // Clear any existing hover timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
-      setHoveredPosition(position);
+
+      // Only update if position actually changed to avoid unnecessary re-renders
+      if (!hoveredPosition
+        || hoveredPosition.pitch !== position.pitch
+        || Math.abs(hoveredPosition.x - position.x) > 5) {
+        if (!isHovering) {
+          setIsHovering(true);
+          setPreviewAnimation('fadeIn');
+        }
+
+        setHoveredPosition(position);
+
+        // Clear animation state after animation completes
+        hoverTimeoutRef.current = setTimeout(() => {
+          setPreviewAnimation(null);
+        }, 150);
+      }
     } else {
-      setHoveredPosition(null);
+      // Mouse is outside staff area
+      if (isHovering) {
+        setPreviewAnimation('fadeOut');
+        setIsHovering(false);
+
+        // Clear hover position after fade out animation
+        hoverTimeoutRef.current = setTimeout(() => {
+          setHoveredPosition(null);
+          setPreviewAnimation(null);
+        }, 150);
+      }
     }
-  }, [staffCoordinatesRef, disabled, containerRef]);
+  }, [staffCoordinatesRef, disabled, containerRef, hoveredPosition, isHovering]);
 
   /**
    * Handle mouse click events for note placement
    */
-  const handleMouseClick = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMouseClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (!containerRef || !staffCoordinatesRef.current || disabled) {
       return;
     }
@@ -62,11 +96,25 @@ export const useStaffInteraction = (
   }, [staffCoordinatesRef, disabled, containerRef, onNoteClick]);
 
   /**
-   * Handle mouse leave events to clear hover state
+   * Handle mouse leave events to clear hover state with animation
    */
   const handleMouseLeave = useCallback(() => {
-    setHoveredPosition(null);
-  }, []);
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    if (isHovering) {
+      setPreviewAnimation('fadeOut');
+      setIsHovering(false);
+
+      // Clear hover position after fade out animation
+      hoverTimeoutRef.current = setTimeout(() => {
+        setHoveredPosition(null);
+        setPreviewAnimation(null);
+      }, 150);
+    }
+  }, [isHovering]);
 
   /**
    * Get cursor style based on interaction state
@@ -76,10 +124,30 @@ export const useStaffInteraction = (
       return 'not-allowed';
     }
     if (hoveredPosition) {
-      return 'pointer';
+      return 'crosshair'; // More precise cursor for note placement
     }
     return 'default';
   }, [disabled, hoveredPosition]);
+
+  /**
+   * Get CSS class for cursor styling
+   */
+  const getCursorClass = useCallback(() => {
+    if (disabled) {
+      return 'cursorNotAllowed';
+    }
+    if (hoveredPosition) {
+      return 'cursorCrosshair';
+    }
+    return 'cursorDefault';
+  }, [disabled, hoveredPosition]);
+
+  /**
+   * Check if mouse is currently over an interactive area
+   */
+  const isOverInteractiveArea = useCallback(() => {
+    return hoveredPosition !== null;
+  }, [hoveredPosition]);
 
   return {
     // Event handlers
@@ -89,8 +157,12 @@ export const useStaffInteraction = (
 
     // State
     hoveredPosition,
+    isHovering,
+    previewAnimation,
 
     // Utilities
     getCursorStyle,
+    getCursorClass,
+    isOverInteractiveArea,
   };
 };

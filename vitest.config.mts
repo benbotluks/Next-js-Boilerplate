@@ -5,6 +5,11 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react(), tsconfigPaths()],
+  css: {
+    modules: {
+      classNameStrategy: 'non-scoped',
+    },
+  },
   test: {
     coverage: {
       include: ['src/**/*'],
