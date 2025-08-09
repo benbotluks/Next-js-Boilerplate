@@ -280,38 +280,52 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   }, [selectedNotes, showCorrectAnswer, correctNotes, validationResult, hoveredPosition, previewAnimation, focusedPosition, keyboardMode]);
 
   return (
-    <div className={`relative ${className}`} style={{ width, height }}>
-      <div
-        ref={containerRef}
-        className={`
+    <div className={`${className}`}>
+      {/* Main staff container */}
+      <div className="relative" style={{ width, height }}>
+        <div
+          ref={containerRef}
+          className={`
           h-full w-full rounded border bg-white p-0 transition-all duration-200
           ${disabled ? 'cursor-not-allowed opacity-60' : ''}
           ${isOverInteractiveArea() ? 'shadow-md' : ''}
           ${keyboardMode ? 'ring-2 ring-blue-500/50' : ''}
           ${disabled ? '' : hoveredPosition ? 'cursor-crosshair' : 'cursor-default'}
         `}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        onClick={handleMouseClick}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onClick={handleMouseClick}
 
-        onContextMenu={(e) => {
+          onContextMenu={(e) => {
           // Handle right-click on staff area
-          if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
-            handleNoteRightClick(e, hoveredPosition.pitch);
-          }
-        }}
-        // Accessibility attributes
-        role="button"
-        aria-label={getAriaLabel()}
-        aria-describedby="staff-description"
-        aria-disabled={disabled}
-        tabIndex={disabled ? -1 : 0}
-        // Additional ARIA attributes for screen readers
-        aria-keyshortcuts="Tab ArrowUp ArrowDown Enter Space Delete Escape"
-        style={{
-          cursor: getCursorStyle(),
-        }}
-      />
+            if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
+              handleNoteRightClick(e, hoveredPosition.pitch);
+            }
+          }}
+          // Accessibility attributes
+          role="button"
+          aria-label={getAriaLabel()}
+          aria-describedby="staff-description"
+          aria-disabled={disabled}
+          tabIndex={disabled ? -1 : 0}
+          // Additional ARIA attributes for screen readers
+          aria-keyshortcuts="Tab ArrowUp ArrowDown Enter Space Delete Escape"
+          style={{
+            cursor: getCursorStyle(),
+          }}
+        />
+
+        {/* Context Menu - positioned relative to staff */}
+        {contextMenuNote && contextMenuPosition && (
+          <NoteContextMenu
+            note={contextMenuNote}
+            position={contextMenuPosition}
+            isSelected={isInternallySelected(contextMenuNote)}
+            onAction={handleContextMenuAction}
+            onClose={closeContextMenu}
+          />
+        )}
+      </div>
 
       {/* Hidden description for screen readers */}
       <div id="staff-description" className="sr-only">
@@ -335,17 +349,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         validationResult={validationResult}
         showCorrectAnswer={showCorrectAnswer}
       />
-
-      {/* Context Menu */}
-      {contextMenuNote && contextMenuPosition && (
-        <NoteContextMenu
-          note={contextMenuNote}
-          position={contextMenuPosition}
-          isSelected={isInternallySelected(contextMenuNote)}
-          onAction={handleContextMenuAction}
-          onClose={closeContextMenu}
-        />
-      )}
 
       {/* Validation Stats */}
       {(showCorrectAnswer || validationResult) && (
