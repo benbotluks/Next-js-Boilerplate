@@ -32,14 +32,14 @@
     - Implement note styling for different states (normal, selected, hovered)
     - _Requirements: 1.1, 2.3, 4.3_
 
-- [ ] 4. Build mouse interaction system
-  - [ ] 4.1 Create useStaffInteraction hook
+- [x] 4. Build mouse interaction system
+  - [x] 4.1 Create useStaffInteraction hook
     - Implement mouse event handlers for click, move, and leave events
     - Add coordinate conversion and hit detection logic
     - Create hover state management and preview functionality
     - _Requirements: 1.1, 1.2, 2.1, 2.2_
 
-  - [ ] 4.2 Implement click-to-place note functionality
+  - [x] 4.2 Implement click-to-place note functionality
     - Add logic to detect clicks on staff positions
     - Implement note creation at clicked positions
     - Add click detection for existing notes to toggle selection

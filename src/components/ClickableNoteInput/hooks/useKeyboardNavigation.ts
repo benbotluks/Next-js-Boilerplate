@@ -7,7 +7,7 @@ import type { StaffPosition } from '../types/StaffInteraction';
  */
 export const useKeyboardNavigation = (
   containerRef: RefObject<HTMLDivElement>,
-  onNotePlace: (position: StaffPosition) => void
+  onNotePlace: (position: StaffPosition) => void,
 ) => {
   // Implementation will be added in task 7.1
 

@@ -1,7 +1,7 @@
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Formatter, StaveNote, Voice } from 'vexflow';
-import { pitchToLinePosition, pitchToVexFlowKey } from './notePositioning';
+import { pitchToLinePosition } from './notePositioning';
 
 /**
  * Configuration for note rendering styles
@@ -27,11 +27,10 @@ export const NOTE_STYLES = {
 /**
  * Create VexFlow StaveNote from our Note type
  */
-export const createStaveNote = (pitch: Note, duration: string = 'q'): StaveNote => {
-  const vexFlowKey = pitchToVexFlowKey(pitch);
-
+export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): StaveNote => {
+  const keys = Array.isArray(pitch) ? pitch : [pitch];
   return new StaveNote({
-    keys: [vexFlowKey],
+    keys,
     duration,
   });
 };
@@ -94,12 +93,7 @@ export const renderNotesOnStaff = (
       return aPos - bPos; // Lower line positions first
     });
 
-    const staveNote = new StaveNote({
-      keys: sortedNotes.map(note =>
-        pitchToVexFlowKey(note),
-      ),
-      duration: 'q',
-    });
+    const staveNote = createStaveNote(sortedNotes);
 
     if (sortedNotes && sortedNotes[0]) {
       const style = getNoteStyle(

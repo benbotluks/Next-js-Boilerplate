@@ -7,7 +7,7 @@ import type { StaffPosition } from '../types/StaffInteraction';
  */
 export const useStaffInteraction = (
   containerRef: RefObject<HTMLDivElement>,
-  onNoteClick: (position: StaffPosition) => void
+  onNoteClick: (position: StaffPosition) => void,
 ) => {
   // Implementation will be added in task 4.1
 

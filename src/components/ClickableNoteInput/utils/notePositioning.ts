@@ -126,7 +126,7 @@ export const detectAccidental = (pitch: Note): 'sharp' | 'flat' | 'natural' | un
  */
 export const getNoteName = (pitch: Note): string => {
   const match = pitch.match(/^([A-G])/);
-  return match?.[1] || 'C';
+  return match?.[1];
 };
 
 /**
@@ -217,23 +217,4 @@ export const getStaffLinePositions = (): number[] => {
  */
 export const getStaffSpacePositions = (): number[] => {
   return [1, 3, 5, 7]; // f/4, a/4, c/5, e/5
-};
-
-/**
- * Get the VexFlow key format from a pitch
- * Converts 'c/4' to 'c/4', 'F#5' to 'f#/5', etc.
- */
-export const pitchToVexFlowKey = (pitch: Note): string => {
-  const noteName = getNoteName(pitch).toLowerCase();
-  const octave = getOctave(pitch);
-  const accidental = detectAccidental(pitch);
-
-  let key = noteName;
-  if (accidental === 'sharp') {
-    key += '#';
-  } else if (accidental === 'flat') {
-    key += 'b';
-  }
-
-  return `${key}/${octave}`;
 };

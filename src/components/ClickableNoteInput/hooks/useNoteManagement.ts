@@ -8,7 +8,7 @@ export const useNoteManagement = (
   selectedNotes: Note[],
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
-  maxNotes: number
+  maxNotes: number,
 ) => {
   // Implementation will be added in task 5.1
 
