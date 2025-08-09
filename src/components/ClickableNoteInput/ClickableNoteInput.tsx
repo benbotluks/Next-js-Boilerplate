@@ -330,9 +330,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleMouseClick}
-
+          onKeyDown={(_) => {}}
           onContextMenu={(e) => {
-          // Handle right-click on staff area
             if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
               handleNoteRightClick(e, hoveredPosition.pitch);
             }

@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import type { Note } from '@/types/MusicTypes';
 import React from 'react';
 
@@ -33,7 +35,6 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
         top: position.y,
       }}
       onClick={e => e.stopPropagation()}
-      onKeyUp={() => {}}
     >
       <div className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500">
         Note:
@@ -42,6 +43,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
       </div>
 
       <button
+        type="button"
         className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
         onClick={() => handleAction('delete')}
       >
@@ -51,6 +53,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
       {!isSelected
         ? (
             <button
+              type="button"
               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
               onClick={() => handleAction('select')}
             >
@@ -59,6 +62,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
           )
         : (
             <button
+              type="button"
               className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
               onClick={() => handleAction('deselect')}
             >
