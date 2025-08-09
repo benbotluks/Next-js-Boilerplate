@@ -6,30 +6,30 @@ import type { Note } from '@/types/MusicTypes';
 
 /**
  * Treble clef pitch mapping for staff positions
- * Line positions: 0 = E4 (bottom line), 2 = G4, 4 = B4, 6 = D5, 8 = F5 (top line)
- * Space positions: 1 = F4, 3 = A4, 5 = C5, 7 = E5
+ * Line positions: 0 = e/4 (bottom line), 2 = g/4, 4 = b/4, 6 = d/5, 8 = f/5 (top line)
+ * Space positions: 1 = f/4, 3 = a/4, 5 = c/5, 7 = e/5
  * We avoid duplicate pitches by using different octaves for ledger lines
  */
 const TREBLE_CLEF_PITCHES: Record<number, Note> = {
   // Below staff (ledger lines)
-  '-6': 'C4',
-  '-4': 'D4',
+  '-6': 'c/4',
+  '-4': 'd/4',
 
   // On staff
-  '0': 'E4', // Bottom line
-  '1': 'F4', // First space
-  '2': 'G4', // Second line
-  '3': 'A4', // Second space
-  '4': 'B4', // Middle line
-  '5': 'C5', // Third space
-  '6': 'D5', // Fourth line
-  '7': 'E5', // Fourth space
-  '8': 'F5', // Top line
+  '0': 'e/4', // Bottom line
+  '1': 'f/4', // First space
+  '2': 'g/4', // Second line
+  '3': 'a/4', // Second space
+  '4': 'b/4', // Middle line
+  '5': 'c/5', // Third space
+  '6': 'd/5', // Fourth line
+  '7': 'e/5', // Fourth space
+  '8': 'f/5', // Top line
 
   // Above staff (ledger lines)
-  '10': 'G5',
-  '12': 'A5',
-  '14': 'B5',
+  '10': 'g/5',
+  '12': 'a/5',
+  '14': 'b/5',
 };
 
 /**
@@ -62,7 +62,7 @@ export const linePositionToPitch = (linePosition: number): Note => {
 
   // Find the closest mapped position
   if (basePositions.length === 0 || !basePositions[0]) {
-    return 'C4'; // Fallback
+    return 'c/4'; // Fallback
   }
 
   let closestPos = basePositions[0];
@@ -76,7 +76,7 @@ export const linePositionToPitch = (linePosition: number): Note => {
     }
   }
 
-  return TREBLE_CLEF_PITCHES[closestPos] || 'C4';
+  return TREBLE_CLEF_PITCHES[closestPos] || 'c/4';
 };
 
 /**
@@ -91,7 +91,7 @@ export const pitchToLinePosition = (pitch: Note): number => {
   // If pitch not found in mapping, try to parse and estimate
   const match = pitch.match(/^([A-G])(#|b)?(\d)$/);
   if (!match || !match[3]) {
-    return 4; // Default to middle line (B4)
+    return 4; // Default to middle line (b/4)
   }
 
   const octaveNum = Number.parseInt(match[3]);
@@ -209,19 +209,19 @@ export const isValidPitch = (pitch: Note): boolean => {
  * Get the staff line positions that correspond to actual staff lines (not spaces)
  */
 export const getStaffLinePositions = (): number[] => {
-  return [0, 2, 4, 6, 8]; // E4, G4, B4, D5, F5
+  return [0, 2, 4, 6, 8]; // e/4, g/4, b/4, d/5, f/5
 };
 
 /**
  * Get the staff space positions (between lines)
  */
 export const getStaffSpacePositions = (): number[] => {
-  return [1, 3, 5, 7]; // F4, A4, C5, E5
+  return [1, 3, 5, 7]; // f/4, a/4, c/5, e/5
 };
 
 /**
  * Get the VexFlow key format from a pitch
- * Converts 'C4' to 'c/4', 'F#5' to 'f#/5', etc.
+ * Converts 'c/4' to 'c/4', 'F#5' to 'f#/5', etc.
  */
 export const pitchToVexFlowKey = (pitch: Note): string => {
   const noteName = getNoteName(pitch).toLowerCase();

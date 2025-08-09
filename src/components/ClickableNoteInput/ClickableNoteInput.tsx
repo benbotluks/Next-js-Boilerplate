@@ -14,34 +14,20 @@ const EMPTY_ARRAY: Note[] = [];
  * Props for the ClickableNoteInput component
  */
 export type ClickableNoteInputProps = {
-  /** Currently selected notes */
+
   selectedNotes: Note[];
-  /** Callback when a note is selected */
   onNoteSelect: (note: Note) => void;
-  /** Callback when a note is deselected */
   onNoteDeselect: (note: Note) => void;
-  /** Maximum number of notes that can be selected */
   maxNotes: number;
-  /** Whether to show correct answer highlighting */
   showCorrectAnswer?: boolean;
-  /** Array of correct notes for validation display */
   correctNotes?: Note[];
-  /** Validation result for displaying correct/incorrect states */
   validationResult?: AnswerValidationResult;
-  /** Width of the component in pixels */
   width?: number;
-  /** Height of the component in pixels */
   height?: number;
-  /** Whether the component is disabled */
   disabled?: boolean;
-  /** Additional CSS classes */
   className?: string;
 };
 
-/**
- * Interactive musical staff component that allows clicking to input notes
- * Similar to MuseScore's note input interface
- */
 const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   selectedNotes,
   onNoteSelect,
@@ -68,7 +54,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
 
     try {
-      // Clear any existing content
       containerRef.current.innerHTML = '';
 
       // Create VexFlow renderer

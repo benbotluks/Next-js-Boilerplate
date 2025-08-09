@@ -3,7 +3,7 @@ import type { Note } from '@/types/MusicTypes';
 /**
  * Represents a position on the musical staff
  */
-export interface StaffPosition {
+export type StaffPosition = {
   /** Horizontal position on staff */
   x: number;
   /** Vertical position on staff */
@@ -18,12 +18,12 @@ export interface StaffPosition {
   requiresLedgerLine: boolean;
   /** Accidental if needed */
   accidental?: 'sharp' | 'flat' | 'natural';
-}
+};
 
 /**
  * Tracks the current interaction state
  */
-export interface InteractionState {
+export type InteractionState = {
   /** Currently hovered staff position */
   hoveredPosition: StaffPosition | null;
   /** Set of currently selected notes */
@@ -36,12 +36,12 @@ export interface InteractionState {
   focusedPosition: StaffPosition | null;
   /** Whether keyboard navigation mode is active */
   keyboardMode: boolean;
-}
+};
 
 /**
  * Contains data needed to render a note
  */
-export interface NoteRenderData {
+export type NoteRenderData = {
   /** VexFlow note object */
   vexflowNote: any; // VexFlow.StaveNote type
   /** Staff position of the note */
@@ -54,26 +54,26 @@ export interface NoteRenderData {
   isIncorrect?: boolean;
   /** Whether note is currently hovered */
   isHovered: boolean;
-}
+};
 
 /**
  * Result of input validation
  */
-export interface ValidationResult {
+export type ValidationResult = {
   /** Whether the input is valid */
   valid: boolean;
   /** Error message if invalid */
   error?: string;
-}
+};
 
 /**
  * Configuration for touch handling
  */
-export interface TouchConfig {
+export type TouchConfig = {
   /** Minimum touch target size in pixels */
   minTouchTarget: number;
   /** Touch hold duration for context menu */
   longPressDelay: number;
   /** Whether haptic feedback is enabled */
   hapticFeedback: boolean;
-}
+};

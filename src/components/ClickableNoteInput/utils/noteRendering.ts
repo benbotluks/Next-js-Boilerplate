@@ -121,7 +121,6 @@ export const renderNotesOnStaff = (
       beatValue: 4,
     });
 
-    // Add notes to voice
     voice.addTickables([staveNote]);
 
     // Format the voice to fit the stave

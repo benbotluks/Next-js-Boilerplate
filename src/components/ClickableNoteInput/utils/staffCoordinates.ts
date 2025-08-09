@@ -86,23 +86,14 @@ export class StaffCoordinates {
     return Math.round(exactPosition);
   }
 
-  /**
-   * Check if a line position is on a staff line (vs space)
-   */
   private isOnStaffLine(linePosition: number): boolean {
     return linePosition % 2 === 0;
   }
 
-  /**
-   * Check if a line position requires ledger lines
-   */
   private requiresLedgerLine(linePosition: number): boolean {
     return linePosition < 0 || linePosition > 8;
   }
 
-  /**
-   * Check if coordinates are within the staff area (including reasonable margins)
-   */
   isWithinStaffArea(x: number, y: number): boolean {
     const margin = this.lineSpacing * 3; // Allow 3 line spaces above/below
     const leftBound = this.stave.getX();
@@ -113,9 +104,6 @@ export class StaffCoordinates {
     return x >= leftBound && x <= rightBound && y >= topBound && y <= bottomBound;
   }
 
-  /**
-   * Get the staff bounds for interaction area
-   */
   getStaffBounds(): { left: number; right: number; top: number; bottom: number } {
     const margin = this.lineSpacing * 3;
     return {

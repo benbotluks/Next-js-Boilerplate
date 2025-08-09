@@ -7,7 +7,7 @@ import ClickableNoteInput from '@/components/ClickableNoteInput';
 export default function ClickableNoteDemoPage() {
   const [selectedNotes, setSelectedNotes] = useState<Note[]>([]);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
-  const correctNotes: Note[] = ['C4', 'E4', 'G4'];
+  const correctNotes: Note[] = ['c/4', 'e/4', 'g/4'];
 
   const handleNoteSelect = (note: Note) => {
     setSelectedNotes(prev => [...prev, note]);
@@ -59,7 +59,7 @@ export default function ClickableNoteDemoPage() {
 
         <button
           type="button"
-          onClick={() => setSelectedNotes(['C4', 'E4', 'G4'])}
+          onClick={() => setSelectedNotes(['c/4', 'e/4', 'g/4'])}
           className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
         >
           Set C Major Chord
