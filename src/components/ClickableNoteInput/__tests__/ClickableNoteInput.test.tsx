@@ -31,7 +31,7 @@ describe('ClickableNoteInput', () => {
   it('applies custom className', () => {
     const { container } = render(<ClickableNoteInput {...defaultProps} className="custom-class" />);
     
-    expect(container.firstChild).toHaveClass('clickable-note-input', 'custom-class');
+    expect(container.firstChild).toHaveClass('relative', 'custom-class');
   });
 
   it('applies custom dimensions', () => {

@@ -35,7 +35,7 @@ const TREBLE_CLEF_PITCHES: Record<number, Note> = {
 /**
  * Reverse mapping from pitch to line position
  */
-const PITCH_TO_LINE_POSITION: Record<Note, number> = {};
+const PITCH_TO_LINE_POSITION: Partial<Record<Note, number>> = {};
 Object.entries(TREBLE_CLEF_PITCHES).forEach(([linePos, pitch]) => {
   PITCH_TO_LINE_POSITION[pitch] = Number.parseInt(linePos);
 });
@@ -61,6 +61,10 @@ export const linePositionToPitch = (linePosition: number): Note => {
   const basePositions = Object.keys(TREBLE_CLEF_PITCHES).map(Number).sort((a, b) => a - b);
 
   // Find the closest mapped position
+  if (basePositions.length === 0 || !basePositions[0]) {
+    return 'C4'; // Fallback
+  }
+
   let closestPos = basePositions[0];
   let minDistance = Math.abs(linePosition - closestPos);
 
@@ -72,7 +76,7 @@ export const linePositionToPitch = (linePosition: number): Note => {
     }
   }
 
-  return TREBLE_CLEF_PITCHES[closestPos];
+  return TREBLE_CLEF_PITCHES[closestPos] || 'C4';
 };
 
 /**
@@ -86,12 +90,11 @@ export const pitchToLinePosition = (pitch: Note): number => {
 
   // If pitch not found in mapping, try to parse and estimate
   const match = pitch.match(/^([A-G])(#|b)?(\d)$/);
-  if (!match) {
+  if (!match || !match[3]) {
     return 4; // Default to middle line (B4)
   }
 
-  const [, noteName, accidental, octave] = match;
-  const octaveNum = Number.parseInt(octave);
+  const octaveNum = Number.parseInt(match[3]);
 
   // Basic estimation for unmapped pitches
   // This is a simplified approach - in a full implementation,
@@ -123,7 +126,7 @@ export const detectAccidental = (pitch: Note): 'sharp' | 'flat' | 'natural' | un
  */
 export const getNoteName = (pitch: Note): string => {
   const match = pitch.match(/^([A-G])/);
-  return match ? match[1] : 'C';
+  return match?.[1] || 'C';
 };
 
 /**
@@ -131,7 +134,7 @@ export const getNoteName = (pitch: Note): string => {
  */
 export const getOctave = (pitch: Note): number => {
   const match = pitch.match(/(\d)$/);
-  return match ? Number.parseInt(match[1]) : 4;
+  return (match && match[1]) ? Number.parseInt(match[1]) : 4;
 };
 
 /**
@@ -214,4 +217,23 @@ export const getStaffLinePositions = (): number[] => {
  */
 export const getStaffSpacePositions = (): number[] => {
   return [1, 3, 5, 7]; // F4, A4, C5, E5
+};
+
+/**
+ * Get the VexFlow key format from a pitch
+ * Converts 'C4' to 'c/4', 'F#5' to 'f#/5', etc.
+ */
+export const pitchToVexFlowKey = (pitch: Note): string => {
+  const noteName = getNoteName(pitch).toLowerCase();
+  const octave = getOctave(pitch);
+  const accidental = detectAccidental(pitch);
+
+  let key = noteName;
+  if (accidental === 'sharp') {
+    key += '#';
+  } else if (accidental === 'flat') {
+    key += 'b';
+  }
+
+  return `${key}/${octave}`;
 };

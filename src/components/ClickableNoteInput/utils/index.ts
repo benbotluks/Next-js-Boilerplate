@@ -1,4 +1,5 @@
-// Utility exports will be added as they are implemented
+// Utility exports
 export * from './staffCoordinates';
 export * from './notePositioning';
+export * from './noteRendering';
 export * from './touchHandling';

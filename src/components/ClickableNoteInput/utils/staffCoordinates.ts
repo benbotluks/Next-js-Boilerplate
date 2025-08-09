@@ -1,6 +1,5 @@
-import type { Note } from '@/types/MusicTypes';
 import type { StaffPosition } from '../types/StaffInteraction';
-import { linePositionToPitch, pitchToLinePosition, detectAccidental } from './notePositioning';
+import { detectAccidental, linePositionToPitch } from './notePositioning';
 
 /**
  * Utility class for converting between screen coordinates and staff positions

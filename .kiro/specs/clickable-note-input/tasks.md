@@ -20,13 +20,13 @@
     - _Requirements: 1.1, 1.4_
 
 - [ ] 3. Create core VexFlow staff rendering
-  - [-] 3.1 Set up basic VexFlow staff component
+  - [x] 3.1 Set up basic VexFlow staff component
     - Initialize VexFlow renderer with Canvas/SVG backend
     - Create and configure staff with treble clef and time signature
     - Implement responsive sizing and container management
     - _Requirements: 4.2, 5.4_
 
-  - [ ] 3.2 Implement note rendering system
+  - [x] 3.2 Implement note rendering system
     - Create functions to render StaveNote objects on the staff
     - Add support for ledger lines when notes are above/below staff
     - Implement note styling for different states (normal, selected, hovered)
