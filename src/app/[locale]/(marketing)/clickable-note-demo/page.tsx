@@ -7,6 +7,7 @@ import ClickableNoteInput from '@/components/ClickableNoteInput';
 export default function ClickableNoteDemoPage() {
   const [selectedNotes, setSelectedNotes] = useState<Note[]>([]);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
+  const [audioMode, setAudioMode] = useState<'individual' | 'chord'>('individual');
   const correctNotes: Note[] = ['c/4', 'e/4', 'g/4'];
 
   const handleNoteSelect = (note: Note) => {
@@ -35,6 +36,8 @@ export default function ClickableNoteDemoPage() {
           correctNotes={correctNotes}
           width={800}
           height={250}
+          enableAudio={true}
+          audioMode={audioMode}
         />
       </div>
 
@@ -64,6 +67,16 @@ export default function ClickableNoteDemoPage() {
         >
           Set C Major Chord
         </button>
+
+        <button
+          type="button"
+          onClick={() => setAudioMode(audioMode === 'individual' ? 'chord' : 'individual')}
+          className="rounded bg-purple-500 px-4 py-2 text-white hover:bg-purple-600"
+        >
+          Audio:
+          {' '}
+          {audioMode === 'individual' ? 'Individual Notes' : 'Chord Mode'}
+        </button>
       </div>
 
       <div className="mt-6">
@@ -72,6 +85,9 @@ export default function ClickableNoteDemoPage() {
           <li>Click on staff lines or spaces to add notes</li>
           <li>Click on existing notes to remove them</li>
           <li>Hover over the staff to see note previews</li>
+          <li>Use Tab and arrow keys for keyboard navigation</li>
+          <li>Notes will play audio when added (individual mode) or as chords (chord mode)</li>
+          <li>Click the "🔊 Play Notes" button to replay all selected notes</li>
           <li>Maximum 5 notes can be selected</li>
           <li>Use the buttons above to test different features</li>
         </ul>

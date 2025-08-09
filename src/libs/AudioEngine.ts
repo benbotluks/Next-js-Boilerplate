@@ -1,79 +1,56 @@
 import type { Note } from '@/types/MusicTypes';
-import { AVAILABLE_NOTES, NOTE_FREQUENCIES } from '@/utils/MusicConstants';
+import * as Tone from 'tone';
+import { AVAILABLE_NOTES } from '@/utils/MusicConstants';
 
 export class AudioEngine {
-  private audioContext: AudioContext | null = null;
-  private oscillators: OscillatorNode[] = [];
-  private gainNode: GainNode | null = null;
-  private volume = 0.7;
+  private sampler: Tone.Sampler | null = null;
   private isInitialized = false;
 
   constructor() {
-    this.initializeAudioContext();
+    this.initializeSampler();
   }
 
   /**
-   * Initialize the Web Audio API context
+   * Initialize the Tone.js sampler with piano samples
    */
-  private initializeAudioContext(): void {
+  private initializeSampler(): void {
     try {
-      // Check for Web Audio API support
-      if (!this.isSupported()) {
-        console.warn('Web Audio API is not supported in this browser');
-        return;
-      }
-
-      // Create audio context (will be resumed on first user interaction)
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      this.audioContext = new AudioContextClass();
-
-      // Create master gain node for volume control
-      this.gainNode = this.audioContext.createGain();
-      this.gainNode.connect(this.audioContext.destination);
-      this.gainNode.gain.value = this.volume;
+      // Create a sampler with piano samples from Tone.js
+      this.sampler = new Tone.Sampler({
+        urls: {
+          'C4': 'C4.mp3',
+          'D#4': 'Ds4.mp3',
+          'F#4': 'Fs4.mp3',
+          'A4': 'A4.mp3',
+        },
+        release: 1,
+        baseUrl: 'https://tonejs.github.io/audio/salamander/',
+      }).toDestination();
 
       this.isInitialized = true;
     } catch (error) {
-      console.error('Failed to initialize audio context:', error);
-      this.audioContext = null;
-      this.gainNode = null;
+      console.error('Failed to initialize audio sampler:', error);
+      this.sampler = null;
       this.isInitialized = false;
     }
   }
 
   /**
-   * Check if Web Audio API is supported
+   * Check if audio is supported
    */
   public isSupported(): boolean {
     if (typeof window === 'undefined') {
       return false; // Server-side environment
     }
-    return !!(window.AudioContext || (window as any).webkitAudioContext);
+    return this.isInitialized && this.sampler !== null;
   }
 
   /**
-   * Resume audio context if it's suspended (required for user interaction)
+   * Convert our note format (e.g., 'c/4') to Tone.js format (e.g., 'C4')
    */
-  private async resumeAudioContext(): Promise<void> {
-    if (this.audioContext && this.audioContext.state === 'suspended') {
-      try {
-        await this.audioContext.resume();
-      } catch (error) {
-        console.error('Failed to resume audio context:', error);
-        throw new Error('Audio context could not be resumed');
-      }
-    }
-  }
-
-  /**
-   * Convert note names to frequencies
-   */
-  private getFrequency(note: Note): number {
-    const frequency = NOTE_FREQUENCIES[note];
-    if (!frequency) {
-      throw new Error(`Invalid note: ${note}`);
-    }
-    return frequency;
+  private convertNoteFormat(note: Note): string {
+    const [noteName, octave] = note.split('/');
+    return noteName!.toUpperCase() + octave;
   }
 
   /**
@@ -93,7 +70,7 @@ export class AudioEngine {
    * Play multiple notes simultaneously
    */
   public async playNotes(notes: Note[]): Promise<void> {
-    if (!this.isInitialized || !this.audioContext || !this.gainNode) {
+    if (!this.isSupported() || !this.sampler) {
       throw new Error('Audio engine is not initialized');
     }
 
@@ -101,112 +78,20 @@ export class AudioEngine {
       throw new Error('At least one note must be provided');
     }
 
-    // Stop any currently playing notes
-    this.stopNotes();
-
     try {
-      // Resume audio context if needed
-      await this.resumeAudioContext();
-
-      // Create oscillators for each note
-      this.oscillators = notes.map((note) => {
-        const oscillator = this.audioContext!.createOscillator();
-        const frequency = this.getFrequency(note);
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, this.audioContext!.currentTime);
-
-        // Connect to gain node
-        oscillator.connect(this.gainNode!);
-
-        return oscillator;
-      });
-
-      // Start all oscillators simultaneously
-      const startTime = this.audioContext.currentTime;
-      this.oscillators.forEach((oscillator) => {
-        oscillator.start(startTime);
-      });
-
-      // Schedule stop after 2 seconds
-      const stopTime = startTime + 2.0;
-      this.oscillators.forEach((oscillator) => {
-        oscillator.stop(stopTime);
-      });
-
-      // Clean up oscillators after they stop
-      setTimeout(() => {
-        this.oscillators = [];
-      }, 2100);
-    } catch (error) {
-      console.error('Failed to play notes:', error);
-      this.stopNotes();
-
-      // Preserve specific error messages for better debugging
-      if (error instanceof Error) {
-        if (error.message.includes('Invalid note:')) {
-          throw error; // Re-throw note validation errors as-is
-        }
-        if (error.message.includes('Audio context could not be resumed')) {
-          throw error; // Re-throw audio context errors as-is
-        }
+      // Start Tone.js audio context if needed
+      if (Tone.getContext().state !== 'running') {
+        await Tone.start();
       }
 
-      throw new Error('Failed to play audio');
-    }
-  }
+      // Wait for samples to load
+      await Tone.loaded();
 
-  /**
-   * Play notes by frequency values
-   */
-  public async playFrequencies(frequencies: number[]): Promise<void> {
-    if (!this.isInitialized || !this.audioContext || !this.gainNode) {
-      throw new Error('Audio engine is not initialized');
-    }
-
-    if (frequencies.length === 0) {
-      throw new Error('At least one frequency must be provided');
-    }
-
-    // Stop any currently playing notes
-    this.stopNotes();
-
-    try {
-      // Resume audio context if needed
-      await this.resumeAudioContext();
-
-      // Create oscillators for each frequency
-      this.oscillators = frequencies.map((frequency) => {
-        const oscillator = this.audioContext!.createOscillator();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(frequency, this.audioContext!.currentTime);
-
-        // Connect to gain node
-        oscillator.connect(this.gainNode!);
-
-        return oscillator;
-      });
-
-      // Start all oscillators simultaneously
-      const startTime = this.audioContext.currentTime;
-      this.oscillators.forEach((oscillator) => {
-        oscillator.start(startTime);
-      });
-
-      // Schedule stop after 2 seconds
-      const stopTime = startTime + 2.0;
-      this.oscillators.forEach((oscillator) => {
-        oscillator.stop(stopTime);
-      });
-
-      // Clean up oscillators after they stop
-      setTimeout(() => {
-        this.oscillators = [];
-      }, 2100);
+      // Convert notes to Tone.js format and play them
+      const toneNotes = notes.map(note => this.convertNoteFormat(note));
+      this.sampler.triggerAttackRelease(toneNotes, '2n');
     } catch (error) {
-      console.error('Failed to play frequencies:', error);
-      this.stopNotes();
+      console.error('Failed to play notes:', error);
       throw new Error('Failed to play audio');
     }
   }
@@ -215,16 +100,9 @@ export class AudioEngine {
    * Stop all currently playing notes
    */
   public stopNotes(): void {
-    this.oscillators.forEach((oscillator) => {
-      try {
-        oscillator.stop();
-      } catch (error) {
-        console.error('Failed to stop notes:', error);
-        throw new Error('Failed to stop audio');
-        // Oscillator might already be stopped, ignore error
-      }
-    });
-    this.oscillators = [];
+    if (this.sampler) {
+      this.sampler.releaseAll();
+    }
   }
 
   /**
@@ -235,25 +113,19 @@ export class AudioEngine {
       throw new Error('Volume must be between 0 and 1');
     }
 
-    this.volume = volume;
-
-    if (this.gainNode) {
-      this.gainNode.gain.setValueAtTime(volume, this.audioContext!.currentTime);
+    if (this.sampler) {
+      this.sampler.volume.value = Tone.gainToDb(volume);
     }
   }
 
   /**
-   * Get current volume
+   * Get current volume (0-1)
    */
   public getVolume(): number {
-    return this.volume;
-  }
-
-  /**
-   * Get audio context state
-   */
-  public getAudioContextState(): AudioContextState | null {
-    return this.audioContext?.state || null;
+    if (this.sampler) {
+      return Tone.dbToGain(this.sampler.volume.value);
+    }
+    return 0.7; // Default volume
   }
 
   /**
@@ -262,12 +134,11 @@ export class AudioEngine {
   public dispose(): void {
     this.stopNotes();
 
-    if (this.audioContext) {
-      this.audioContext.close();
-      this.audioContext = null;
+    if (this.sampler) {
+      this.sampler.dispose();
+      this.sampler = null;
     }
 
-    this.gainNode = null;
     this.isInitialized = false;
   }
 }

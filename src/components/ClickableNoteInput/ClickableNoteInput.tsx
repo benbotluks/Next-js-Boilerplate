@@ -5,6 +5,7 @@ import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
+import { audioEngine } from '@/libs/AudioEngine';
 import { AccessibilityAnnouncements, KeyboardShortcuts, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
@@ -31,6 +32,10 @@ export type ClickableNoteInputProps = {
   height?: number;
   disabled?: boolean;
   className?: string;
+  /** Whether to play audio when notes are added/removed */
+  enableAudio?: boolean;
+  /** Whether to play individual notes on selection or all notes together */
+  audioMode?: 'individual' | 'chord';
 };
 
 const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
@@ -45,6 +50,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   height = 200,
   disabled = false,
   className = '',
+  enableAudio = true,
+  audioMode = 'individual',
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<any>(null);
@@ -69,14 +76,42 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
   // Handle note click from staff interaction
-  const handleNoteClick = (position: StaffPosition) => {
+  const handleNoteClick = useCallback(async (position: StaffPosition) => {
     if (disabled) {
       return;
     }
 
+    const wasSelected = selectedNotes.includes(position.pitch);
+
     // Toggle note selection
     toggleNote(position.pitch);
-  };
+
+    // Play audio if enabled
+    if (enableAudio && audioEngine.isSupported()) {
+      try {
+        if (audioMode === 'individual') {
+          // Play the individual note that was just added/removed
+          if (!wasSelected) {
+            // Note was added - play it
+            await audioEngine.playNotes([position.pitch]);
+          }
+          // If note was removed, don't play anything
+        } else if (audioMode === 'chord') {
+          // Play all currently selected notes as a chord
+          const updatedNotes = wasSelected
+            ? selectedNotes.filter(note => note !== position.pitch)
+            : [...selectedNotes, position.pitch];
+
+          if (updatedNotes.length > 0) {
+            await audioEngine.playNotes(updatedNotes);
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to play audio:', error);
+        // Don't throw - audio failure shouldn't break the component
+      }
+    }
+  }, [disabled, selectedNotes, toggleNote, enableAudio, audioMode]);
 
   // Handle right-click on notes
   const handleNoteRightClick = (event: React.MouseEvent, note: Note) => {
@@ -363,6 +398,29 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       {/* Keyboard Shortcuts Help */}
       <KeyboardShortcuts className="mt-2" />
 
+      {/* Audio Controls */}
+      {enableAudio && selectedNotes.length > 0 && (
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await audioEngine.playNotes(selectedNotes);
+              } catch (error) {
+                console.warn('Failed to play notes:', error);
+              }
+            }}
+            className="focus:ring-opacity-50 rounded bg-blue-500 px-3 py-1 text-sm text-white hover:bg-blue-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            disabled={disabled}
+          >
+            🔊 Play Notes
+          </button>
+          <span className="text-sm text-gray-600">
+            {selectedNotes.join(', ')}
+          </span>
+        </div>
+      )}
+
       {/* Debug info */}
       <div className="mt-2 text-sm text-gray-600">
         Selected:
@@ -373,6 +431,13 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {' '}
         {maxNotes}
         {disabled && <span className="ml-2 text-red-500">(Disabled)</span>}
+        {enableAudio && (
+          <span className="ml-2 text-green-500">
+            (Audio:
+            {audioMode}
+            )
+          </span>
+        )}
         {keyboardMode && <span className="ml-2 text-blue-500">(Keyboard Mode)</span>}
         {focusedPosition && keyboardMode && (
           <span className="ml-2 text-purple-500">
