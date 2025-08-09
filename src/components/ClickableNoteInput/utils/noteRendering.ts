@@ -1,7 +1,7 @@
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Formatter, StaveNote, Voice } from 'vexflow';
-import { pitchToVexFlowKey } from './notePositioning';
+import { pitchToLinePosition, pitchToVexFlowKey } from './notePositioning';
 
 /**
  * Configuration for note rendering styles
@@ -34,13 +34,6 @@ export const createStaveNote = (pitch: Note, duration: string = 'q'): StaveNote 
     keys: [vexFlowKey],
     duration,
   });
-};
-
-/**
- * Apply style to a StaveNote
- */
-export const applyNoteStyle = (staveNote: StaveNote, style: NoteStyle): void => {
-  staveNote.setStyle(style);
 };
 
 /**
@@ -94,31 +87,42 @@ export const renderNotesOnStaff = (
 
   try {
     // Create StaveNote objects for selected notes
-    const staveNotes = selectedNotes.map((pitch) => {
-      const staveNote = createStaveNote(pitch);
+
+    const sortedNotes = [...selectedNotes].sort((a, b) => {
+      const aPos = pitchToLinePosition(a);
+      const bPos = pitchToLinePosition(b);
+      return aPos - bPos; // Lower line positions first
+    });
+
+    const staveNote = new StaveNote({
+      keys: sortedNotes.map(note =>
+        pitchToVexFlowKey(note),
+      ),
+      duration: 'q',
+    });
+
+    if (sortedNotes && sortedNotes[0]) {
       const style = getNoteStyle(
-        pitch,
+        sortedNotes[0],
         selectedNotes,
         correctNotes,
         hoveredPitch,
         showCorrectAnswer,
         validationResult,
       );
+      staveNote.setStyle(style);
+    }
 
-      applyNoteStyle(staveNote, style);
-      staveNote.setStave(stave);
-
-      return staveNote;
-    });
+    staveNote.setStave(stave);
 
     // Create a voice to hold the notes
     const voice = new Voice({
-      numBeats: selectedNotes.length,
+      numBeats: 1,
       beatValue: 4,
     });
 
     // Add notes to voice
-    voice.addTickables(staveNotes);
+    voice.addTickables([staveNote]);
 
     // Format the voice to fit the stave
     const formatter = new Formatter();
@@ -143,7 +147,7 @@ export const renderPreviewNote = (
 ): void => {
   try {
     const staveNote = createStaveNote(pitch);
-    applyNoteStyle(staveNote, NOTE_STYLES.hovered);
+    staveNote.setStyle(NOTE_STYLES.hovered);
     staveNote.setStave(stave);
 
     // Position the note at the specified x coordinate
