@@ -19,8 +19,8 @@ export type NoteStyle = {
 export const NOTE_STYLES = {
   default: { fillStyle: '#000000', strokeStyle: '#000000', opacity: 1 },
   selected: { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 1 },
-  correct: { fillStyle: '#10b981', strokeStyle: '#10b981', opacity: 1 },
-  incorrect: { fillStyle: '#ef4444', strokeStyle: '#ef4444', opacity: 1 },
+  correct: { fillStyle: '#00ff00', strokeStyle: '#00ff00', opacity: 1 }, // Bright green for debugging
+  incorrect: { fillStyle: '#dc2626', strokeStyle: '#dc2626', opacity: 1 }, // Darker red for better visibility
   hovered: { fillStyle: '#6b7280', strokeStyle: '#6b7280', opacity: 0.6 },
   preview: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.5 },
   previewFadeIn: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.6 },
@@ -172,6 +172,56 @@ export const renderNoteGroup = (
 };
 
 /**
+ * Render a group of notes positioned for side-by-side comparison
+ */
+export const renderSideBySideNoteGroup = (
+  stave: any, // VexFlow Stave
+  context: any, // VexFlow RenderContext
+  notesToRender: Note[],
+  position: 'left' | 'right',
+  style: NoteStyle,
+): void => {
+  if (notesToRender.length === 0) {
+    return;
+  }
+
+  try {
+    const sortedNotes = [...notesToRender].sort((a, b) => {
+      const aPos = pitchToLinePosition(a);
+      const bPos = pitchToLinePosition(b);
+      return aPos - bPos; // Lower line positions first
+    });
+
+    const staveNote = createStaveNote(sortedNotes);
+    staveNote.setStyle(style);
+    staveNote.setStave(stave);
+
+    // Position the chord based on left/right
+    const staffWidth = stave.getWidth();
+    const xOffset = position === 'left' ? staffWidth * 0.25 : staffWidth * 0.75;
+    staveNote.setXShift(xOffset - stave.getNoteStartX());
+
+    // Create a voice to hold the notes
+    const voice = new Voice({
+      numBeats: 1,
+      beatValue: 4,
+    });
+
+    voice.addTickables([staveNote]);
+
+    // Format the voice to fit the stave
+    const formatter = new Formatter();
+    formatter.joinVoices([voice]);
+    formatter.format([voice], staffWidth);
+
+    // Draw the voice
+    voice.draw(context, stave);
+  } catch (error) {
+    console.error('Failed to render side-by-side note group:', error);
+  }
+};
+
+/**
  * Render notes on a staff with validation support
  */
 export const renderNotesOnStaff = (
@@ -184,34 +234,42 @@ export const renderNotesOnStaff = (
   validationResult?: AnswerValidationResult,
 ): void => {
   try {
-    // Render selected notes
-    if (selectedNotes.length > 0) {
-      renderNoteGroup(
-        stave,
-        context,
-        selectedNotes,
-        selectedNotes,
-        correctNotes,
-        hoveredPitch,
-        showCorrectAnswer,
-        validationResult,
-      );
-    }
+    if (showCorrectAnswer && validationResult) {
+      // Render both user's answer and correct answer side by side
 
-    // Render missing correct notes when showing answers
-    if (showCorrectAnswer) {
-      const missingNotes = correctNotes.filter(note => !selectedNotes.includes(note));
-      if (missingNotes.length > 0) {
+      // Render user's answer on the left (blue)
+      if (selectedNotes.length > 0) {
+        renderSideBySideNoteGroup(
+          stave,
+          context,
+          selectedNotes,
+          'left',
+          { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 1 }, // Blue
+        );
+      }
+
+      // Render correct answer on the right (green)
+      if (correctNotes.length > 0) {
+        renderSideBySideNoteGroup(
+          stave,
+          context,
+          correctNotes,
+          'right',
+          { fillStyle: '#059669', strokeStyle: '#059669', opacity: 1 }, // Green
+        );
+      }
+    } else {
+      // Normal rendering - just render the selected notes as a chord
+      if (selectedNotes.length > 0) {
         renderNoteGroup(
           stave,
           context,
-          missingNotes,
+          selectedNotes,
           selectedNotes,
           correctNotes,
           hoveredPitch,
           showCorrectAnswer,
           validationResult,
-          true, // isMissingNote
         );
       }
     }

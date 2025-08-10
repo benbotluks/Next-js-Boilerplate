@@ -16,7 +16,6 @@ import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
 import { convertFromVexFlowFormat, convertToVexFlowFormat } from '@/utils/musicUtils';
-import FeedbackDisplay from '../FeedbackDisplay';
 import ClickableNoteInput from './ClickableNoteInput';
 
 const MusicTestController: React.FC<GameControllerProps> = ({
@@ -462,35 +461,84 @@ const MusicTestController: React.FC<GameControllerProps> = ({
         {/* Feedback phase */}
         {gameState.gamePhase === 'feedback' && validationResult && (
           <div>
-            <FeedbackDisplay
-              validationResult={validationResult}
-              onReplayNotes={replayNotes}
-              onNextRound={startNewRound}
-              onResetGame={resetGame}
-              isPlaying={isPlaying}
-              className="mb-6"
-            />
-
-            {/* Show the staff with validation results */}
-            <div className="mt-6">
-              <h3 className="mb-4 text-center text-lg font-semibold">
-                {validationResult.isCorrect ? 'Correct Answer!' : 'Review Your Answer'}
+            {/* Show comparison between user answer and correct answer */}
+            <div className="mb-6">
+              <h3 className="mb-6 text-center text-xl font-semibold">
+                {validationResult.isCorrect ? '✅ Correct Answer!' : '📝 Compare Your Answer'}
               </h3>
+
+              {/* Legend */}
+              <div className="mb-4 flex justify-center gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-blue-500"></div>
+                  <span>Your Answer</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 rounded-full bg-green-600"></div>
+                  <span>Correct Answer</span>
+                </div>
+              </div>
+
               <ClickableNoteInput
                 selectedNotes={gameState.selectedNotes}
-                onNoteSelect={() => { }} // Read-only in feedback phase
-                onNoteDeselect={() => { }} // Read-only in feedback phase
-                maxNotes={gameState.currentNotes.length} // Use actual number of notes in current round
-                limitNotes={gameState.limitNotes}
+                onNoteSelect={() => { }} // Read-only
+                onNoteDeselect={() => { }} // Read-only
+                maxNotes={Math.max(gameState.selectedNotes.length, gameState.currentNotes.length)}
+                limitNotes={false}
                 showCorrectAnswer={true}
                 correctNotes={gameState.currentNotes}
                 validationResult={validationResult}
-                disabled={true} // Disable interaction in feedback phase
-                enableAudio={true} // Allow audio playback to hear the notes
-                audioMode="chord" // Play all notes as a chord
-                width={GAME_CONFIG.STAFF_WIDTH}
+                disabled={true}
+                enableAudio={true}
+                audioMode="chord"
+                width={GAME_CONFIG.STAFF_WIDTH * 1.5} // Make it wider to accommodate both chords
                 height={GAME_CONFIG.STAFF_HEIGHT}
               />
+
+              <div className="mt-2 flex justify-center gap-8 text-sm text-gray-600">
+                <span>
+                  Your:
+                  {' '}
+                  {gameState.selectedNotes.length}
+                  {' '}
+                  note
+                  {gameState.selectedNotes.length !== 1 ? 's' : ''}
+                </span>
+                <span>
+                  Correct:
+                  {' '}
+                  {gameState.currentNotes.length}
+                  {' '}
+                  note
+                  {gameState.currentNotes.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+
+            {/* Compact feedback controls */}
+            <div className="flex justify-center gap-4">
+              <button
+                type="button"
+                onClick={replayNotes}
+                disabled={isPlaying}
+                className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 disabled:opacity-50"
+              >
+                {isPlaying ? 'Playing...' : '🔊 Replay Notes'}
+              </button>
+              <button
+                type="button"
+                onClick={startNewRound}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              >
+                ➡️ Next Round
+              </button>
+              <button
+                type="button"
+                onClick={resetGame}
+                className="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+              >
+                🔄 Reset Game
+              </button>
             </div>
           </div>
         )}
