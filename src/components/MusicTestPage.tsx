@@ -16,10 +16,11 @@ export function MusicTestPage() {
   const [gameSettings, setGameSettings] = useState<GameSettings>(settingsManager.getDefaults());
 
   // Load settings on mount
-  useEffect(() => {
-    const loadedSettings = settingsManager.loadSettings();
-    setGameSettings(loadedSettings);
-  }, []);
+  // useEffect(() => {
+  //   const loadedSettings = settingsManager.loadSettings();
+  //   const handler = () => setGameSettings(loadedSettings);
+  //   handler();
+  // }, []);
 
   // Handle settings changes
   const handleSettingsChange = useCallback((newSettings: GameSettings) => {
@@ -59,14 +60,30 @@ export function MusicTestPage() {
         const currentIndex = tabs.indexOf(activeTab);
 
         switch (event.key) {
-          case 'ArrowLeft':
+          case 'ArrowLeft': {
             event.preventDefault();
-            setActiveTab(tabs[currentIndex > 0 ? currentIndex - 1 : tabs.length - 1]);
+            setActiveTab((prev) => {
+              if (!tabs.length) {
+                return prev;
+              }
+              const nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+              const candidate = tabs[nextIndex];
+              return candidate ?? prev;
+            });
             break;
-          case 'ArrowRight':
+          }
+          case 'ArrowRight': {
             event.preventDefault();
-            setActiveTab(tabs[currentIndex < tabs.length - 1 ? currentIndex + 1 : 0]);
+            setActiveTab((prev) => {
+              if (!tabs.length) {
+                return prev;
+              }
+              const nextIndex = (currentIndex + 1) % tabs.length;
+              const candidate = tabs[nextIndex];
+              return candidate ?? prev;
+            });
             break;
+          }
         }
       }
     };
@@ -133,7 +150,7 @@ export function MusicTestPage() {
       </header>
 
       {/* Navigation Tabs */}
-      <nav className="border-b border-gray-200 bg-white" role="tablist" aria-label="Music test navigation">
+      <nav className="border-b border-gray-200 bg-white" aria-label="Music test navigation">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex space-x-8">
             {[

@@ -5,6 +5,7 @@ import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { audioEngine } from '@/libs/AudioEngine';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
+import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
 import ClickableNoteInput from './ClickableNoteInput';
 import FeedbackDisplay from './FeedbackDisplay';
@@ -15,7 +16,7 @@ const convertToVexFlowFormat = (note: Note): Note => {
   const match = note.match(/^([A-G][#b]?)(\d)$/);
   if (match) {
     const [, noteName, octave] = match;
-    return `${noteName.toLowerCase()}/${octave}` as Note;
+    return `${noteName!.toLowerCase()}/${octave}` as Note;
   }
   return note;
 };
@@ -25,13 +26,13 @@ const convertFromVexFlowFormat = (note: Note): Note => {
   const match = note.match(/^([a-g][#b]?)\/(\d)$/);
   if (match) {
     const [, noteName, octave] = match;
-    return `${noteName.toUpperCase()}${octave}` as Note;
+    return `${noteName!.toUpperCase()}${octave}` as Note;
   }
   return note;
 };
 
 const MusicTestController: React.FC<GameControllerProps> = ({
-  initialSettings = {},
+  initialSettings = EMPTY_OBJECT,
 }) => {
   // Default settings
   const defaultSettings = {
@@ -60,10 +61,10 @@ const MusicTestController: React.FC<GameControllerProps> = ({
 
   // Initialize audio engine and check support
   useEffect(() => {
+    const handler = (supported: boolean) => setIsAudioSupported(supported);
     const checkAudioSupport = () => {
       const supported = audioEngine.isSupported();
-      setIsAudioSupported(supported);
-
+      handler(supported);
       if (supported) {
         audioEngine.setVolume(defaultSettings.volume);
       }
@@ -323,6 +324,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               {audioError}
             </p>
             <button
+              type="button"
               onClick={() => setAudioError(null)}
               className="mt-2 rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
             >
@@ -346,6 +348,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               played simultaneously. Identify them by clicking on the staff.
             </p>
             <button
+              type="button"
               onClick={startNewRound}
               disabled={isPlaying}
               className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -389,6 +392,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </p>
               <div className="flex justify-center gap-4">
                 <button
+                  type="button"
                   onClick={replayNotes}
                   disabled={isPlaying}
                   className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 disabled:opacity-50"
@@ -396,6 +400,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                   {isPlaying ? 'Playing...' : 'Replay Notes'}
                 </button>
                 <button
+                  type="button"
                   onClick={submitAnswer}
                   disabled={gameState.selectedNotes.length === 0}
                   className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
@@ -437,8 +442,8 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </h3>
               <ClickableNoteInput
                 selectedNotes={gameState.selectedNotes}
-                onNoteSelect={() => {}} // Read-only in feedback phase
-                onNoteDeselect={() => {}} // Read-only in feedback phase
+                onNoteSelect={() => { }} // Read-only in feedback phase
+                onNoteDeselect={() => { }} // Read-only in feedback phase
                 maxNotes={gameState.difficulty}
                 showCorrectAnswer={true}
                 correctNotes={gameState.currentNotes}

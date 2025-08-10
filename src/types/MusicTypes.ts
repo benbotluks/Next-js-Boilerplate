@@ -68,3 +68,6 @@ export type DigitalStaffProps = {
 export type GameControllerProps = {
   initialSettings?: Partial<GameSettings>;
 };
+
+// to avoid linting errors
+export const EMPTY_OBJECT: object = {};
