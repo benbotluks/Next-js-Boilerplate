@@ -7,6 +7,7 @@
 import type { GameSettings } from '@/libs/SettingsManager';
 import React, { useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
+import { DualRangeSlider } from './SettingsPanel/DualRangeSlider';
 
 export type SettingsPanelProps = {
   onSettingsChange?: (settings: GameSettings) => void;
@@ -55,18 +56,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     setTimeout(() => setSaveStatus('idle'), 2000);
   };
 
-  const getDifficultyLabel = (noteCount: number): string => {
-    const labels: Record<number, string> = {
-      1: 'Perfect Pitch (1 note)',
-      2: 'Beginner (2 notes)',
-      3: 'Easy (3 notes)',
-      4: 'Medium (4 notes)',
-      5: 'Hard (5 notes)',
-      6: 'Expert (6 notes)',
-    };
-    return labels[noteCount] || `${noteCount} notes`;
-  };
-
   const getSaveStatusMessage = (): string => {
     switch (saveStatus) {
       case 'saving':
@@ -84,35 +73,30 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
     <div className={`settings-panel ${className}`}>
       <h3 className="mb-4 text-lg font-semibold">Game Settings</h3>
 
-      {/* Difficulty Selection */}
+      {/* Note Range Selection */}
       <div className="setting-group mb-6">
-        <label htmlFor="difficulty-select" className="mb-2 block text-sm font-medium">
-          Difficulty Level
-        </label>
-        <select
-          id="min-notes-select"
-          value={settings.noteCount}
-          onChange={e => handleSettingChange('noteCount', Number.parseInt(e.target.value, 10))}
-          className="w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-        >
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(count => (
-            <option key={count} value={count}>
-            </option>
-          ))}
-        </select>
-        <select
-          id="max-notes-select"
-          value={settings.noteCount}
-          onChange={e => handleSettingChange('noteCount', Number.parseInt(e.target.value, 10))}
-          className="w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
-        >
-          {[1, 2, 3, 4, 5, 6, 7, 8].map(count => (
-            <option key={count} value={count}>
-            </option>
-          ))}
-        </select>
-        <p className="mt-1 text-xs text-gray-600">
-          Choose how many notes will be played simultaneously
+        <DualRangeSlider
+          min={1}
+          max={8}
+          minValue={settings.minNotes}
+          maxValue={settings.maxNotes}
+          step={1}
+          label="Number of Notes"
+          onChange={(minNotes, maxNotes) => {
+            handleSettingChange('minNotes', minNotes);
+            handleSettingChange('maxNotes', maxNotes);
+          }}
+          className="mb-2"
+        />
+        <p className="mt-2 text-xs text-gray-600">
+          Choose the range of notes that will be played simultaneously (
+          {settings.minNotes}
+          {' '}
+          to
+          {' '}
+          {settings.maxNotes}
+          {' '}
+          notes)
         </p>
       </div>
 
@@ -169,12 +153,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       {/* Save Status */}
       {saveStatus !== 'idle' && (
-        <div className={`text-sm ${
-          saveStatus === 'saved'
-            ? 'text-green-600'
-            : saveStatus === 'error'
-              ? 'text-red-600'
-              : 'text-blue-600'
+        <div className={`text-sm ${saveStatus === 'saved'
+          ? 'text-green-600'
+          : saveStatus === 'error'
+            ? 'text-red-600'
+            : 'text-blue-600'
         }`}
         >
           {getSaveStatusMessage()}

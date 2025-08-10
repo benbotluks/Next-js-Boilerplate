@@ -90,17 +90,30 @@ export class SettingsManager {
     const errors: string[] = [];
     const corrected: GameSettings = { ...SettingsManager.DEFAULT_SETTINGS };
 
-    // Validate noteCount (2-6 notes)
-    if (settings.minNotes !== undefined && settings.maxNotes !== undefined) {
+    // Validate minNotes and maxNotes
+    if (settings.minNotes !== undefined) {
       if (typeof settings.minNotes !== 'number' || !Number.isInteger(settings.minNotes)) {
-        errors.push('noteCount must be an integer');
-      } else if (settings.minNotes < 1 || settings.minNotes > 6) {
-        errors.push('noteCount must be between 2 and 6');
-      } else if (settings.minNotes > settings.maxNotes) {
-        errors.push('Min notes must be equal to pr less than max notes.');
+        errors.push('minNotes must be an integer');
+      } else if (settings.minNotes < 1 || settings.minNotes > 8) {
+        errors.push('minNotes must be between 1 and 8');
       } else {
         corrected.minNotes = settings.minNotes;
       }
+    }
+
+    if (settings.maxNotes !== undefined) {
+      if (typeof settings.maxNotes !== 'number' || !Number.isInteger(settings.maxNotes)) {
+        errors.push('maxNotes must be an integer');
+      } else if (settings.maxNotes < 1 || settings.maxNotes > 8) {
+        errors.push('maxNotes must be between 1 and 8');
+      } else {
+        corrected.maxNotes = settings.maxNotes;
+      }
+    }
+
+    // Validate that minNotes <= maxNotes
+    if (corrected.minNotes > corrected.maxNotes) {
+      errors.push('Min notes must be equal to or less than max notes');
     }
 
     // Validate volume (0-1)

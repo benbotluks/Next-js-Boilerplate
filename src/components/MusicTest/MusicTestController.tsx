@@ -16,7 +16,8 @@ const MusicTestController: React.FC<GameControllerProps> = ({
 }) => {
   // Default settings
   const defaultSettings = {
-    noteCount: 3,
+    minNotes: 3,
+    maxNotes: 3,
     limitNotes: false,
     volume: 0.7,
     autoReplay: false,
@@ -30,9 +31,12 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     gamePhase: 'setup',
     score: 0,
     totalAttempts: 0,
-    difficulty: defaultSettings.noteCount,
+    difficulty: defaultSettings.maxNotes, // Use maxNotes as the base difficulty
     limitNotes: defaultSettings.limitNotes,
   });
+
+  // Settings state
+  const [settings, setSettings] = useState(defaultSettings);
 
   // Audio and UI state
   const [isAudioSupported, setIsAudioSupported] = useState(true);
@@ -59,7 +63,9 @@ const MusicTestController: React.FC<GameControllerProps> = ({
   const startNewRound = useCallback(async () => {
     try {
       setAudioError(null);
-      const standardNotes = audioEngine.generateNoteSet(gameState.difficulty);
+      // Generate random number of notes within the min/max range
+      const noteCount = Math.floor(Math.random() * (settings.maxNotes - settings.minNotes + 1)) + settings.minNotes;
+      const standardNotes = audioEngine.generateNoteSet(noteCount);
       const vexFlowNotes = standardNotes.map(convertToVexFlowFormat);
 
       setGameState(prev => ({
@@ -92,7 +98,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
         gamePhase: 'setup',
       }));
     }
-  }, [gameState.difficulty]);
+  }, [settings.minNotes, settings.maxNotes]);
 
   // Replay current notes
   const replayNotes = useCallback(async () => {
@@ -187,18 +193,6 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     setValidationResult(null);
   }, []);
 
-  // Update difficulty setting
-  const updateDifficulty = useCallback((newDifficulty: number) => {
-    if (newDifficulty < 2 || newDifficulty > 6) {
-      return;
-    }
-
-    setGameState(prev => ({
-      ...prev,
-      difficulty: newDifficulty,
-    }));
-  }, []);
-
   // Calculate accuracy percentage
   const accuracyPercentage = gameState.totalAttempts > 0
     ? Math.round((gameState.score / gameState.totalAttempts) * 100)
@@ -245,31 +239,63 @@ const MusicTestController: React.FC<GameControllerProps> = ({
             </span>
           )}
           <span>
-            Difficulty:
-            {gameState.difficulty}
+            Notes Range:
             {' '}
-            notes
+            {settings.minNotes}
+            -
+            {settings.maxNotes}
           </span>
         </div>
 
         {/* Game settings */}
         {gameState.gamePhase === 'setup' && (
           <div className="mb-4 flex flex-col items-center gap-4">
-            {/* Difficulty selector */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="difficulty" className="text-sm font-medium">
-                Number of notes:
-              </label>
-              <select
-                id="difficulty"
-                value={gameState.difficulty}
-                onChange={e => updateDifficulty(Number(e.target.value))}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm"
-              >
-                {[2, 3, 4, 5, 6].map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
+            {/* Note range selectors */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label htmlFor="minNotes" className="text-sm font-medium">
+                  Min notes:
+                </label>
+                <select
+                  id="minNotes"
+                  value={settings.minNotes}
+                  onChange={(e) => {
+                    const newMin = Number(e.target.value);
+                    setSettings(prev => ({
+                      ...prev,
+                      minNotes: newMin,
+                      maxNotes: Math.max(newMin, prev.maxNotes),
+                    }));
+                  }}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-sm"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="maxNotes" className="text-sm font-medium">
+                  Max notes:
+                </label>
+                <select
+                  id="maxNotes"
+                  value={settings.maxNotes}
+                  onChange={(e) => {
+                    const newMax = Number(e.target.value);
+                    setSettings(prev => ({
+                      ...prev,
+                      maxNotes: newMax,
+                      minNotes: Math.min(newMax, prev.minNotes),
+                    }));
+                  }}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-sm"
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Audio mode selector */}
@@ -317,12 +343,15 @@ const MusicTestController: React.FC<GameControllerProps> = ({
         {gameState.gamePhase === 'setup' && (
           <div className="text-center">
             <p className="mb-6 text-gray-600">
-              Click "Start New Round" to begin. You'll hear
+              Click "Start New Round" to begin. You'll hear between
               {' '}
-              {gameState.difficulty}
+              {settings.minNotes}
               {' '}
-              notes
-              played simultaneously. Identify them by clicking on the staff.
+              and
+              {' '}
+              {settings.maxNotes}
+              {' '}
+              notes played simultaneously. Identify them by clicking on the staff.
             </p>
             <button
               type="button"
@@ -342,11 +371,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               <div className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-4 py-2">
                 <div className="h-3 w-3 animate-pulse rounded-full bg-blue-600"></div>
                 <span className="font-medium text-blue-800">
-                  Playing
-                  {' '}
-                  {gameState.difficulty}
-                  {' '}
-                  notes...
+                  Playing notes...
                 </span>
               </div>
             </div>
@@ -361,11 +386,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           <div>
             <div className="mb-6 text-center">
               <p className="mb-4 text-gray-600">
-                Select the
-                {' '}
-                {gameState.difficulty}
-                {' '}
-                notes you heard by clicking on the staff.
+                Select the notes you heard by clicking on the staff.
               </p>
               <div className="flex justify-center gap-4">
                 <button
@@ -391,7 +412,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               selectedNotes={gameState.selectedNotes}
               onNoteSelect={handleNoteSelect}
               onNoteDeselect={handleNoteDeselect}
-              maxNotes={gameState.difficulty}
+              maxNotes={gameState.currentNotes.length} // Use actual number of notes in current round
               limitNotes={gameState.limitNotes}
               enableAudio={true} // Enable audio so users can hear notes as they place them
               audioMode={audioMode} // Use selected audio mode
@@ -422,7 +443,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                 selectedNotes={gameState.selectedNotes}
                 onNoteSelect={() => { }} // Read-only in feedback phase
                 onNoteDeselect={() => { }} // Read-only in feedback phase
-                maxNotes={gameState.difficulty}
+                maxNotes={gameState.currentNotes.length} // Use actual number of notes in current round
                 limitNotes={gameState.limitNotes}
                 showCorrectAnswer={true}
                 correctNotes={gameState.currentNotes}

@@ -27,7 +27,8 @@ export type GameState = {
 
 // User settings and preferences
 export type GameSettings = {
-  noteCount: number; // 2-6 notes
+  minNotes: number; // 1-8 notes
+  maxNotes: number; // 1-8 notes
   volume: number; // 0-1
   autoReplay: boolean;
 };

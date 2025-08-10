@@ -23,7 +23,8 @@ export const AVAILABLE_NOTES: Note[] = [
 
 // Default game settings
 export const DEFAULT_SETTINGS = {
-  noteCount: 3,
+  minNotes: 3,
+  maxNotes: 3,
   volume: 0.7,
   autoReplay: false,
 } as const;
