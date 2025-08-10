@@ -3,11 +3,32 @@
 import type { GameControllerProps, GameState, Note } from '@/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useState } from 'react';
-import { modernAudioEngine as audioEngine } from '@/libs/ModernAudioEngine';
+import { audioEngine } from '@/libs/AudioEngine';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { validateAnswer } from '@/utils/AnswerValidation';
+import ClickableNoteInput from './ClickableNoteInput';
 import FeedbackDisplay from './FeedbackDisplay';
-import VexFlowStaff from './VexFlowStaff';
+
+// Utility functions to convert between note formats
+const convertToVexFlowFormat = (note: Note): Note => {
+  // Convert 'G4' to 'g/4'
+  const match = note.match(/^([A-G][#b]?)(\d)$/);
+  if (match) {
+    const [, noteName, octave] = match;
+    return `${noteName.toLowerCase()}/${octave}` as Note;
+  }
+  return note;
+};
+
+const convertFromVexFlowFormat = (note: Note): Note => {
+  // Convert 'g/4' to 'G4'
+  const match = note.match(/^([a-g][#b]?)\/(\d)$/);
+  if (match) {
+    const [, noteName, octave] = match;
+    return `${noteName.toUpperCase()}${octave}` as Note;
+  }
+  return note;
+};
 
 const MusicTestController: React.FC<GameControllerProps> = ({
   initialSettings = {},
@@ -35,6 +56,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
   const [audioError, setAudioError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [audioMode, setAudioMode] = useState<'individual' | 'chord'>('individual');
 
   // Initialize audio engine and check support
   useEffect(() => {
@@ -55,20 +77,23 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     try {
       setAudioError(null);
 
-      // Generate new notes
-      const newNotes = audioEngine.generateNoteSet(gameState.difficulty);
+      // Generate new notes in standard format (G4, C5, etc.)
+      const standardNotes = audioEngine.generateNoteSet(gameState.difficulty);
 
-      // Update game state
+      // Convert to VexFlow format for the UI (g/4, c/5, etc.)
+      const vexFlowNotes = standardNotes.map(convertToVexFlowFormat);
+
+      // Update game state with VexFlow format
       setGameState(prev => ({
         ...prev,
-        currentNotes: newNotes,
+        currentNotes: vexFlowNotes,
         selectedNotes: [],
         gamePhase: 'listening',
       }));
 
-      // Play the notes
+      // Play the notes using standard format
       setIsPlaying(true);
-      await audioEngine.playNotes(newNotes);
+      await audioEngine.playNotes(standardNotes);
 
       // Transition to answering phase after notes finish playing
       setTimeout(() => {
@@ -100,7 +125,10 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     try {
       setAudioError(null);
       setIsPlaying(true);
-      await audioEngine.playNotes(gameState.currentNotes);
+
+      // Convert VexFlow format back to standard format for audio playback
+      const standardNotes = gameState.currentNotes.map(convertFromVexFlowFormat);
+      await audioEngine.playNotes(standardNotes);
 
       setTimeout(() => {
         setIsPlaying(false);
@@ -143,15 +171,20 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     }
 
     // Validate the answer using the enhanced validation logic
+    // Both currentNotes and selectedNotes are already in VexFlow format
     const result = validateAnswer(gameState.currentNotes, gameState.selectedNotes);
     setValidationResult(result);
+
+    // Convert to standard format for statistics tracking
+    const standardCurrentNotes = gameState.currentNotes.map(convertFromVexFlowFormat);
+    const standardSelectedNotes = gameState.selectedNotes.map(convertFromVexFlowFormat);
 
     // Record session in statistics
     statisticsTracker.recordSession(
       gameState.difficulty,
       result.isCorrect,
-      gameState.currentNotes,
-      gameState.selectedNotes,
+      standardCurrentNotes,
+      standardSelectedNotes,
     );
 
     // Update game state with results
@@ -241,22 +274,41 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           </span>
         </div>
 
-        {/* Difficulty selector */}
+        {/* Game settings */}
         {gameState.gamePhase === 'setup' && (
-          <div className="mb-4 flex items-center justify-center gap-2">
-            <label htmlFor="difficulty" className="text-sm font-medium">
-              Number of notes:
-            </label>
-            <select
-              id="difficulty"
-              value={gameState.difficulty}
-              onChange={e => updateDifficulty(Number(e.target.value))}
-              className="rounded-md border border-gray-300 px-3 py-1 text-sm"
-            >
-              {[2, 3, 4, 5, 6].map(num => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>
+          <div className="mb-4 flex flex-col items-center gap-4">
+            {/* Difficulty selector */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="difficulty" className="text-sm font-medium">
+                Number of notes:
+              </label>
+              <select
+                id="difficulty"
+                value={gameState.difficulty}
+                onChange={e => updateDifficulty(Number(e.target.value))}
+                className="rounded-md border border-gray-300 px-3 py-1 text-sm"
+              >
+                {[2, 3, 4, 5, 6].map(num => (
+                  <option key={num} value={num}>{num}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Audio mode selector */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="audioMode" className="text-sm font-medium">
+                Note playback:
+              </label>
+              <select
+                id="audioMode"
+                value={audioMode}
+                onChange={e => setAudioMode(e.target.value as 'individual' | 'chord')}
+                className="rounded-md border border-gray-300 px-3 py-1 text-sm"
+              >
+                <option value="individual">Individual notes</option>
+                <option value="chord">All notes as chord</option>
+              </select>
+            </div>
           </div>
         )}
       </div>
@@ -353,11 +405,15 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </div>
             </div>
 
-            <VexFlowStaff
+            <ClickableNoteInput
               selectedNotes={gameState.selectedNotes}
               onNoteSelect={handleNoteSelect}
               onNoteDeselect={handleNoteDeselect}
               maxNotes={gameState.difficulty}
+              enableAudio={true} // Enable audio so users can hear notes as they place them
+              audioMode={audioMode} // Use selected audio mode
+              width={800}
+              height={250}
             />
           </div>
         )}
@@ -373,6 +429,27 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               isPlaying={isPlaying}
               className="mb-6"
             />
+
+            {/* Show the staff with validation results */}
+            <div className="mt-6">
+              <h3 className="mb-4 text-center text-lg font-semibold">
+                {validationResult.isCorrect ? 'Correct Answer!' : 'Review Your Answer'}
+              </h3>
+              <ClickableNoteInput
+                selectedNotes={gameState.selectedNotes}
+                onNoteSelect={() => {}} // Read-only in feedback phase
+                onNoteDeselect={() => {}} // Read-only in feedback phase
+                maxNotes={gameState.difficulty}
+                showCorrectAnswer={true}
+                correctNotes={gameState.currentNotes}
+                validationResult={validationResult}
+                disabled={true} // Disable interaction in feedback phase
+                enableAudio={true} // Allow audio playback to hear the notes
+                audioMode="chord" // Play all notes as a chord
+                width={800}
+                height={250}
+              />
+            </div>
           </div>
         )}
       </div>

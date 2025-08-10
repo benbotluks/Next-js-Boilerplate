@@ -27,7 +27,7 @@ export function MusicTestPage() {
   }, []);
 
   // Handle statistics reset
-  const handleStatisticsReset = useCallback(() => {
+  const _handleStatisticsReset = useCallback(() => {
     // Optionally refresh the statistics display or show a message
     console.warn('Statistics reset');
   }, []);
