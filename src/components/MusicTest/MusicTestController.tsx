@@ -278,6 +278,25 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           </span>
         </div>
 
+        {/* Always-visible audio mode selector */}
+        <div className="mb-4 flex justify-center">
+          <div className="flex items-center gap-2">
+            <label htmlFor="audioMode" className="text-sm font-medium">
+              Note playback:
+            </label>
+            <select
+              id="audioMode"
+              value={settings.audioMode}
+              onChange={e => handleSettingsChange({ audioMode: e.target.value as 'individual' | 'chord' })}
+              className="rounded-md border border-gray-300 px-3 py-1 text-sm"
+            >
+              {UI_CONFIG.AUDIO_MODE_OPTIONS.map(option => (
+                <option key={option.value} value={option.value}>{option.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Game settings */}
         {gameState.gamePhase === 'setup' && (
           <div className="mb-4 flex flex-col items-center gap-4">
@@ -327,22 +346,6 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </div>
             </div>
 
-            {/* Audio mode selector */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="audioMode" className="text-sm font-medium">
-                Note playback:
-              </label>
-              <select
-                id="audioMode"
-                value={settings.audioMode}
-                onChange={e => handleSettingsChange({ audioMode: e.target.value as 'individual' | 'chord' })}
-                className="rounded-md border border-gray-300 px-3 py-1 text-sm"
-              >
-                {UI_CONFIG.AUDIO_MODE_OPTIONS.map(option => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </div>
           </div>
         )}
       </div>
@@ -417,6 +420,10 @@ const MusicTestController: React.FC<GameControllerProps> = ({
             <div className="mb-6 text-center">
               <p className="mb-4 text-gray-600">
                 Select the notes you heard by clicking on the staff.
+                <br />
+                <span className="text-sm text-gray-500">
+                  Tip: You can change the note playback mode above at any time.
+                </span>
               </p>
               <div className="flex justify-center gap-4">
                 <button

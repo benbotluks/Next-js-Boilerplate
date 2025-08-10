@@ -6,7 +6,7 @@
 
 import type { GameSettings } from '@/libs/SettingsManager';
 import React, { useState } from 'react';
-import { CONFIG_HELPERS, UI_CONFIG } from '@/config/gameConfig';
+import { CONFIG_HELPERS, ERROR_MESSAGES, UI_CONFIG } from '@/config/gameConfig';
 import { settingsManager } from '@/libs/SettingsManager';
 import { DualRangeSlider } from './SettingsPanel/DualRangeSlider';
 
