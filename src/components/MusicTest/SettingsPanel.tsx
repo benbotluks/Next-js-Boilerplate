@@ -90,14 +90,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           Difficulty Level
         </label>
         <select
-          id="difficulty-select"
+          id="min-notes-select"
           value={settings.noteCount}
           onChange={e => handleSettingChange('noteCount', Number.parseInt(e.target.value, 10))}
           className="w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
         >
-          {[2, 3, 4, 5, 6].map(count => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(count => (
             <option key={count} value={count}>
-              {getDifficultyLabel(count)}
+            </option>
+          ))}
+        </select>
+        <select
+          id="max-notes-select"
+          value={settings.noteCount}
+          onChange={e => handleSettingChange('noteCount', Number.parseInt(e.target.value, 10))}
+          className="w-full rounded-md border border-gray-300 p-2 focus:border-transparent focus:ring-2 focus:ring-blue-500"
+        >
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(count => (
+            <option key={count} value={count}>
             </option>
           ))}
         </select>

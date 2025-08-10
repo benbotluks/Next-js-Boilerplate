@@ -32,9 +32,10 @@ export default function ClickableNoteDemoPage() {
           onNoteSelect={handleNoteSelect}
           onNoteDeselect={handleNoteDeselect}
           maxNotes={5}
+          limitNotes={false}
           showCorrectAnswer={showCorrectAnswer}
           correctNotes={correctNotes}
-          width={800}
+          width={400}
           height={250}
           enableAudio={true}
           audioMode={audioMode}

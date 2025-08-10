@@ -21,7 +21,8 @@ export type GameState = {
   gamePhase: GamePhase;
   score: number;
   totalAttempts: number;
-  difficulty: number; // 2-6 notes
+  difficulty: number;
+  limitNotes: boolean;
 };
 
 // User settings and preferences

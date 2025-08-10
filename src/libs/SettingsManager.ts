@@ -4,8 +4,9 @@
  */
 
 export type GameSettings = {
-  noteCount: number; // 2-6 notes
-  volume: number; // 0-1
+  minNotes: number;
+  maxNotes: number;
+  volume: number;
   autoReplay: boolean;
 };
 
@@ -18,7 +19,8 @@ export type SettingsValidationResult = {
 export class SettingsManager {
   private static readonly STORAGE_KEY = 'music-test-settings';
   private static readonly DEFAULT_SETTINGS: GameSettings = {
-    noteCount: 3,
+    minNotes: 3,
+    maxNotes: 3,
     volume: 0.7,
     autoReplay: false,
   };
@@ -89,13 +91,15 @@ export class SettingsManager {
     const corrected: GameSettings = { ...SettingsManager.DEFAULT_SETTINGS };
 
     // Validate noteCount (2-6 notes)
-    if (settings.noteCount !== undefined) {
-      if (typeof settings.noteCount !== 'number' || !Number.isInteger(settings.noteCount)) {
+    if (settings.minNotes !== undefined && settings.maxNotes !== undefined) {
+      if (typeof settings.minNotes !== 'number' || !Number.isInteger(settings.minNotes)) {
         errors.push('noteCount must be an integer');
-      } else if (settings.noteCount < 2 || settings.noteCount > 6) {
+      } else if (settings.minNotes < 1 || settings.minNotes > 6) {
         errors.push('noteCount must be between 2 and 6');
+      } else if (settings.minNotes > settings.maxNotes) {
+        errors.push('Min notes must be equal to pr less than max notes.');
       } else {
-        corrected.noteCount = settings.noteCount;
+        corrected.minNotes = settings.minNotes;
       }
     }
 

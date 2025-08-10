@@ -11,6 +11,7 @@ export const useNoteManagement = (
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
   maxNotes: number,
+  limitNotes: boolean,
 ) => {
   /**
    * Validates if a note can be added
@@ -21,13 +22,13 @@ export const useNoteManagement = (
       return { valid: false, error: 'Note already exists' };
     }
 
-    // Check maximum note limit
-    if (selectedNotes.length >= maxNotes) {
+    // Check maximum note limit only if limitNotes is true
+    if (limitNotes && selectedNotes.length >= maxNotes) {
       return { valid: false, error: 'Maximum notes reached' };
     }
 
     return { valid: true };
-  }, [selectedNotes, maxNotes]);
+  }, [selectedNotes, maxNotes, limitNotes]);
 
   /**
    * Adds a note if validation passes
@@ -70,8 +71,9 @@ export const useNoteManagement = (
     if (note) {
       return validateNoteAddition(note).valid;
     }
-    return selectedNotes.length < maxNotes;
-  }, [validateNoteAddition, selectedNotes.length, maxNotes]);
+    // If limitNotes is false, we can always add more notes
+    return !limitNotes || selectedNotes.length < maxNotes;
+  }, [validateNoteAddition, selectedNotes.length, maxNotes, limitNotes]);
 
   /**
    * Checks if a note is currently selected

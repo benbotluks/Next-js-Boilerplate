@@ -25,11 +25,12 @@ export type ClickableNoteInputProps = {
   onNoteSelect: (note: Note) => void;
   onNoteDeselect: (note: Note) => void;
   maxNotes: number;
+  limitNotes: boolean;
   showCorrectAnswer?: boolean;
   correctNotes?: Note[];
   validationResult?: AnswerValidationResult;
-  width?: number;
-  height?: number;
+  width: number;
+  height: number;
   disabled?: boolean;
   className?: string;
   /** Whether to play audio when notes are added/removed */
@@ -43,11 +44,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   onNoteSelect,
   onNoteDeselect,
   maxNotes,
+  limitNotes,
   showCorrectAnswer = false,
   correctNotes = EMPTY_ARRAY,
   validationResult,
-  width = 600,
-  height = 200,
+  width,
+  height,
   disabled = false,
   className = '',
   enableAudio = true,
@@ -63,7 +65,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     toggleNote,
     canAddNote,
     removeNotes,
-  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes);
+  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
 
   // Use note selection hook
   const {

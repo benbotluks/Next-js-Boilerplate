@@ -7,29 +7,9 @@ import { audioEngine } from '@/libs/AudioEngine';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
+import { convertFromVexFlowFormat, convertToVexFlowFormat } from '@/utils/musicUtils';
 import FeedbackDisplay from '../FeedbackDisplay';
 import ClickableNoteInput from './ClickableNoteInput';
-
-// Utility functions to convert between note formats
-const convertToVexFlowFormat = (note: Note): Note => {
-  // Convert 'G4' to 'g/4'
-  const match = note.match(/^([A-G][#b]?)(\d)$/);
-  if (match) {
-    const [, noteName, octave] = match;
-    return `${noteName!.toLowerCase()}/${octave}` as Note;
-  }
-  return note;
-};
-
-const convertFromVexFlowFormat = (note: Note): Note => {
-  // Convert 'g/4' to 'G4'
-  const match = note.match(/^([a-g][#b]?)\/(\d)$/);
-  if (match) {
-    const [, noteName, octave] = match;
-    return `${noteName!.toUpperCase()}${octave}` as Note;
-  }
-  return note;
-};
 
 const MusicTestController: React.FC<GameControllerProps> = ({
   initialSettings = EMPTY_OBJECT,
@@ -37,6 +17,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
   // Default settings
   const defaultSettings = {
     noteCount: 3,
+    limitNotes: false,
     volume: 0.7,
     autoReplay: false,
     ...initialSettings,
@@ -50,6 +31,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     score: 0,
     totalAttempts: 0,
     difficulty: defaultSettings.noteCount,
+    limitNotes: defaultSettings.limitNotes,
   });
 
   // Audio and UI state
@@ -77,14 +59,9 @@ const MusicTestController: React.FC<GameControllerProps> = ({
   const startNewRound = useCallback(async () => {
     try {
       setAudioError(null);
-
-      // Generate new notes in standard format (G4, C5, etc.)
       const standardNotes = audioEngine.generateNoteSet(gameState.difficulty);
-
-      // Convert to VexFlow format for the UI (g/4, c/5, etc.)
       const vexFlowNotes = standardNotes.map(convertToVexFlowFormat);
 
-      // Update game state with VexFlow format
       setGameState(prev => ({
         ...prev,
         currentNotes: vexFlowNotes,
@@ -415,9 +392,10 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               onNoteSelect={handleNoteSelect}
               onNoteDeselect={handleNoteDeselect}
               maxNotes={gameState.difficulty}
+              limitNotes={gameState.limitNotes}
               enableAudio={true} // Enable audio so users can hear notes as they place them
               audioMode={audioMode} // Use selected audio mode
-              width={800}
+              width={400}
               height={250}
             />
           </div>
@@ -445,13 +423,14 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                 onNoteSelect={() => { }} // Read-only in feedback phase
                 onNoteDeselect={() => { }} // Read-only in feedback phase
                 maxNotes={gameState.difficulty}
+                limitNotes={gameState.limitNotes}
                 showCorrectAnswer={true}
                 correctNotes={gameState.currentNotes}
                 validationResult={validationResult}
                 disabled={true} // Disable interaction in feedback phase
                 enableAudio={true} // Allow audio playback to hear the notes
                 audioMode="chord" // Play all notes as a chord
-                width={800}
+                width={400}
                 height={250}
               />
             </div>

@@ -10,12 +10,15 @@ import type { Note } from '@/types/MusicTypes';
  * Space positions: 1 = f/4, 3 = a/4, 5 = c/5, 7 = e/5
  * We avoid duplicate pitches by using different octaves for ledger lines
  */
+
+const _NOTE_CLASSES: string[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+
 const TREBLE_CLEF_PITCHES: Record<number, Note> = {
   // Below staff (ledger lines)
-  '-6': 'c/4',
-  '-4': 'd/4',
-
-  // On staff
+  '-4': 'a/3',
+  '-3': 'b/3',
+  '-2': 'c/4',
+  '-1': 'd/4',
   '0': 'e/4', // Bottom line
   '1': 'f/4', // First space
   '2': 'g/4', // Second line
@@ -25,11 +28,10 @@ const TREBLE_CLEF_PITCHES: Record<number, Note> = {
   '6': 'd/5', // Fourth line
   '7': 'e/5', // Fourth space
   '8': 'f/5', // Top line
-
-  // Above staff (ledger lines)
-  '10': 'g/5',
-  '12': 'a/5',
-  '14': 'b/5',
+  '9': 'g/5',
+  '10': 'a/5',
+  '11': 'b/5',
+  '12': 'c/5',
 };
 
 /**

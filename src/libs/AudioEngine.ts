@@ -1,10 +1,13 @@
 import type { Note } from '@/types/MusicTypes';
 import * as Tone from 'tone';
 import { AVAILABLE_NOTES } from '@/utils/MusicConstants';
+import { convertFromVexFlowFormat } from '@/utils/musicUtils';
 
 export class AudioEngine {
   private sampler: Tone.Sampler | null = null;
   private isInitialized = false;
+  public rangeMin: Note = 'g/3';
+  public rangeMax: Note = 'd/5';
 
   constructor() {
     this.initializeSampler();
@@ -43,19 +46,11 @@ export class AudioEngine {
   }
 
   /**
-   * Convert our note format (e.g., 'c/4') to Tone.js format (e.g., 'C4')
-   */
-  private convertNoteFormat(note: Note): string {
-    const [noteName, octave] = note.split('/');
-    return noteName!.toUpperCase() + octave;
-  }
-
-  /**
    * Generate a random set of notes for the game
    */
   public generateNoteSet(count: number): Note[] {
-    if (count < 2 || count > 6) {
-      throw new Error('Note count must be between 2 and 6');
+    if (count < 1) {
+      throw new Error('Must be a positive integer');
     }
 
     // Shuffle available notes and take the first 'count' notes
@@ -85,7 +80,7 @@ export class AudioEngine {
       await Tone.loaded();
 
       // Convert notes to Tone.js format and play them
-      const toneNotes = notes.map(note => this.convertNoteFormat(note));
+      const toneNotes = notes.map(note => convertFromVexFlowFormat(note));
       this.sampler.triggerAttackRelease(toneNotes, '2n');
     } catch (error) {
       console.error('Failed to play notes:', error);

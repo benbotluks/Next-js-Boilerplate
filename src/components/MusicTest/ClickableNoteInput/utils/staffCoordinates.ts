@@ -123,7 +123,7 @@ export class StaffCoordinates {
     const staffX = this.stave.getX() + this.stave.getNoteStartX();
 
     // Only include positions that have actual pitch mappings
-    const validLinePositions = [-6, -4, 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14];
+    const validLinePositions = [-6, -4, -2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14];
 
     for (const linePosition of validLinePositions) {
       const y = this.getYForLinePosition(linePosition);
