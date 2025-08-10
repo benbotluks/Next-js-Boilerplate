@@ -31,7 +31,7 @@ const TREBLE_CLEF_PITCHES: Record<number, Note> = {
   '9': 'g/5',
   '10': 'a/5',
   '11': 'b/5',
-  '12': 'c/5',
+  '12': 'c/6',
 };
 
 /**

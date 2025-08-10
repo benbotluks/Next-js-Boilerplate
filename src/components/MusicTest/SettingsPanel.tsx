@@ -6,6 +6,7 @@
 
 import type { GameSettings } from '@/libs/SettingsManager';
 import React, { useState } from 'react';
+import { CONFIG_HELPERS, UI_CONFIG } from '@/config/gameConfig';
 import { settingsManager } from '@/libs/SettingsManager';
 import { DualRangeSlider } from './SettingsPanel/DualRangeSlider';
 
@@ -76,12 +77,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Note Range Selection */}
       <div className="setting-group mb-6">
         <DualRangeSlider
-          min={1}
-          max={8}
+          min={UI_CONFIG.DUAL_RANGE_SLIDER.min}
+          max={UI_CONFIG.DUAL_RANGE_SLIDER.max}
           minValue={settings.minNotes}
           maxValue={settings.maxNotes}
-          step={1}
-          label="Number of Notes"
+          step={UI_CONFIG.DUAL_RANGE_SLIDER.step}
+          label={UI_CONFIG.DUAL_RANGE_SLIDER.label}
           onChange={(minNotes, maxNotes) => {
             // Update both values in a single state update
             const newSettings = { ...settings, minNotes, maxNotes };
@@ -119,24 +120,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Volume Control */}
       <div className="setting-group mb-6">
         <label htmlFor="volume-slider" className="mb-2 block text-sm font-medium">
-          Volume:
+          {UI_CONFIG.VOLUME_SLIDER.label}
+          :
           {' '}
-          {Math.round(settings.volume * 100)}
-          %
+          {CONFIG_HELPERS.formatVolumePercentage(settings.volume)}
         </label>
         <input
           id="volume-slider"
           type="range"
-          min="0"
-          max="1"
-          step="0.1"
+          min={UI_CONFIG.VOLUME_SLIDER.min}
+          max={UI_CONFIG.VOLUME_SLIDER.max}
+          step={UI_CONFIG.VOLUME_SLIDER.step}
           value={settings.volume}
           onChange={e => handleSettingChange('volume', Number.parseFloat(e.target.value))}
           className="slider h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200"
         />
         <div className="mt-1 flex justify-between text-xs text-gray-500">
-          <span>0%</span>
-          <span>100%</span>
+          <span>{CONFIG_HELPERS.formatVolumePercentage(UI_CONFIG.VOLUME_SLIDER.min)}</span>
+          <span>{CONFIG_HELPERS.formatVolumePercentage(UI_CONFIG.VOLUME_SLIDER.max)}</span>
         </div>
       </div>
 
@@ -184,7 +185,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {!settingsManager.isStorageAvailable() && (
         <div className="mt-4 rounded-md border border-yellow-400 bg-yellow-100 p-3">
           <p className="text-sm text-yellow-800">
-            ⚠️ Local storage is not available. Settings will not be saved between sessions.
+            ⚠️
+            {' '}
+            {ERROR_MESSAGES.STORAGE_NOT_AVAILABLE}
           </p>
         </div>
       )}

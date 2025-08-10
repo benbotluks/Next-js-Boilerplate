@@ -3,11 +3,23 @@
  * Handles user preferences and configuration persistence
  */
 
+import {
+  CONFIG_HELPERS,
+  DEFAULT_GAME_SETTINGS,
+  ERROR_MESSAGES,
+  STORAGE_CONFIG,
+  VALIDATION_CONFIG,
+} from '@/config/gameConfig';
+
 export type GameSettings = {
   minNotes: number;
   maxNotes: number;
   volume: number;
   autoReplay: boolean;
+};
+
+type StoredSettings = GameSettings & {
+  version?: string;
 };
 
 export type SettingsValidationResult = {
@@ -17,13 +29,8 @@ export type SettingsValidationResult = {
 };
 
 export class SettingsManager {
-  private static readonly STORAGE_KEY = 'music-test-settings';
-  private static readonly DEFAULT_SETTINGS: GameSettings = {
-    minNotes: 3,
-    maxNotes: 3,
-    volume: 0.7,
-    autoReplay: false,
-  };
+  private static readonly STORAGE_KEY = STORAGE_CONFIG.SETTINGS_KEY;
+  private static readonly DEFAULT_SETTINGS: GameSettings = DEFAULT_GAME_SETTINGS;
 
   /**
    * Load settings from local storage with fallback to defaults
@@ -35,7 +42,16 @@ export class SettingsManager {
         return { ...SettingsManager.DEFAULT_SETTINGS };
       }
 
-      const parsed = JSON.parse(stored) as Partial<GameSettings>;
+      const parsed = JSON.parse(stored) as Partial<StoredSettings>;
+
+      // Check version compatibility
+      if (parsed.version !== STORAGE_CONFIG.SETTINGS_VERSION) {
+        // Settings are from an older version, use defaults and update storage
+        const newSettings = { ...SettingsManager.DEFAULT_SETTINGS };
+        this.saveSettings(newSettings);
+        return newSettings;
+      }
+
       const validation = this.validateSettings(parsed);
 
       if (validation.isValid && validation.correctedSettings) {
@@ -63,7 +79,12 @@ export class SettingsManager {
       }
 
       const settingsToSave = validation.correctedSettings || settings;
-      localStorage.setItem(SettingsManager.STORAGE_KEY, JSON.stringify(settingsToSave));
+      const storedSettings: StoredSettings = {
+        ...settingsToSave,
+        version: STORAGE_CONFIG.SETTINGS_VERSION,
+      };
+
+      localStorage.setItem(SettingsManager.STORAGE_KEY, JSON.stringify(storedSettings));
       return true;
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -90,38 +111,39 @@ export class SettingsManager {
     const errors: string[] = [];
     const corrected: GameSettings = { ...SettingsManager.DEFAULT_SETTINGS };
 
-    // Validate minNotes and maxNotes
+    // Validate minNotes
     if (settings.minNotes !== undefined) {
       if (typeof settings.minNotes !== 'number' || !Number.isInteger(settings.minNotes)) {
         errors.push('minNotes must be an integer');
-      } else if (settings.minNotes < 1 || settings.minNotes > 8) {
-        errors.push('minNotes must be between 1 and 8');
+      } else if (!CONFIG_HELPERS.isValidNoteCount(settings.minNotes)) {
+        errors.push(ERROR_MESSAGES.INVALID_NOTE_COUNT(VALIDATION_CONFIG.NOTE_COUNT.min, VALIDATION_CONFIG.NOTE_COUNT.max));
       } else {
         corrected.minNotes = settings.minNotes;
       }
     }
 
+    // Validate maxNotes
     if (settings.maxNotes !== undefined) {
       if (typeof settings.maxNotes !== 'number' || !Number.isInteger(settings.maxNotes)) {
         errors.push('maxNotes must be an integer');
-      } else if (settings.maxNotes < 1 || settings.maxNotes > 8) {
-        errors.push('maxNotes must be between 1 and 8');
+      } else if (!CONFIG_HELPERS.isValidNoteCount(settings.maxNotes)) {
+        errors.push(ERROR_MESSAGES.INVALID_NOTE_COUNT(VALIDATION_CONFIG.NOTE_COUNT.min, VALIDATION_CONFIG.NOTE_COUNT.max));
       } else {
         corrected.maxNotes = settings.maxNotes;
       }
     }
 
-    // Validate that minNotes <= maxNotes
-    if (corrected.minNotes > corrected.maxNotes) {
-      errors.push('Min notes must be equal to or less than max notes');
+    // Validate note range relationship
+    if (!CONFIG_HELPERS.isValidNoteRange(corrected.minNotes, corrected.maxNotes)) {
+      errors.push(ERROR_MESSAGES.MIN_GREATER_THAN_MAX);
     }
 
-    // Validate volume (0-1)
+    // Validate volume
     if (settings.volume !== undefined) {
       if (typeof settings.volume !== 'number') {
         errors.push('volume must be a number');
-      } else if (settings.volume < 0 || settings.volume > 1) {
-        errors.push('volume must be between 0 and 1');
+      } else if (!CONFIG_HELPERS.isValidVolume(settings.volume)) {
+        errors.push(ERROR_MESSAGES.INVALID_VOLUME(VALIDATION_CONFIG.VOLUME.min, VALIDATION_CONFIG.VOLUME.max));
       } else {
         corrected.volume = settings.volume;
       }
@@ -158,7 +180,7 @@ export class SettingsManager {
       if (typeof localStorage === 'undefined') {
         return false;
       }
-      const test = '__storage_test__';
+      const test = STORAGE_CONFIG.STORAGE_TEST_KEY;
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
       return true;

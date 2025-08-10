@@ -3,7 +3,15 @@
 import type { GameControllerProps, GameState, Note } from '@/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useState } from 'react';
+import {
+  CONFIG_HELPERS,
+  DEFAULT_SESSION_SETTINGS,
+  ERROR_MESSAGES,
+  GAME_CONFIG,
+  UI_CONFIG,
+} from '@/config/gameConfig';
 import { audioEngine } from '@/libs/AudioEngine';
+import { settingsManager } from '@/libs/SettingsManager';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
@@ -14,15 +22,15 @@ import ClickableNoteInput from './ClickableNoteInput';
 const MusicTestController: React.FC<GameControllerProps> = ({
   initialSettings = EMPTY_OBJECT,
 }) => {
-  // Default settings
-  const defaultSettings = {
-    minNotes: 3,
-    maxNotes: 3,
-    limitNotes: false,
-    volume: 0.7,
-    autoReplay: false,
-    ...initialSettings,
-  };
+  // Load settings from SettingsManager
+  const [settings, setSettings] = useState(() => {
+    const savedSettings = settingsManager.loadSettings();
+    return {
+      ...savedSettings,
+      ...DEFAULT_SESSION_SETTINGS, // Game-specific settings not in SettingsManager
+      ...initialSettings, // Allow override from props
+    };
+  });
 
   // Game state
   const [gameState, setGameState] = useState<GameState>({
@@ -31,19 +39,43 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     gamePhase: 'setup',
     score: 0,
     totalAttempts: 0,
-    difficulty: defaultSettings.maxNotes, // Use maxNotes as the base difficulty
-    limitNotes: defaultSettings.limitNotes,
+    difficulty: settings.maxNotes, // Use maxNotes as the base difficulty
+    limitNotes: settings.limitNotes,
   });
-
-  // Settings state
-  const [settings, setSettings] = useState(defaultSettings);
 
   // Audio and UI state
   const [isAudioSupported, setIsAudioSupported] = useState(true);
   const [audioError, setAudioError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [audioMode, setAudioMode] = useState<'individual' | 'chord'>('individual');
+
+  // Handle settings changes and sync with SettingsManager
+  const handleSettingsChange = useCallback((newSettings: Partial<typeof settings>) => {
+    const updatedSettings = { ...settings, ...newSettings };
+    setSettings(updatedSettings);
+
+    // Save to SettingsManager (excluding game-specific settings)
+    const { ...settingsToSave } = updatedSettings;
+    settingsManager.saveSettings(settingsToSave);
+  }, [settings]);
+
+  // Listen for external settings changes (e.g., from SettingsPanel)
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newSettings = settingsManager.loadSettings();
+      setSettings(prev => ({
+        ...prev,
+        ...newSettings,
+      }));
+    };
+
+    // Listen for storage events (when settings change in another tab/component)
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Initialize audio engine and check support
   useEffect(() => {
@@ -52,12 +84,12 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       const supported = audioEngine.isSupported();
       handler(supported);
       if (supported) {
-        audioEngine.setVolume(defaultSettings.volume);
+        audioEngine.setVolume(settings.volume);
       }
     };
 
     checkAudioSupport();
-  }, [defaultSettings.volume]);
+  }, [settings.volume]);
 
   // Start a new round
   const startNewRound = useCallback(async () => {
@@ -86,7 +118,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           ...prev,
           gamePhase: 'answering',
         }));
-      }, 2100); // Notes play for 2 seconds + small buffer
+      }, CONFIG_HELPERS.getTotalPlayTime()); // Notes play duration + buffer
     } catch (error) {
       console.error('Failed to start new round:', error);
       setAudioError(error instanceof Error ? error.message : 'Failed to play audio');
@@ -116,7 +148,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
 
       setTimeout(() => {
         setIsPlaying(false);
-      }, 2100);
+      }, CONFIG_HELPERS.getTotalPlayTime());
     } catch (error) {
       console.error('Failed to replay notes:', error);
       setAudioError(error instanceof Error ? error.message : 'Failed to replay audio');
@@ -207,8 +239,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
             Audio Not Supported
           </h2>
           <p className="text-red-600">
-            Your browser doesn't support the Web Audio API required for this application.
-            Please try using a modern browser like Chrome, Firefox, or Safari.
+            {ERROR_MESSAGES.AUDIO_NOT_SUPPORTED}
           </p>
         </div>
       </div>
@@ -261,16 +292,15 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                   value={settings.minNotes}
                   onChange={(e) => {
                     const newMin = Number(e.target.value);
-                    setSettings(prev => ({
-                      ...prev,
+                    handleSettingsChange({
                       minNotes: newMin,
-                      maxNotes: Math.max(newMin, prev.maxNotes),
-                    }));
+                      maxNotes: Math.max(newMin, settings.maxNotes),
+                    });
                   }}
                   className="rounded-md border border-gray-300 px-3 py-1 text-sm"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                    <option key={num} value={num}>{num}</option>
+                  {UI_CONFIG.DIFFICULTY_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </div>
@@ -283,16 +313,15 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                   value={settings.maxNotes}
                   onChange={(e) => {
                     const newMax = Number(e.target.value);
-                    setSettings(prev => ({
-                      ...prev,
+                    handleSettingsChange({
                       maxNotes: newMax,
-                      minNotes: Math.min(newMax, prev.minNotes),
-                    }));
+                      minNotes: Math.min(newMax, settings.minNotes),
+                    });
                   }}
                   className="rounded-md border border-gray-300 px-3 py-1 text-sm"
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(num => (
-                    <option key={num} value={num}>{num}</option>
+                  {UI_CONFIG.DIFFICULTY_OPTIONS.map(option => (
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </div>
@@ -305,12 +334,13 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               </label>
               <select
                 id="audioMode"
-                value={audioMode}
-                onChange={e => setAudioMode(e.target.value as 'individual' | 'chord')}
+                value={settings.audioMode}
+                onChange={e => handleSettingsChange({ audioMode: e.target.value as 'individual' | 'chord' })}
                 className="rounded-md border border-gray-300 px-3 py-1 text-sm"
               >
-                <option value="individual">Individual notes</option>
-                <option value="chord">All notes as chord</option>
+                {UI_CONFIG.AUDIO_MODE_OPTIONS.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -415,9 +445,9 @@ const MusicTestController: React.FC<GameControllerProps> = ({
               maxNotes={gameState.currentNotes.length} // Use actual number of notes in current round
               limitNotes={gameState.limitNotes}
               enableAudio={true} // Enable audio so users can hear notes as they place them
-              audioMode={audioMode} // Use selected audio mode
-              width={400}
-              height={250}
+              audioMode={settings.audioMode} // Use selected audio mode
+              width={GAME_CONFIG.STAFF_WIDTH}
+              height={GAME_CONFIG.STAFF_HEIGHT}
             />
           </div>
         )}
@@ -451,8 +481,8 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                 disabled={true} // Disable interaction in feedback phase
                 enableAudio={true} // Allow audio playback to hear the notes
                 audioMode="chord" // Play all notes as a chord
-                width={400}
-                height={250}
+                width={GAME_CONFIG.STAFF_WIDTH}
+                height={GAME_CONFIG.STAFF_HEIGHT}
               />
             </div>
           </div>
