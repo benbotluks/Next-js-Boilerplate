@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Import the mocked settingsManager
 import { settingsManager } from '@/libs/SettingsManager';
 
-import { SettingsPanel } from '../SettingsPanel';
+import { SettingsPanel } from '../MusicTest/SettingsPanel';
 
 // Mock the SettingsManager module
 vi.mock('@/libs/SettingsManager', () => {

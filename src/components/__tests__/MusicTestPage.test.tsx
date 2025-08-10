@@ -5,7 +5,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MusicTestPage } from '../MusicTestPage';
+import { MusicTestPage } from '../MusicTest/MusicTestPage';
 
 // Mock the audio engine
 vi.mock('@/libs/AudioEngine', () => ({

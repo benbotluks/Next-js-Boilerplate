@@ -15,22 +15,9 @@ export function MusicTestPage() {
   const [activeTab, setActiveTab] = useState<TabType>('game');
   const [gameSettings, setGameSettings] = useState<GameSettings>(settingsManager.getDefaults());
 
-  // Load settings on mount
-  // useEffect(() => {
-  //   const loadedSettings = settingsManager.loadSettings();
-  //   const handler = () => setGameSettings(loadedSettings);
-  //   handler();
-  // }, []);
-
   // Handle settings changes
   const handleSettingsChange = useCallback((newSettings: GameSettings) => {
     setGameSettings(newSettings);
-  }, []);
-
-  // Handle statistics reset
-  const _handleStatisticsReset = useCallback(() => {
-    // Optionally refresh the statistics display or show a message
-    console.warn('Statistics reset');
   }, []);
 
   // Keyboard navigation

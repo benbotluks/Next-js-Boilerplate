@@ -7,8 +7,8 @@ import { audioEngine } from '@/libs/AudioEngine';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
+import FeedbackDisplay from '../FeedbackDisplay';
 import ClickableNoteInput from './ClickableNoteInput';
-import FeedbackDisplay from './FeedbackDisplay';
 
 // Utility functions to convert between note formats
 const convertToVexFlowFormat = (note: Note): Note => {

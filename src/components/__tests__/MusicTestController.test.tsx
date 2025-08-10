@@ -3,7 +3,7 @@ import { page } from '@vitest/browser/context';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from 'vitest-browser-react';
 import { audioEngine } from '@/libs/AudioEngine';
-import MusicTestController from '../MusicTestController';
+import MusicTestController from '../MusicTest/MusicTestController';
 
 // Mock the AudioEngine
 vi.mock('@/libs/AudioEngine', () => ({

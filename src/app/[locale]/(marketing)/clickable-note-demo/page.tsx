@@ -2,7 +2,7 @@
 
 import type { Note } from '@/types/MusicTypes';
 import { useState } from 'react';
-import ClickableNoteInput from '@/components/ClickableNoteInput';
+import ClickableNoteInput from '@/components/MusicTest/ClickableNoteInput';
 
 export default function ClickableNoteDemoPage() {
   const [selectedNotes, setSelectedNotes] = useState<Note[]>([]);
