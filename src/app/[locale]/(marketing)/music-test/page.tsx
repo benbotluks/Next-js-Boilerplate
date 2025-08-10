@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { MusicTestPage } from '@/components/MusicTest/MusicTestPage';
+import { MusicTestPage } from './MusicTest';
 
 type IMusicTestProps = {
   params: Promise<{ locale: string }>;

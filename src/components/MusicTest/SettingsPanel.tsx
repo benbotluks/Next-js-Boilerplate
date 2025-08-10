@@ -1,10 +1,11 @@
+/* eslint-disable tailwindcss/no-custom-classname */
 /**
  * Settings Panel Component for Music Note Identification Game
  * Provides UI for difficulty selection and other game preferences
  */
 
 import type { GameSettings } from '@/libs/SettingsManager';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
 
 export type SettingsPanelProps = {
@@ -16,14 +17,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onSettingsChange,
   className = '',
 }) => {
-  const [settings, setSettings] = useState<GameSettings>(settingsManager.getDefaults());
+  const [settings, setSettings] = useState<GameSettings>(settingsManager.loadSettings());
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Load settings on component mount
-  useEffect(() => {
-    const loadedSettings = settingsManager.loadSettings();
-    setSettings(loadedSettings);
-  }, []);
+
+  // useEffect(() => {
+  //   const loadedSettings = settingsManager.loadSettings();
+  //   setSettings(loadedSettings);
+  // }, []);
 
   const handleSettingChange = (key: keyof GameSettings, value: any) => {
     const newSettings = { ...settings, [key]: value };
@@ -147,6 +149,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Reset Button */}
       <div className="setting-group mb-4">
         <button
+          type="button"
           onClick={handleReset}
           className="rounded-md bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
         >

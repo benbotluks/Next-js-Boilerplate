@@ -45,6 +45,7 @@ export class SettingsManager {
       return { ...SettingsManager.DEFAULT_SETTINGS };
     } catch (error) {
       // If localStorage is unavailable or JSON parsing fails, return defaults
+      console.error('Error loading settings: ', error);
       return { ...SettingsManager.DEFAULT_SETTINGS };
     }
   }

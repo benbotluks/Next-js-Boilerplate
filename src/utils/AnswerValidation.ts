@@ -1,4 +1,3 @@
-import type VexFlow from 'vexflow';
 import type { Note } from '@/types/MusicTypes';
 
 /**
@@ -104,7 +103,7 @@ export function generateFeedbackMessage(result: ValidationResult): string {
  * @returns CSS color class or hex color
  */
 export function getNoteDisplayColor(
-  note: Note | VexFlow.StaveNote,
+  note: Note,
   result: ValidationResult,
 ): { color: string; label: string } {
   if (result.correctlyIdentified.includes(note)) {

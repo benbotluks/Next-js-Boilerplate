@@ -4,8 +4,8 @@ import type { GameSettings } from '@/libs/SettingsManager';
 import { useTranslations } from 'next-intl';
 import React, { useCallback, useEffect, useState } from 'react';
 import { settingsManager } from '@/libs/SettingsManager';
-import MusicTestController from './MusicTestController';
-import { SettingsPanel } from './SettingsPanel';
+import MusicTestController from '../../../../components/MusicTest/MusicTestController';
+import { SettingsPanel } from '../../../../components/MusicTest/SettingsPanel';
 // import { StatisticsDisplay } from './StatisticsDisplay';
 
 type TabType = 'game' | 'settings' | 'statistics';

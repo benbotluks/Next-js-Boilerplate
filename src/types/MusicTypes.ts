@@ -1,7 +1,8 @@
 // Core music note types
 export type NoteName = 'c' | 'c#' | 'd' | 'd#' | 'e' | 'f' | 'f#' | 'g' | 'g#' | 'a' | 'a#' | 'b';
+export type NoteNameUpper = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
 export type Octave = 1 | 2 | 3 | 4 | 5 | 6;
-export type Note = `${NoteName}/${Octave}`;
+export type Note = `${NoteName}/${Octave}` | `${NoteNameUpper}${Octave}`;
 
 // Staff position representation
 export type StaffPosition = {
