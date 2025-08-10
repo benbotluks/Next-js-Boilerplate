@@ -83,8 +83,24 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           step={1}
           label="Number of Notes"
           onChange={(minNotes, maxNotes) => {
-            handleSettingChange('minNotes', minNotes);
-            handleSettingChange('maxNotes', maxNotes);
+            // Update both values in a single state update
+            const newSettings = { ...settings, minNotes, maxNotes };
+            setSettings(newSettings);
+
+            // Save to storage
+            setSaveStatus('saving');
+            const saveSuccess = settingsManager.saveSettings(newSettings);
+
+            if (saveSuccess) {
+              setSaveStatus('saved');
+              onSettingsChange?.(newSettings);
+
+              // Clear saved status after 2 seconds
+              setTimeout(() => setSaveStatus('idle'), 2000);
+            } else {
+              setSaveStatus('error');
+              setTimeout(() => setSaveStatus('idle'), 3000);
+            }
           }}
           className="mb-2"
         />
