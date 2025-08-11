@@ -30,34 +30,8 @@ export const NOTE_STYLES = {
 
 export type NoteStyleKey = keyof typeof NOTE_STYLES;
 
-/**
- * Convert note to VexFlow format with accidentals
- */
-const convertNoteToVexFlowFormat = (note: Note): string => {
-  // Convert from 'C#4' format to 'c#/4' format for VexFlow
-  const match = note.match(/^([A-G])([#b]?)(\d)$/);
-  if (match) {
-    const [, noteName, accidental, octave] = match;
-    return `${noteName!.toLowerCase()}${accidental || ''}/${octave}`;
-  }
-  return note.toLowerCase();
-};
-
-/**
- * Create VexFlow StaveNote from our Note type with accidentals
- */
-export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): StaveNote => {
-  const keys = Array.isArray(pitch) ? pitch : [pitch];
-
-  const staveNote = new StaveNote({
-    keys,
-    duration,
-  });
-
-  // Add accidentals for each note that needs them
+const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   keys.forEach((note, index) => {
-    // Parse the note properly to detect actual accidentals
-    // Handle VexFlow format (e.g., 'bb/4' = B-flat, 'b/4' = B-natural)
     const vexFlowMatch = note.match(/^([a-g])([#b]?)\/(\d)$/);
     if (vexFlowMatch) {
       const [, , accidental] = vexFlowMatch;
@@ -67,6 +41,31 @@ export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): S
       staveNote.addModifier(new Accidental(accidental), index);
     }
   });
+
+  return staveNote;
+};
+
+/**
+ * Create VexFlow StaveNote from our Note type with accidentals
+ */
+export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: Stave, duration: string = 'q'): StaveNote => {
+  notes = Array.isArray(notes) ? notes : [notes];
+
+  const keys = [...notes].sort((a, b) => {
+    const aPos = pitchToLinePosition(a);
+    const bPos = pitchToLinePosition(b);
+    return aPos - bPos; // Lower line positions first
+  });
+
+  const staveNote = new StaveNote({
+    keys,
+    duration,
+  });
+
+  addAccidentalsToStaveNote(keys, staveNote);
+
+  staveNote.setStyle(style);
+  staveNote.setStave(stave);
 
   return staveNote;
 };
@@ -152,33 +151,26 @@ export const renderNoteGroup = (
     return;
   }
 
-  try {
-    const sortedNotes = [...notesToRender].sort((a, b) => {
-      const aPos = pitchToLinePosition(a);
-      const bPos = pitchToLinePosition(b);
-      return aPos - bPos; // Lower line positions first
-    });
+  if (selectedNotes[0]) {
+    let style = getNoteStyle(
+      selectedNotes[0],
+      selectedNotes,
+      correctNotes,
+      hoveredPitch,
+      showCorrectAnswer,
+      validationResult,
+    );
 
-    const staveNote = createStaveNote(sortedNotes);
+    const staveNote = createStaveNote(selectedNotes, style, stave);
 
     // Apply styling based on the first note (they should all have similar validation state)
-    if (sortedNotes[0]) {
-      let style = getNoteStyle(
-        sortedNotes[0],
-        selectedNotes,
-        correctNotes,
-        hoveredPitch,
-        showCorrectAnswer,
-        validationResult,
-      );
 
-      // Override style for missing notes
-      if (isMissingNote) {
-        style = { ...NOTE_STYLES.correct, opacity: 0.4 };
-      }
-
-      staveNote.setStyle(style);
+    // Override style for missing notes
+    if (isMissingNote) {
+      style = { ...NOTE_STYLES.correct, opacity: 0.4 };
     }
+
+    staveNote.setStyle(style);
 
     staveNote.setStave(stave);
 
@@ -197,8 +189,6 @@ export const renderNoteGroup = (
 
     // Draw the voice
     voice.draw(context, stave);
-  } catch (error) {
-    console.error('Failed to render note group:', error);
   }
 };
 
@@ -253,17 +243,7 @@ export const renderSideBySideNoteGroup = (
 };
 
 const createStaveNoteFromNotes = (notes: Note[], stave: Stave, style: NoteStyle) => {
-  const sortedNotes = [...notes].sort((a, b) => {
-    const aPos = pitchToLinePosition(a);
-    const bPos = pitchToLinePosition(b);
-    return aPos - bPos; // Lower line positions first
-  });
 
-  const staveNote = createStaveNote(sortedNotes);
-  staveNote.setStyle(style);
-  staveNote.setStave(stave);
-
-  return staveNote;
 };
 
 export const renderNoteGroups = (
@@ -273,8 +253,8 @@ export const renderNoteGroups = (
   correctNotes: Note[],
 ): void => {
   try {
-    const selectedStaveNote = createStaveNoteFromNotes(selectedNotes, stave, NOTE_STYLES.selected);
-    const correctStaveNote = createStaveNoteFromNotes(correctNotes, stave, NOTE_STYLES.correct);
+    const selectedStaveNote = createStaveNote(selectedNotes, NOTE_STYLES.selected, stave);
+    const correctStaveNote = createStaveNote(correctNotes, NOTE_STYLES.correct, stave);
 
     // Create a voice to hold the notes
     const voice = new Voice({
@@ -368,8 +348,6 @@ export const renderPreviewNote = (
   animationState?: 'fadeIn' | 'fadeOut' | null,
 ): void => {
   try {
-    const staveNote = createStaveNote(pitch);
-
     // Choose style based on animation state
     let style: NoteStyle = NOTE_STYLES.preview;
     if (animationState === 'fadeIn') {
@@ -377,6 +355,7 @@ export const renderPreviewNote = (
     } else if (animationState === 'fadeOut') {
       style = NOTE_STYLES.previewFadeOut;
     }
+    const staveNote = createStaveNote(pitch, style, stave);
 
     staveNote.setStyle(style);
     staveNote.setStave(stave);
@@ -472,24 +451,6 @@ export const clearAndRedrawStaff = (
   } catch (error) {
     console.error('Failed to clear and redraw staff:', error);
   }
-};
-
-/**
- * Calculate the optimal spacing for notes on the staff
- */
-export const calculateNoteSpacing = (
-  noteCount: number,
-  availableWidth: number,
-): number => {
-  if (noteCount <= 1) {
-    return availableWidth / 2;
-  }
-
-  const minSpacing = 40; // Minimum space between notes
-  const maxSpacing = 80; // Maximum space between notes
-
-  const calculatedSpacing = availableWidth / (noteCount + 1);
-  return Math.max(minSpacing, Math.min(maxSpacing, calculatedSpacing));
 };
 
 /**
