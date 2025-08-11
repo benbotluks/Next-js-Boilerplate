@@ -51,7 +51,7 @@ export const useNoteSelection = (
       event.preventDefault();
       setInternalSelectedNotes(new Set(selectedNotes));
     }
-  }, [internalSelectedNotes, removeNotes, selectedNotes]);
+  }, [closeContextMenu, internalSelectedNotes, removeNotes, selectedNotes]);
 
   /**
    * Toggles selection state of a note
@@ -116,7 +116,7 @@ export const useNoteSelection = (
   /**
    * Handles context menu actions
    */
-  const handleContextMenuAction = useCallback((action: 'delete' | 'select' | 'deselect') => {
+  const handleContextMenuAction = useCallback((action: 'delete' | 'select' | 'deselect' | 'cycleAccidental') => {
     if (!contextMenuNote) {
       return;
     }
@@ -135,6 +135,10 @@ export const useNoteSelection = (
         break;
       case 'deselect':
         deselectNote(contextMenuNote);
+        break;
+      case 'cycleAccidental':
+        // This action is handled by the parent component via onAccidentalChange
+        // We just close the context menu here
         break;
     }
 

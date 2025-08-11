@@ -157,6 +157,44 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         </p>
       </div>
 
+      {/* Accidentals Settings */}
+      <div className="setting-group mb-6">
+        <h4 className="mb-3 text-sm font-semibold text-gray-700">Chromatic Notes</h4>
+        
+        <label className="mb-3 flex items-center">
+          <input
+            type="checkbox"
+            checked={false} // This will be a session setting, not persisted
+            onChange={() => {
+              // This will be handled by the game controller
+              console.log('Accidentals toggle - to be implemented');
+            }}
+            className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span className="text-sm font-medium">Include accidentals (♯/♭)</span>
+        </label>
+        
+        <div className="ml-6">
+          <label htmlFor="accidental-mode" className="mb-2 block text-sm font-medium text-gray-600">
+            Accidental type:
+          </label>
+          <select
+            id="accidental-mode"
+            disabled={true} // Will be enabled when accidentals are turned on
+            className="w-full rounded-md border border-gray-300 p-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+          >
+            {UI_CONFIG.ACCIDENTAL_MODE_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-600">
+            Choose which types of accidentals to include in the game
+          </p>
+        </div>
+      </div>
+
       {/* Reset Button */}
       <div className="setting-group mb-4">
         <button

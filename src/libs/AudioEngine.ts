@@ -1,6 +1,5 @@
 import type { Note } from '@/types/MusicTypes';
 import * as Tone from 'tone';
-import { AVAILABLE_NOTES } from '@/utils/MusicConstants';
 import { convertFromVexFlowFormat } from '@/utils/musicUtils';
 
 export class AudioEngine {
@@ -48,13 +47,17 @@ export class AudioEngine {
   /**
    * Generate a random set of notes for the game
    */
-  public generateNoteSet(count: number): Note[] {
+  public generateNoteSet(count: number, includeAccidentals: boolean = false, accidentalMode: 'none' | 'sharps' | 'flats' | 'both' = 'none'): Note[] {
     if (count < 1) {
       throw new Error('Must be a positive integer');
     }
 
+    // Import the helper function dynamically to avoid circular imports
+    const { CONFIG_HELPERS } = require('@/config/gameConfig');
+    const availableNotes = CONFIG_HELPERS.getAvailableNotes(includeAccidentals, accidentalMode);
+
     // Shuffle available notes and take the first 'count' notes
-    const shuffled = [...AVAILABLE_NOTES].sort(() => Math.random() - 0.5);
+    const shuffled = [...availableNotes].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   }
 

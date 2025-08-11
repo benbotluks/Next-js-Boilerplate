@@ -1,6 +1,6 @@
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
-import { Formatter, StaveNote, Voice } from 'vexflow';
+import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { pitchToLinePosition } from './notePositioning';
 
 /**
@@ -30,14 +30,74 @@ export const NOTE_STYLES = {
 export type NoteStyleKey = keyof typeof NOTE_STYLES;
 
 /**
- * Create VexFlow StaveNote from our Note type
+ * Convert note to VexFlow format with accidentals
+ */
+const convertNoteToVexFlowFormat = (note: Note): string => {
+  // Convert from 'C#4' format to 'c#/4' format for VexFlow
+  const match = note.match(/^([A-G])([#b]?)(\d)$/);
+  if (match) {
+    const [, noteName, accidental, octave] = match;
+    return `${noteName!.toLowerCase()}${accidental || ''}/${octave}`;
+  }
+  return note.toLowerCase();
+};
+
+/**
+ * Create VexFlow StaveNote from our Note type with accidentals
  */
 export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): StaveNote => {
-  const keys = Array.isArray(pitch) ? pitch : [pitch];
-  return new StaveNote({
+  const pitches = Array.isArray(pitch) ? pitch : [pitch];
+  const keys = pitches.map(convertNoteToVexFlowFormat);
+
+  const staveNote = new StaveNote({
     keys,
     duration,
   });
+
+  // Add accidentals for each note that needs them
+  pitches.forEach((note, index) => {
+    // Parse the note properly to detect actual accidentals
+    // Handle VexFlow format (e.g., 'bb/4' = B-flat, 'b/4' = B-natural)
+    const vexFlowMatch = note.match(/^([a-g])([#b]?)\/(\d)$/);
+    if (vexFlowMatch) {
+      const [, , accidental] = vexFlowMatch;
+      if (accidental === '#') {
+        try {
+          staveNote.addModifier(new Accidental('#'), index);
+        } catch (error) {
+          console.warn('Failed to add sharp accidental:', error);
+        }
+      } else if (accidental === 'b') {
+        try {
+          staveNote.addModifier(new Accidental('b'), index);
+        } catch (error) {
+          console.warn('Failed to add flat accidental:', error);
+        }
+      }
+      return;
+    }
+
+    // Handle standard format (e.g., 'Bb4' = B-flat, 'B4' = B-natural)
+    const standardMatch = note.match(/^([A-G])([#b]?)(\d)$/);
+    if (standardMatch) {
+      const [, , accidental] = standardMatch;
+      if (accidental === '#') {
+        try {
+          staveNote.addModifier(new Accidental('#'), index);
+        } catch (error) {
+          console.warn('Failed to add sharp accidental:', error);
+        }
+      } else if (accidental === 'b') {
+        try {
+          staveNote.addModifier(new Accidental('b'), index);
+        } catch (error) {
+          console.warn('Failed to add flat accidental:', error);
+        }
+      }
+    }
+  });
+
+  return staveNote;
 };
 
 /**

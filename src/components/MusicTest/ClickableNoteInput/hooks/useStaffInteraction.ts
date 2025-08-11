@@ -81,6 +81,12 @@ export const useStaffInteraction = (
       return;
     }
 
+    // Prevent context menu on right click - we'll handle it ourselves
+    if (event.button === 2) {
+      event.preventDefault();
+      return;
+    }
+
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) {
       return;
@@ -92,6 +98,38 @@ export const useStaffInteraction = (
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
       onNoteClick(position);
+    }
+  }, [staffCoordinatesRef, disabled, containerRef, onNoteClick]);
+
+  /**
+   * Handle right-click events for context menu
+   */
+  const handleContextMenu = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault(); // Prevent browser context menu
+
+    if (!containerRef || !staffCoordinatesRef.current || disabled) {
+      return;
+    }
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
+      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+      // Create a special position object with context menu coordinates
+      const contextMenuPosition = {
+        ...position,
+        contextMenu: {
+          x: event.clientX,
+          y: event.clientY,
+        },
+      };
+      onNoteClick(contextMenuPosition as any);
     }
   }, [staffCoordinatesRef, disabled, containerRef, onNoteClick]);
 
@@ -154,6 +192,7 @@ export const useStaffInteraction = (
     handleMouseMove,
     handleMouseClick,
     handleMouseLeave,
+    handleContextMenu,
 
     // State
     hoveredPosition,

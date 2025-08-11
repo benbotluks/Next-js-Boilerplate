@@ -71,6 +71,14 @@ export default function ClickableNoteDemoPage() {
 
         <button
           type="button"
+          onClick={() => setSelectedNotes(['c/4', 'e/4', 'g#/4'])}
+          className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+        >
+          Set C Major with G# (Chromatic)
+        </button>
+
+        <button
+          type="button"
           onClick={() => setAudioMode(audioMode === 'individual' ? 'chord' : 'individual')}
           className="rounded bg-purple-500 px-4 py-2 text-white hover:bg-purple-600"
         >
@@ -85,6 +93,7 @@ export default function ClickableNoteDemoPage() {
         <ul className="list-disc space-y-1 pl-6">
           <li>Click on staff lines or spaces to add notes</li>
           <li>Click on existing notes to remove them</li>
+          <li><strong>Right-click on notes to change accidentals (♮, ♯, ♭)</strong></li>
           <li>Hover over the staff to see note previews</li>
           <li>Use Tab and arrow keys for keyboard navigation</li>
           <li>Notes will play audio when added (individual mode) or as chords (chord mode)</li>

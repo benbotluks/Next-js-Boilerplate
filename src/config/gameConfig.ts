@@ -9,6 +9,38 @@ import type { Note } from '@/types/MusicTypes';
 export const NOTE_CONFIG = {
   // Available notes for the game (reasonable range for ear training)
   AVAILABLE_NOTES: [
+    // Octave 3
+    'B3',
+    // Octave 4 - Full chromatic scale
+    'C4',
+    'C#4',
+    'D4',
+    'D#4',
+    'E4',
+    'F4',
+    'F#4',
+    'G4',
+    'G#4',
+    'A4',
+    'A#4',
+    'B4',
+    // Octave 5 - Full chromatic scale
+    'C5',
+    'C#5',
+    'D5',
+    'D#5',
+    'E5',
+    'F5',
+    'F#5',
+    'G5',
+    'G#5',
+    'A5',
+    'A#5',
+    'B5',
+  ] as Note[],
+
+  // Natural notes only (for beginners)
+  NATURAL_NOTES_ONLY: [
     'B3',
     'C4',
     'D4',
@@ -24,6 +56,20 @@ export const NOTE_CONFIG = {
     'G5',
     'A5',
     'B5',
+  ] as Note[],
+
+  // Chromatic notes only (for advanced users)
+  CHROMATIC_NOTES_ONLY: [
+    'C#4',
+    'D#4',
+    'F#4',
+    'G#4',
+    'A#4',
+    'C#5',
+    'D#5',
+    'F#5',
+    'G#5',
+    'A#5',
   ] as Note[],
 
   // Note count constraints
@@ -57,6 +103,7 @@ export const GAME_CONFIG = {
   // Default settings
   DEFAULT_AUTO_REPLAY: false,
   DEFAULT_LIMIT_NOTES: false,
+  DEFAULT_INCLUDE_ACCIDENTALS: true,
 
   // UI constraints
   STAFF_WIDTH: 400,
@@ -64,6 +111,9 @@ export const GAME_CONFIG = {
 
   // Difficulty options (for backward compatibility)
   DIFFICULTY_OPTIONS: Array.from({ length: NOTE_CONFIG.MAX_NOTES - NOTE_CONFIG.MIN_NOTES + 1 }, (_, i) => NOTE_CONFIG.MIN_NOTES + i),
+
+  // Chromatic options
+  ACCIDENTAL_MODES: ['none', 'sharps', 'flats', 'both'] as const,
 } as const;
 
 // Settings validation rules
@@ -92,6 +142,8 @@ export const DEFAULT_GAME_SETTINGS = {
 export const DEFAULT_SESSION_SETTINGS = {
   limitNotes: GAME_CONFIG.DEFAULT_LIMIT_NOTES,
   audioMode: AUDIO_CONFIG.DEFAULT_AUDIO_MODE,
+  includeAccidentals: GAME_CONFIG.DEFAULT_INCLUDE_ACCIDENTALS,
+  accidentalMode: 'sharps' as const, // Default to sharps when accidentals are enabled
 } as const;
 
 // UI Configuration
@@ -123,6 +175,13 @@ export const UI_CONFIG = {
     { value: 'individual', label: 'Individual notes' },
     { value: 'chord', label: 'All notes as chord' },
   ] as const,
+
+  ACCIDENTAL_MODE_OPTIONS: [
+    { value: 'none', label: 'Natural notes only' },
+    { value: 'sharps', label: 'Include sharps (♯)' },
+    { value: 'flats', label: 'Include flats (♭)' },
+    { value: 'both', label: 'Include sharps & flats' },
+  ] as const,
 } as const;
 
 // Storage configuration
@@ -146,6 +205,7 @@ export const ERROR_MESSAGES = {
 // Type exports for better type safety
 export type AudioMode = typeof AUDIO_CONFIG.AUDIO_MODES[number];
 export type DifficultyOption = typeof GAME_CONFIG.DIFFICULTY_OPTIONS[number];
+export type AccidentalMode = typeof GAME_CONFIG.ACCIDENTAL_MODES[number];
 
 // Helper functions
 export const CONFIG_HELPERS = {
@@ -184,5 +244,37 @@ export const CONFIG_HELPERS = {
    */
   getTotalPlayTime: (): number => {
     return AUDIO_CONFIG.NOTE_PLAY_DURATION + AUDIO_CONFIG.AUDIO_BUFFER_TIME;
+  },
+
+  /**
+   * Get available notes based on accidental settings
+   */
+  getAvailableNotes: (includeAccidentals: boolean, accidentalMode: 'none' | 'sharps' | 'flats' | 'both' = 'none'): Note[] => {
+    if (!includeAccidentals || accidentalMode === 'none') {
+      return NOTE_CONFIG.NATURAL_NOTES_ONLY;
+    }
+
+    switch (accidentalMode) {
+      case 'sharps':
+        return [...NOTE_CONFIG.NATURAL_NOTES_ONLY, ...NOTE_CONFIG.CHROMATIC_NOTES_ONLY.filter(note => note.includes('#'))];
+      case 'flats': {
+        // Convert sharps to flats for flat mode
+        const flatNotes = NOTE_CONFIG.CHROMATIC_NOTES_ONLY
+          .filter(note => note.includes('#'))
+          .map(note => note.replace('#', 'b') as Note);
+        return [...NOTE_CONFIG.NATURAL_NOTES_ONLY, ...flatNotes];
+      }
+      case 'both':
+        return NOTE_CONFIG.AVAILABLE_NOTES;
+      default:
+        return NOTE_CONFIG.NATURAL_NOTES_ONLY;
+    }
+  },
+
+  /**
+   * Check if a note is chromatic (has accidental)
+   */
+  isChromatic: (note: Note): boolean => {
+    return note.includes('#') || note.includes('b');
   },
 } as const;

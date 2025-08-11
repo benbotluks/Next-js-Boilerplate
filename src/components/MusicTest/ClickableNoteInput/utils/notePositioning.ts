@@ -1,4 +1,5 @@
 import type { Note } from '@/types/MusicTypes';
+import { convertFromVexFlowFormat } from '@/utils/musicUtils';
 
 /**
  * Utility functions for note positioning and pitch calculations
@@ -85,42 +86,146 @@ export const linePositionToPitch = (linePosition: number): Note => {
  * Calculate staff line position from pitch
  */
 export const pitchToLinePosition = (pitch: Note): number => {
+  // First try direct lookup
   const linePosition = PITCH_TO_LINE_POSITION[pitch];
   if (linePosition !== undefined) {
     return linePosition;
   }
 
-  // If pitch not found in mapping, try to parse and estimate
+  // Handle accidental notes by finding the natural note's position
   const match = pitch.match(/^([A-G])(#|b)?(\d)$/);
-  if (!match || !match[3]) {
-    return 4; // Default to middle line (b/4)
+  if (match) {
+    const [, noteName, , octave] = match;
+    // Create the natural note equivalent and look it up
+    const naturalNote = `${noteName!.toLowerCase()}/${octave}` as Note;
+    const naturalPosition = PITCH_TO_LINE_POSITION[naturalNote];
+    if (naturalPosition !== undefined) {
+      return naturalPosition;
+    }
   }
 
-  const octaveNum = Number.parseInt(match[3]);
-
-  // Basic estimation for unmapped pitches
-  // This is a simplified approach - in a full implementation,
-  // you'd want more sophisticated pitch-to-position mapping
-  if (octaveNum < 4) {
-    return 0; // Below staff
-  } else if (octaveNum > 5) {
-    return 8; // Above staff
-  } else {
-    return 4; // Middle area
+  // Handle VexFlow format
+  const vexFlowMatch = pitch.match(/^([a-g])(#|b)?\/(\d)$/);
+  if (vexFlowMatch) {
+    const [, noteName, , octave] = vexFlowMatch;
+    // Create the natural note equivalent and look it up
+    const naturalNote = `${noteName}/${octave}` as Note;
+    const naturalPosition = PITCH_TO_LINE_POSITION[naturalNote];
+    if (naturalPosition !== undefined) {
+      return naturalPosition;
+    }
   }
+
+  // Fallback estimation
+  const octaveMatch = pitch.match(/(\d)$/);
+  if (octaveMatch) {
+    const octaveNum = Number.parseInt(octaveMatch[1]!);
+    if (octaveNum < 4) {
+      return 0; // Below staff
+    } else if (octaveNum > 5) {
+      return 8; // Above staff
+    } else {
+      return 4; // Middle area
+    }
+  }
+
+  return 4; // Default to middle line (b/4)
 };
 
 /**
  * Detect if a pitch needs an accidental
  */
 export const detectAccidental = (pitch: Note): 'sharp' | 'flat' | 'natural' | undefined => {
-  if (pitch.includes('#')) {
-    return 'sharp';
+  // Handle VexFlow format (e.g., 'bb/4' = B-flat, 'b/4' = B-natural)
+  const vexFlowMatch = pitch.match(/^([a-g])([#b]?)\/(\d)$/);
+  if (vexFlowMatch) {
+    const [, , accidental] = vexFlowMatch;
+    if (accidental === '#') {
+      return 'sharp';
+    }
+    if (accidental === 'b') {
+      return 'flat';
+    }
+    return 'natural';
   }
-  if (pitch.includes('b')) {
-    return 'flat';
+
+  // Handle standard format (e.g., 'Bb4' = B-flat, 'B4' = B-natural)
+  const standardMatch = pitch.match(/^([A-G])([#b]?)(\d)$/);
+  if (standardMatch) {
+    const [, , accidental] = standardMatch;
+    if (accidental === '#') {
+      return 'sharp';
+    }
+    if (accidental === 'b') {
+      return 'flat';
+    }
+    return 'natural';
   }
-  return undefined;
+
+  return 'natural';
+};
+
+/**
+ * Get all possible notes for a given staff position (natural, sharp, flat)
+ */
+export const getNotesForStaffPosition = (linePosition: number): Note[] => {
+  const naturalNote = TREBLE_CLEF_PITCHES[linePosition];
+  if (!naturalNote) {
+    return [];
+  }
+
+  const notes: Note[] = [naturalNote];
+
+  // Extract note name and octave
+  const match = naturalNote.match(/^([a-g])\/(\d)$/);
+  if (!match) {
+    return notes;
+  }
+
+  const [, noteName, octave] = match;
+  const noteNameUpper = noteName!.toUpperCase();
+
+  // Add sharp and flat versions for all notes
+  // Users should have full enharmonic freedom!
+  notes.push(`${noteNameUpper}#${octave}` as Note);
+  notes.push(`${noteNameUpper}b${octave}` as Note);
+
+  return notes;
+};
+
+/**
+ * Get the natural note for a given chromatic note
+ */
+export const getNaturalNote = (note: Note): Note => {
+  const match = note.match(/^([A-G])[#b]?(\d)$/);
+  if (match) {
+    const [, noteName, octave] = match;
+    return `${noteName!.toLowerCase()}/${octave}` as Note;
+  }
+  return note;
+};
+
+/**
+ * Cycle through accidentals for a staff position: natural → sharp → flat → natural
+ */
+export const cycleAccidental = (currentNote: Note): Note => {
+  const linePosition = pitchToLinePosition(currentNote);
+  const availableNotes = getNotesForStaffPosition(linePosition);
+
+  if (availableNotes.length <= 1) {
+    return currentNote;
+  }
+
+  const currentIndex = availableNotes.findIndex(note =>
+    convertFromVexFlowFormat(note) === convertFromVexFlowFormat(currentNote),
+  );
+
+  if (currentIndex === -1) {
+    return currentNote;
+  }
+
+  const nextIndex = (currentIndex + 1) % availableNotes.length;
+  return availableNotes[nextIndex]!;
 };
 
 /**

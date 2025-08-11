@@ -96,7 +96,11 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       setAudioError(null);
       // Generate random number of notes within the min/max range
       const noteCount = Math.floor(Math.random() * (settings.maxNotes - settings.minNotes + 1)) + settings.minNotes;
-      const standardNotes = audioEngine.generateNoteSet(noteCount);
+      const standardNotes = audioEngine.generateNoteSet(
+        noteCount,
+        settings.includeAccidentals,
+        settings.accidentalMode,
+      );
       const vexFlowNotes = standardNotes.map(convertToVexFlowFormat);
 
       setGameState(prev => ({
@@ -129,7 +133,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
         gamePhase: 'setup',
       }));
     }
-  }, [settings.minNotes, settings.maxNotes]);
+  }, [settings.maxNotes, settings.minNotes, settings.includeAccidentals, settings.accidentalMode]);
 
   // Replay current notes
   const replayNotes = useCallback(async () => {

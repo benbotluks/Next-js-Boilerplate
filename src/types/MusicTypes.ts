@@ -10,6 +10,10 @@ export type StaffPosition = {
   linePosition: number; // 0-10 (lines and spaces from bottom)
   requiresLedgerLine: boolean;
   accidental?: 'sharp' | 'flat';
+  contextMenu?: {
+    x: number;
+    y: number;
+  };
 };
 
 // Game state management

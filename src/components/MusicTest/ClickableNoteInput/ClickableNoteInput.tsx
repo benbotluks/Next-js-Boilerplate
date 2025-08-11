@@ -11,6 +11,7 @@ import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
+import { pitchToLinePosition } from './utils';
 import { clearAndRedrawStaff, renderEnhancedPreviewNote, renderNotesOnStaff } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
@@ -78,56 +79,106 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
   // Handle note click from staff interaction
-  const handleNoteClick = useCallback(async (position: StaffPosition) => {
+  const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
     if (disabled) {
       return;
     }
 
-    const wasSelected = selectedNotes.includes(position.pitch);
+    // Check if this is a context menu request
+    if (position.contextMenu) {
+      // Find if there's a note at this staff position (check all possible accidentals)
+      const existingNote = selectedNotes.find((note) => {
+        // Convert both notes to the same format for comparison
+        const noteLinePos = pitchToLinePosition(note);
+        return noteLinePos === position.linePosition;
+      });
 
-    // Toggle note selection
-    toggleNote(position.pitch);
+      if (existingNote) {
+        handleContextMenu({
+          clientX: position.contextMenu.x,
+          clientY: position.contextMenu.y,
+          preventDefault: () => { },
+          stopPropagation: () => { },
+        } as React.MouseEvent, existingNote);
+      }
+      return;
+    }
 
-    // Play audio if enabled
-    if (enableAudio && audioEngine.isSupported()) {
-      try {
-        if (audioMode === 'individual') {
-          // Play the individual note that was just added/removed
-          if (!wasSelected) {
-            // Note was added - play it
-            await audioEngine.playNotes([position.pitch]);
-          }
-          // If note was removed, don't play anything
-        } else if (audioMode === 'chord') {
-          // Play all currently selected notes as a chord
-          const updatedNotes = wasSelected
-            ? selectedNotes.filter(note => note !== position.pitch)
-            : [...selectedNotes, position.pitch];
+    // Find existing note at this staff position (any accidental)
+    const existingNote = selectedNotes.find((note) => {
+      const noteLinePos = pitchToLinePosition(note);
+      return noteLinePos === position.linePosition;
+    });
 
+    if (existingNote) {
+      // If there's already a note at this position, remove it
+      toggleNote(existingNote);
+
+      // Play audio for removal if enabled
+      if (enableAudio && audioEngine.isSupported() && audioMode === 'chord') {
+        try {
+          const updatedNotes = selectedNotes.filter(note => note !== existingNote);
           if (updatedNotes.length > 0) {
             await audioEngine.playNotes(updatedNotes);
           }
+        } catch (error) {
+          console.warn('Failed to play audio:', error);
         }
-      } catch (error) {
-        console.warn('Failed to play audio:', error);
-        // Don't throw - audio failure shouldn't break the component
+      }
+    } else {
+      // No existing note, add the natural note at this position
+      toggleNote(position.pitch);
+
+      // Play audio for addition if enabled
+      if (enableAudio && audioEngine.isSupported()) {
+        try {
+          if (audioMode === 'individual') {
+            await audioEngine.playNotes([position.pitch]);
+          } else if (audioMode === 'chord') {
+            const updatedNotes = [...selectedNotes, position.pitch];
+            await audioEngine.playNotes(updatedNotes);
+          }
+        } catch (error) {
+          console.warn('Failed to play audio:', error);
+        }
       }
     }
-  }, [disabled, selectedNotes, toggleNote, enableAudio, audioMode]);
+  }, [disabled, selectedNotes, toggleNote, enableAudio, audioMode, handleContextMenu]);
 
   // Handle right-click on notes
-  const handleNoteRightClick = (event: React.MouseEvent, note: Note) => {
+  const _handleNoteRightClick = (event: React.MouseEvent, note: Note) => {
     if (disabled) {
       return;
     }
     handleContextMenu(event, note);
   };
 
+  // Handle accidental changes
+  const handleAccidentalChange = useCallback((oldNote: Note, newNote: Note) => {
+    if (disabled || oldNote === newNote) {
+      return;
+    }
+
+    // Replace the old note with the new one
+    onNoteDeselect(oldNote);
+    onNoteSelect(newNote);
+
+    // Play the new note if audio is enabled
+    if (enableAudio && audioEngine.isSupported()) {
+      try {
+        audioEngine.playNotes([newNote]);
+      } catch (error) {
+        console.warn('Failed to play audio:', error);
+      }
+    }
+  }, [disabled, onNoteDeselect, onNoteSelect, enableAudio]);
+
   // Use staff interaction hook
   const {
     handleMouseMove: staffHandleMouseMove,
     handleMouseClick: staffHandleMouseClick,
     handleMouseLeave: staffHandleMouseLeave,
+    handleContextMenu: staffHandleContextMenu,
     hoveredPosition,
     previewAnimation,
     getCursorStyle,
@@ -331,12 +382,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleMouseClick}
-          onKeyDown={(_) => {}}
-          onContextMenu={(e) => {
-            if (hoveredPosition && selectedNotes.includes(hoveredPosition.pitch)) {
-              handleNoteRightClick(e, hoveredPosition.pitch);
-            }
-          }}
+          onKeyDown={(_) => { }}
+          onContextMenu={staffHandleContextMenu}
           // Accessibility attributes
           role="button"
           aria-label={getAriaLabel()}
@@ -357,7 +404,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             position={contextMenuPosition}
             isSelected={isInternallySelected(contextMenuNote)}
             onAction={handleContextMenuAction}
+            onAccidentalChange={newNote => handleAccidentalChange(contextMenuNote, newNote)}
             onClose={closeContextMenu}
+            showAccidentalOptions={true}
           />
         )}
       </div>
