@@ -1,3 +1,4 @@
+import type { Stave } from 'vexflow';
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
@@ -46,8 +47,7 @@ const convertNoteToVexFlowFormat = (note: Note): string => {
  * Create VexFlow StaveNote from our Note type with accidentals
  */
 export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): StaveNote => {
-  const pitches = Array.isArray(pitch) ? pitch : [pitch];
-  const keys = pitches.map(convertNoteToVexFlowFormat);
+  const keys = Array.isArray(pitch) ? pitch : [pitch];
 
   const staveNote = new StaveNote({
     keys,
@@ -55,45 +55,16 @@ export const createStaveNote = (pitch: Note | Note[], duration: string = 'q'): S
   });
 
   // Add accidentals for each note that needs them
-  pitches.forEach((note, index) => {
+  keys.forEach((note, index) => {
     // Parse the note properly to detect actual accidentals
     // Handle VexFlow format (e.g., 'bb/4' = B-flat, 'b/4' = B-natural)
     const vexFlowMatch = note.match(/^([a-g])([#b]?)\/(\d)$/);
     if (vexFlowMatch) {
       const [, , accidental] = vexFlowMatch;
-      if (accidental === '#') {
-        try {
-          staveNote.addModifier(new Accidental('#'), index);
-        } catch (error) {
-          console.warn('Failed to add sharp accidental:', error);
-        }
-      } else if (accidental === 'b') {
-        try {
-          staveNote.addModifier(new Accidental('b'), index);
-        } catch (error) {
-          console.warn('Failed to add flat accidental:', error);
-        }
+      if (!accidental || !['#', 'b'].includes(accidental)) {
+        return;
       }
-      return;
-    }
-
-    // Handle standard format (e.g., 'Bb4' = B-flat, 'B4' = B-natural)
-    const standardMatch = note.match(/^([A-G])([#b]?)(\d)$/);
-    if (standardMatch) {
-      const [, , accidental] = standardMatch;
-      if (accidental === '#') {
-        try {
-          staveNote.addModifier(new Accidental('#'), index);
-        } catch (error) {
-          console.warn('Failed to add sharp accidental:', error);
-        }
-      } else if (accidental === 'b') {
-        try {
-          staveNote.addModifier(new Accidental('b'), index);
-        } catch (error) {
-          console.warn('Failed to add flat accidental:', error);
-        }
-      }
+      staveNote.addModifier(new Accidental(accidental), index);
     }
   });
 
@@ -281,6 +252,50 @@ export const renderSideBySideNoteGroup = (
   }
 };
 
+const createStaveNoteFromNotes = (notes: Note[], stave: Stave, style: NoteStyle) => {
+  const sortedNotes = [...notes].sort((a, b) => {
+    const aPos = pitchToLinePosition(a);
+    const bPos = pitchToLinePosition(b);
+    return aPos - bPos; // Lower line positions first
+  });
+
+  const staveNote = createStaveNote(sortedNotes);
+  staveNote.setStyle(style);
+  staveNote.setStave(stave);
+
+  return staveNote;
+};
+
+export const renderNoteGroups = (
+  stave: any, // VexFlow Stave
+  context: any, // VexFlow RenderContext
+  selectedNotes: Note[],
+  correctNotes: Note[],
+): void => {
+  try {
+    const selectedStaveNote = createStaveNoteFromNotes(selectedNotes, stave, NOTE_STYLES.selected);
+    const correctStaveNote = createStaveNoteFromNotes(correctNotes, stave, NOTE_STYLES.correct);
+
+    // Create a voice to hold the notes
+    const voice = new Voice({
+      numBeats: 2,
+      beatValue: 4,
+    });
+
+    voice.addTickables([selectedStaveNote, correctStaveNote]);
+
+    // Format the voice to fit the stave
+    const formatter = new Formatter();
+    formatter.joinVoices([voice]);
+    formatter.format([voice], stave.getWidth() - 48);
+
+    // Draw the voice
+    voice.draw(context, stave);
+  } catch (error) {
+    console.error('Failed to render side-by-side note group:', error);
+  }
+};
+
 /**
  * Render notes on a staff with validation support
  */
@@ -296,28 +311,28 @@ export const renderNotesOnStaff = (
   try {
     if (showCorrectAnswer && validationResult) {
       // Render both user's answer and correct answer side by side
+      renderNoteGroups(stave, context, selectedNotes, correctNotes);
+      // // Render user's answer on the left (blue)
+      // if (selectedNotes.length > 0) {
+      //   renderSideBySideNoteGroup(
+      //     stave,
+      //     context,
+      //     selectedNotes,
+      //     'left',
+      //     { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 1 }, // Blue
+      //   );
+      // }
 
-      // Render user's answer on the left (blue)
-      if (selectedNotes.length > 0) {
-        renderSideBySideNoteGroup(
-          stave,
-          context,
-          selectedNotes,
-          'left',
-          { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 1 }, // Blue
-        );
-      }
-
-      // Render correct answer on the right (green)
-      if (correctNotes.length > 0) {
-        renderSideBySideNoteGroup(
-          stave,
-          context,
-          correctNotes,
-          'right',
-          { fillStyle: '#059669', strokeStyle: '#059669', opacity: 1 }, // Green
-        );
-      }
+      // // Render correct answer on the right (green)
+      // if (correctNotes.length > 0) {
+      //   renderSideBySideNoteGroup(
+      //     stave,
+      //     context,
+      //     correctNotes,
+      //     'right',
+      //     { fillStyle: '#059669', strokeStyle: '#059669', opacity: 1 }, // Green
+      //   );
+      // }
     } else {
       // Normal rendering - just render the selected notes as a chord
       if (selectedNotes.length > 0) {
@@ -366,9 +381,6 @@ export const renderPreviewNote = (
     staveNote.setStyle(style);
     staveNote.setStave(stave);
 
-    // Position the note at the specified x coordinate
-    staveNote.setXShift(x - stave.getNoteStartX());
-
     // Create a temporary voice for the preview note
     const voice = new Voice({
       numBeats: 1,
@@ -380,7 +392,7 @@ export const renderPreviewNote = (
     // Format and draw
     const formatter = new Formatter();
     formatter.joinVoices([voice]);
-    formatter.format([voice], 100);
+    formatter.format([voice]);
 
     voice.draw(context, stave);
   } catch (error) {

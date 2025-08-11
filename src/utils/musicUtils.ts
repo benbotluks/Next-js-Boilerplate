@@ -83,6 +83,27 @@ export const detectAccidental = (note: Note): 'natural' | 'sharp' | 'flat' => {
   return 'natural';
 };
 
+const isVexFlowFormat = (note: Note): boolean => {
+  return note.includes('/');
+};
+
+/**
+ * Convert note to VexFlow format if it isn't already
+ */
+const ensureVexFlowFormat = (note: string): Note => {
+  if (note.includes('/')) {
+    return note as Note; // Already in VexFlow format
+  }
+
+  // Convert from 'C#4' to 'c#/4'
+  const match = note.match(/^([A-G])([#b]?)(\d)$/);
+  if (match) {
+    const [, noteName, accidental, octave] = match;
+    return `${noteName!.toLowerCase()}${accidental || ''}/${octave}` as Note;
+  }
+  return note as Note;
+};
+
 /**
  * Cycle through accidental variations of a note
  * Natural → Sharp → Flat → Natural
@@ -111,30 +132,6 @@ export const cycleAccidental = (note: Note): Note => {
   }
 
   return ensureVexFlowFormat(nextNote);
-};
-
-/**
- * Determine if a note is in VexFlow format (c#/4) or standard format (C#4)
- */
-const isVexFlowFormat = (note: Note): boolean => {
-  return note.includes('/');
-};
-
-/**
- * Convert note to VexFlow format if it isn't already
- */
-const ensureVexFlowFormat = (note: string): Note => {
-  if (note.includes('/')) {
-    return note as Note; // Already in VexFlow format
-  }
-
-  // Convert from 'C#4' to 'c#/4'
-  const match = note.match(/^([A-G])([#b]?)(\d)$/);
-  if (match) {
-    const [, noteName, accidental, octave] = match;
-    return `${noteName!.toLowerCase()}${accidental || ''}/${octave}` as Note;
-  }
-  return note as Note;
 };
 
 /**
