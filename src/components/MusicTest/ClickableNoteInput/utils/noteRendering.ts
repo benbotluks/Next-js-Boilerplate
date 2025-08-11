@@ -192,60 +192,6 @@ export const renderNoteGroup = (
   }
 };
 
-/**
- * Render a group of notes positioned for side-by-side comparison
- */
-export const renderSideBySideNoteGroup = (
-  stave: any, // VexFlow Stave
-  context: any, // VexFlow RenderContext
-  notesToRender: Note[],
-  position: 'left' | 'right',
-  style: NoteStyle,
-): void => {
-  if (notesToRender.length === 0) {
-    return;
-  }
-
-  try {
-    const sortedNotes = [...notesToRender].sort((a, b) => {
-      const aPos = pitchToLinePosition(a);
-      const bPos = pitchToLinePosition(b);
-      return aPos - bPos; // Lower line positions first
-    });
-
-    const staveNote = createStaveNote(sortedNotes);
-    staveNote.setStyle(style);
-    staveNote.setStave(stave);
-
-    // Position the chord based on left/right
-    const staffWidth = stave.getWidth();
-    const xOffset = position === 'left' ? staffWidth * 0.25 : staffWidth * 0.75;
-    staveNote.setXShift(xOffset - stave.getNoteStartX());
-
-    // Create a voice to hold the notes
-    const voice = new Voice({
-      numBeats: 1,
-      beatValue: 4,
-    });
-
-    voice.addTickables([staveNote]);
-
-    // Format the voice to fit the stave
-    const formatter = new Formatter();
-    formatter.joinVoices([voice]);
-    formatter.format([voice], staffWidth);
-
-    // Draw the voice
-    voice.draw(context, stave);
-  } catch (error) {
-    console.error('Failed to render side-by-side note group:', error);
-  }
-};
-
-const createStaveNoteFromNotes = (notes: Note[], stave: Stave, style: NoteStyle) => {
-
-};
-
 export const renderNoteGroups = (
   stave: any, // VexFlow Stave
   context: any, // VexFlow RenderContext
@@ -290,29 +236,7 @@ export const renderNotesOnStaff = (
 ): void => {
   try {
     if (showCorrectAnswer && validationResult) {
-      // Render both user's answer and correct answer side by side
       renderNoteGroups(stave, context, selectedNotes, correctNotes);
-      // // Render user's answer on the left (blue)
-      // if (selectedNotes.length > 0) {
-      //   renderSideBySideNoteGroup(
-      //     stave,
-      //     context,
-      //     selectedNotes,
-      //     'left',
-      //     { fillStyle: '#3b82f6', strokeStyle: '#3b82f6', opacity: 1 }, // Blue
-      //   );
-      // }
-
-      // // Render correct answer on the right (green)
-      // if (correctNotes.length > 0) {
-      //   renderSideBySideNoteGroup(
-      //     stave,
-      //     context,
-      //     correctNotes,
-      //     'right',
-      //     { fillStyle: '#059669', strokeStyle: '#059669', opacity: 1 }, // Green
-      //   );
-      // }
     } else {
       // Normal rendering - just render the selected notes as a chord
       if (selectedNotes.length > 0) {
