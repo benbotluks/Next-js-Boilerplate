@@ -2,7 +2,8 @@ import type { Stave } from 'vexflow';
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
-import { pitchToLinePosition } from './notePositioning';
+import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
+import { toVexFlowFormat } from '@/utils/musicUtils';
 
 /**
  * Configuration for note rendering styles
@@ -32,13 +33,8 @@ export type NoteStyleKey = keyof typeof NOTE_STYLES;
 
 const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   keys.forEach((note, index) => {
-    const vexFlowMatch = note.match(/^([a-g])([#b]?)\/(\d)$/);
-    if (vexFlowMatch) {
-      const [, , accidental] = vexFlowMatch;
-      if (!accidental || !['#', 'b'].includes(accidental)) {
-        return;
-      }
-      staveNote.addModifier(new Accidental(accidental), index);
+    if (note.accidental !== 'natural') {
+      staveNote.addModifier(new Accidental(ACCIDENTALS_MAP[note.accidental].vexFlowSymbol), index);
     }
   });
 
@@ -51,18 +47,12 @@ const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
 export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: Stave, duration: string = 'q'): StaveNote => {
   notes = Array.isArray(notes) ? notes : [notes];
 
-  const keys = [...notes].sort((a, b) => {
-    const aPos = pitchToLinePosition(a);
-    const bPos = pitchToLinePosition(b);
-    return aPos - bPos; // Lower line positions first
-  });
-
   const staveNote = new StaveNote({
-    keys,
+    keys: notes.map(toVexFlowFormat),
     duration,
   });
 
-  addAccidentalsToStaveNote(keys, staveNote);
+  addAccidentalsToStaveNote(notes, staveNote);
 
   staveNote.setStyle(style);
   staveNote.setStave(stave);
@@ -268,7 +258,6 @@ export const renderPreviewNote = (
   stave: any, // VexFlow Stave
   context: any, // VexFlow RenderContext
   pitch: Note,
-  x: number,
   animationState?: 'fadeIn' | 'fadeOut' | null,
 ): void => {
   try {
@@ -351,15 +340,11 @@ export const renderEnhancedPreviewNote = (
     }
 
     // Render the preview note
-    renderPreviewNote(stave, context, pitch, x, animationState);
+    renderPreviewNote(stave, context, pitch, animationState);
   } catch (error) {
     console.error('Failed to render enhanced preview note:', error);
   }
 };
-
-/**
- * Render subtle guidelines to help with note placement
- */
 
 /**
  * Clear the staff and redraw the base staff elements
@@ -375,19 +360,4 @@ export const clearAndRedrawStaff = (
   } catch (error) {
     console.error('Failed to clear and redraw staff:', error);
   }
-};
-
-/**
- * Check if two notes would overlap when rendered
- */
-export const wouldNotesOverlap = (
-  pitch1: Note,
-  pitch2: Note,
-  spacing: number,
-): boolean => {
-  // Simple overlap detection based on pitch proximity and spacing
-  // This is a simplified version - a full implementation would consider
-  // actual note head sizes and positions
-  const minSpacing = 30;
-  return spacing < minSpacing;
 };

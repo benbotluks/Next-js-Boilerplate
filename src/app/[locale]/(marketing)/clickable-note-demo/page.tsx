@@ -3,12 +3,16 @@
 import type { Note } from '@/types/MusicTypes';
 import { useState } from 'react';
 import ClickableNoteInput from '@/components/MusicTest/ClickableNoteInput';
+import { toDisplayFormat } from '@/utils/musicUtils';
 
 export default function ClickableNoteDemoPage() {
   const [selectedNotes, setSelectedNotes] = useState<Note[]>([]);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState(false);
-  const [audioMode, setAudioMode] = useState<'individual' | 'chord'>('individual');
-  const correctNotes: Note[] = ['c/4', 'e/4', 'g/4'];
+  const [audioMode, setAudioMode] = useState<'mono' | 'poly'>('mono');
+
+  const correctNotes: Note[] = ['C', 'E', 'G'].map((noteClass) => {
+    return { noteClass, octave: 4, accidental: 'natural' } as Note;
+  });
 
   const handleNoteSelect = (note: Note) => {
     setSelectedNotes(prev => [...prev, note]);
@@ -63,28 +67,28 @@ export default function ClickableNoteDemoPage() {
 
         <button
           type="button"
-          onClick={() => setSelectedNotes(['c/4', 'e/4', 'g/4'])}
+          onClick={() => setSelectedNotes(correctNotes)}
           className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600"
         >
           Set C Major Chord
         </button>
-
+        {/*
         <button
           type="button"
           onClick={() => setSelectedNotes(['c/4', 'e/4', 'g#/4'])}
           className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
         >
           Set C Major with G# (Chromatic)
-        </button>
+        </button> */}
 
         <button
           type="button"
-          onClick={() => setAudioMode(audioMode === 'individual' ? 'chord' : 'individual')}
+          onClick={() => setAudioMode(audioMode === 'mono' ? 'poly' : 'mono')}
           className="rounded bg-purple-500 px-4 py-2 text-white hover:bg-purple-600"
         >
           Audio:
           {' '}
-          {audioMode === 'individual' ? 'Individual Notes' : 'Chord Mode'}
+          {audioMode === 'mono' ? 'Monophonic' : 'Polyphonic'}
         </button>
       </div>
 
@@ -116,7 +120,7 @@ export default function ClickableNoteDemoPage() {
                     key={`${note}-${index}`}
                     className="rounded bg-blue-100 px-2 py-1 text-blue-800"
                   >
-                    {note}
+                    {toDisplayFormat(note)}
                   </span>
                 ))
               )}

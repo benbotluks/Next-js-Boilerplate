@@ -1,107 +1,15 @@
-import type { Note } from '@/types/MusicTypes';
+import type { NOTE_CLASS } from './MusicConstants';
+import type { Note, Octave } from '@/types/MusicTypes';
+import { RuntimeError } from 'vexflow';
+import { detectAccidental, getNaturalNote, getOctave } from '@/components/MusicTest/ClickableNoteInput/utils';
+import { ACCIDENTALS, ACCIDENTALS_MAP, CLEF_POSITION_REF, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 
-export const convertToVexFlowFormat = (note: Note): Note => {
-  // Convert 'G4' to 'g/4'
-  const match = note.match(/^([A-G][#b]?)(\d)$/);
-  if (match) {
-    const [, noteName, octave] = match;
-    return `${noteName!.toLowerCase()}/${octave}` as Note;
-  }
-  return note;
+export const toVexFlowFormat = (note: Note): string => {
+  return `${note.noteClass.toLowerCase()}${ACCIDENTALS_MAP[note.accidental].vexFlowSymbol}/${note.octave}`;
 };
 
-export const convertFromVexFlowFormat = (note: Note): Note => {
-  // Convert 'g/4' to 'G4'
-  const match = note.match(/^([a-g][#b]?)\/(\d)$/);
-  if (match) {
-    const [, noteName, octave] = match;
-    return `${noteName!.toUpperCase()}${octave}` as Note;
-  }
-  return note;
-};
-
-/**
- * Get the natural note name without accidental
- */
-export const getNaturalNote = (note: Note): string => {
-  // Handle VexFlow format (c#/4)
-  const vexFlowMatch = note.match(/^([a-g])[#b]?\/(\d)$/);
-  if (vexFlowMatch) {
-    return vexFlowMatch[1]!.toUpperCase();
-  }
-
-  // Handle standard format (C#4)
-  const standardMatch = note.match(/^([A-G])[#b]?(\d)$/);
-  return standardMatch ? standardMatch[1]! : note.charAt(0).toUpperCase();
-};
-
-/**
- * Get the octave from a note
- */
-export const getOctave = (note: Note): string => {
-  // Handle VexFlow format (c#/4)
-  const vexFlowMatch = note.match(/^[a-g][#b]?\/(\d)$/);
-  if (vexFlowMatch) {
-    return vexFlowMatch[1]!;
-  }
-
-  // Handle standard format (C#4)
-  const standardMatch = note.match(/^[A-G][#b]?(\d)$/);
-  return standardMatch ? standardMatch[1]! : '4';
-};
-
-/**
- * Detect the accidental type of a note
- */
-export const detectAccidental = (note: Note): 'natural' | 'sharp' | 'flat' => {
-  // Handle VexFlow format (e.g., 'bb/4' = B-flat, 'b/4' = B-natural)
-  const vexFlowMatch = note.match(/^([a-g])([#b]?)\/(\d)$/);
-  if (vexFlowMatch) {
-    const [, , accidental] = vexFlowMatch;
-    if (accidental === '#') {
-      return 'sharp';
-    }
-    if (accidental === 'b') {
-      return 'flat';
-    }
-    return 'natural';
-  }
-
-  // Handle standard format (e.g., 'Bb4' = B-flat, 'B4' = B-natural)
-  const standardMatch = note.match(/^([A-G])([#b]?)(\d)$/);
-  if (standardMatch) {
-    const [, , accidental] = standardMatch;
-    if (accidental === '#') {
-      return 'sharp';
-    }
-    if (accidental === 'b') {
-      return 'flat';
-    }
-    return 'natural';
-  }
-
-  return 'natural';
-};
-
-const isVexFlowFormat = (note: Note): boolean => {
-  return note.includes('/');
-};
-
-/**
- * Convert note to VexFlow format if it isn't already
- */
-const ensureVexFlowFormat = (note: string): Note => {
-  if (note.includes('/')) {
-    return note as Note; // Already in VexFlow format
-  }
-
-  // Convert from 'C#4' to 'c#/4'
-  const match = note.match(/^([A-G])([#b]?)(\d)$/);
-  if (match) {
-    const [, noteName, accidental, octave] = match;
-    return `${noteName!.toLowerCase()}${accidental || ''}/${octave}` as Note;
-  }
-  return note as Note;
+export const toDisplayFormat = (note: Note): string => {
+  return `${note.noteClass.toUpperCase()}${ACCIDENTALS_MAP[note.accidental].vexFlowSymbol}${note.octave}`;
 };
 
 /**
@@ -109,46 +17,137 @@ const ensureVexFlowFormat = (note: string): Note => {
  * Natural → Sharp → Flat → Natural
  */
 export const cycleAccidental = (note: Note): Note => {
-  const naturalNote = getNaturalNote(note);
-  const octave = getOctave(note);
-  const currentAccidental = detectAccidental(note);
-  const useVexFlowFormat = isVexFlowFormat(note);
+  const { noteClass, octave } = note;
 
-  // Allow all notes to cycle through natural → sharp → flat → natural
-
-  let nextNote: string;
-  switch (currentAccidental) {
-    case 'natural':
-      nextNote = useVexFlowFormat ? `${naturalNote.toLowerCase()}#/${octave}` : `${naturalNote}#${octave}`;
-      break;
-    case 'sharp':
-      nextNote = useVexFlowFormat ? `${naturalNote.toLowerCase()}b/${octave}` : `${naturalNote}b${octave}`;
-      break;
-    case 'flat':
-      nextNote = useVexFlowFormat ? `${naturalNote.toLowerCase()}/${octave}` : `${naturalNote}${octave}`;
-      break;
-    default:
-      return note;
-  }
-
-  return ensureVexFlowFormat(nextNote);
+  const accidental = ACCIDENTALS[(ACCIDENTALS.indexOf(note.accidental) + 1) % ACCIDENTALS.length]!;
+  return {
+    noteClass,
+    octave,
+    accidental,
+  };
 };
 
-/**
- * Get all possible accidental variations of a note
- */
-export const getAccidentalVariations = (note: Note): Note[] => {
-  const naturalNote = getNaturalNote(note);
-  const octave = getOctave(note);
-  const useVexFlowFormat = isVexFlowFormat(note);
+export const noteToMidiNumber = (note: Note): number => {
+  const semitone = NOTE_CLASS_NUMBER_MAP[note.noteClass] + ACCIDENTALS_MAP[note.accidental].increment;
 
-  // All notes can have natural, sharp, and flat variations
-  // Let users have full enharmonic freedom!
-  const variations = [
-    useVexFlowFormat ? `${naturalNote.toLowerCase()}/${octave}` : `${naturalNote}${octave}`,
-    useVexFlowFormat ? `${naturalNote.toLowerCase()}#/${octave}` : `${naturalNote}#${octave}`,
-    useVexFlowFormat ? `${naturalNote.toLowerCase()}b/${octave}` : `${naturalNote}b${octave}`,
-  ];
+  return (note.octave + 1) * 12 + semitone;
+};
 
-  return variations.map(ensureVexFlowFormat);
+export const midiNumberToNote = (midiNumber: number): Note => {
+  const { noteClass, accidental } = PITCH_CLASSES[midiNumber % 12]!;
+  const calculatedOctave = Math.floor(midiNumber / 12) - 1;
+
+  if (!OCTAVES.includes(calculatedOctave as Octave)) {
+    throw new RuntimeError('Octave not within specified range!', JSON.stringify({ midiNumber, noteClass, accidental, octave: calculatedOctave }));
+  }
+
+  const octave = calculatedOctave as Octave;
+  return { noteClass, accidental, octave };
+};
+
+const euclidMod = (n: number, d: number) => ((n % d) + d) % d;
+const getRefIndex = (refLetter: NOTE_CLASS): number => NOTE_CLASSES.indexOf(refLetter);
+const getAbsRefPosition = (refOctave: number, refIndex: number): number => 7 * refOctave * refIndex;
+
+export const treblePositionFromNote = (note: Note, clef: 'treble' = 'treble'): number => {
+  const idx = NOTE_CLASSES.indexOf(note.noteClass);
+  const { noteClass, octave } = CLEF_POSITION_REF[clef];
+  return 7 * (note.octave - octave) + (idx - getRefIndex(noteClass as NOTE_CLASS));
+};
+
+/** Staff position -> { letter, octave } (treble) */
+export function noteFromTreblePosition(pos: number): { letter: Letter; octave: number } {
+  const abs = REF_ABS + pos; // absolute diatonic number
+  const octave = Math.floor(abs / 7); // Euclidean floor works in JS
+  const idx = euclidMod(abs, 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  return { letter: LETTERS[idx], octave };
+}
+
+/** Staff position -> VexFlow key like "a/4" (lowercase letter / octave) */
+export function vexKeyFromTreblePosition(pos: number): VexKey {
+  const { letter, octave } = noteFromTreblePosition(pos);
+  return `${letter.toLowerCase()}/${octave}` as VexKey;
+}
+
+export const mobileUtils = {
+  /**
+   * Move a note up by one natural note step (C→D→E→F→G→A→B→C) and remove accidental
+   */
+  moveNoteUpStep: (note: Note): Note => {
+    const naturalNote = getNaturalNote(note);
+    const octave = getOctave(note);
+
+    // Natural note progression (no accidentals)
+    const noteOrder = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const currentIndex = noteOrder.indexOf(naturalNote);
+    if (currentIndex === -1) {
+      return note;
+    }
+
+    const nextIndex = (currentIndex + 1) % noteOrder.length;
+    const nextNote = noteOrder[nextIndex]!;
+    const nextOctave = nextIndex === 0 ? (Number.parseInt(octave) + 1).toString() : octave;
+
+    return ensureVexFlowFormat(`${nextNote}${nextOctave}`);
+  },
+
+  /**
+   * Move a note down by one natural note step (C→B→A→G→F→E→D→C) and remove accidental
+   */
+  moveNoteDownStep: (note: Note): Note => {
+    const naturalNote = getNaturalNote(note);
+    const octave = getOctave(note);
+
+    // Natural note progression (no accidentals)
+    const noteOrder = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const currentIndex = noteOrder.indexOf(naturalNote);
+    if (currentIndex === -1) {
+      return note;
+    }
+
+    const prevIndex = currentIndex === 0 ? noteOrder.length - 1 : currentIndex - 1;
+    const prevNote = noteOrder[prevIndex]!;
+    const prevOctave = currentIndex === 0 ? (Number.parseInt(octave) - 1).toString() : octave;
+
+    return ensureVexFlowFormat(`${prevNote}${prevOctave}`);
+  },
+
+  /**
+   * Move a note up by one octave
+   */
+  moveNoteUpOctave: (note: Note): Note => {
+    const naturalNote = getNaturalNote(note);
+    const octave = getOctave(note);
+    const currentAccidental = detectAccidental(note);
+
+    const newOctave = (Number.parseInt(octave) + 1).toString();
+    const accidentalSymbol = currentAccidental === 'sharp' ? '#' : currentAccidental === 'flat' ? 'b' : '';
+
+    return ensureVexFlowFormat(`${naturalNote}${accidentalSymbol}${newOctave}`);
+  },
+
+  /**
+   * Move a note down by one octave
+   */
+  moveNoteDownOctave: (note: Note): Note => {
+    const naturalNote = getNaturalNote(note);
+    const octave = getOctave(note);
+    const currentAccidental = detectAccidental(note);
+
+    const newOctave = (Number.parseInt(octave) - 1).toString();
+    const accidentalSymbol = currentAccidental === 'sharp' ? '#' : currentAccidental === 'flat' ? 'b' : '';
+
+    return ensureVexFlowFormat(`${naturalNote}${accidentalSymbol}${newOctave}`);
+  },
+
+  /**
+   * Change the accidental of a note
+   */
+  setNoteAccidental: (note: Note, accidental: 'natural' | 'sharp' | 'flat'): Note => {
+    const naturalNote = getNaturalNote(note);
+    const octave = getOctave(note);
+
+    const accidentalSymbol = accidental === 'sharp' ? '#' : accidental === 'flat' ? 'b' : '';
+    return ensureVexFlowFormat(`${naturalNote}${accidentalSymbol}${octave}`);
+  },
 };

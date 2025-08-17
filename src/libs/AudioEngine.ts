@@ -1,12 +1,11 @@
 import type { Note } from '@/types/MusicTypes';
 import * as Tone from 'tone';
-import { convertFromVexFlowFormat } from '@/utils/musicUtils';
+import { CONFIG_HELPERS } from '@/config/gameConfig';
+import { midiNumberToNote, toDisplayFormat } from '@/utils/musicUtils';
 
 export class AudioEngine {
   private sampler: Tone.Sampler | null = null;
   private isInitialized = false;
-  public rangeMin: Note = 'g/3';
-  public rangeMax: Note = 'd/5';
 
   constructor() {
     this.initializeSampler();
@@ -47,18 +46,18 @@ export class AudioEngine {
   /**
    * Generate a random set of notes for the game
    */
-  public generateNoteSet(count: number, includeAccidentals: boolean = false, accidentalMode: 'none' | 'sharps' | 'flats' | 'both' = 'none'): Note[] {
+  public generateNoteSet(count: number): Note[] {
     if (count < 1) {
       throw new Error('Must be a positive integer');
     }
 
     // Import the helper function dynamically to avoid circular imports
-    const { CONFIG_HELPERS } = require('@/config/gameConfig');
-    const availableNotes = CONFIG_HELPERS.getAvailableNotes(includeAccidentals, accidentalMode);
+    const availableNotes = CONFIG_HELPERS.getMidiNoteRange();
 
     // Shuffle available notes and take the first 'count' notes
     const shuffled = [...availableNotes].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
+    const generatedNotesMidiNumbers = shuffled.slice(0, count);
+    return generatedNotesMidiNumbers.map(midiNumberToNote);
   }
 
   /**
@@ -83,7 +82,7 @@ export class AudioEngine {
       await Tone.loaded();
 
       // Convert notes to Tone.js format and play them
-      const toneNotes = notes.map(note => convertFromVexFlowFormat(note));
+      const toneNotes = notes.map(toDisplayFormat);
       this.sampler.triggerAttackRelease(toneNotes, '2n');
     } catch (error) {
       console.error('Failed to play notes:', error);

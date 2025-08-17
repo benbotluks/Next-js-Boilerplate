@@ -1,8 +1,21 @@
-// Core music note types
+import type { ACCIDENTALS, NOTE_CLASSES, OCTAVES } from '@/utils/MusicConstants';
+
+// Core music note types (derived from constants for future enum usage)
+export type NoteClass = typeof NOTE_CLASSES[number]; // 'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B'
+export type Accidental = typeof ACCIDENTALS[number]; // 'natural' | 'sharp' | 'flat'
+export type Octave = typeof OCTAVES[number]; // 1 | 2 | 3 | 4 | 5 | 6
+
+// Legacy string-based note types (for backward compatibility during migration)
 export type NoteName = 'c' | 'c#' | 'd' | 'd#' | 'e' | 'f' | 'f#' | 'g' | 'g#' | 'a' | 'a#' | 'b';
 export type NoteNameUpper = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
-export type Octave = 1 | 2 | 3 | 4 | 5 | 6;
-export type Note = `${NoteName}/${Octave}` | `${NoteNameUpper}${Octave}`;
+export type LegacyNote = `${NoteName}/${Octave}` | `${NoteNameUpper}${Octave}`;
+
+// Current object-based note type (using constants)
+export type Note = {
+  noteClass: NoteClass;
+  octave: Octave;
+  accidental: Accidental;
+};
 
 // Staff position representation
 export type StaffPosition = {

@@ -1,7 +1,5 @@
-/* eslint-disable jsx-a11y/no-static-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
 import type { Note } from '@/types/MusicTypes';
-import { detectAccidental, getAccidentalVariations, getNaturalNote } from '@/utils/musicUtils';
+import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import React from 'react';
 
 type NoteContextMenuProps = {
@@ -37,26 +35,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
     onClose();
   };
 
-  const naturalNote = getNaturalNote(note);
-  const currentAccidental = detectAccidental(note);
-  const accidentalVariations = getAccidentalVariations(note);
-  const hasAccidentals = accidentalVariations.length > 1;
-
-  const getAccidentalLabel = (accidental: 'natural' | 'sharp' | 'flat') => {
-    switch (accidental) {
-      case 'natural': return '♮';
-      case 'sharp': return '♯';
-      case 'flat': return '♭';
-    }
-  };
-
-  const getAccidentalName = (accidental: 'natural' | 'sharp' | 'flat') => {
-    switch (accidental) {
-      case 'natural': return 'Natural';
-      case 'sharp': return 'Sharp';
-      case 'flat': return 'Flat';
-    }
-  };
+  const accidentalVariations: string[] = Object.keys(ACCIDENTALS_MAP)
 
   return (
     <div
@@ -68,34 +47,32 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
       onClick={e => e.stopPropagation()}
     >
       <div className="border-b border-gray-200 px-3 py-1 text-xs text-gray-500">
-        Note: {naturalNote}{getAccidentalLabel(currentAccidental)}
+        Note: {note.noteClass}{ACCIDENTALS_MAP.natural.symbol}
       </div>
 
       {/* Accidental options */}
-      {showAccidentalOptions && hasAccidentals && (
+      {showAccidentalOptions && (
         <>
           <div className="border-b border-gray-200 px-3 py-1 text-xs font-medium text-gray-600">
             Accidentals
           </div>
-          {accidentalVariations.map((variation) => {
-            const variantAccidental = detectAccidental(variation);
-            const isCurrentVariant = variation === note;
-            
+          {accidentalVariations.map((variant) => {
+            const isCurrentVariant = variant === note.accidental;
+
             return (
               <button
-                key={variation}
+                key={variant}
                 type="button"
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${
-                  isCurrentVariant ? 'bg-blue-50 text-blue-700' : ''
-                }`}
-                onClick={() => handleAccidentalChange(variation)}
+                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${isCurrentVariant ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                onClick={() => handleAccidentalChange({ noteClass: note.noteClass, octave: note.octave, accidental: variant } as Note)}
                 disabled={isCurrentVariant}
               >
                 <span className="font-mono text-base mr-2">
-                  {naturalNote}{getAccidentalLabel(variantAccidental)}
+                  {note.noteClass}{ACCIDENTALS_MAP[variant].symbol}
                 </span>
                 <span className="text-xs text-gray-500">
-                  {getAccidentalName(variantAccidental)}
+                  {variant.toUpperCase()}
                 </span>
               </button>
             );
@@ -115,23 +92,23 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
 
         {!isSelected
           ? (
-              <button
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                onClick={() => handleAction('select')}
-              >
-                Select Note
-              </button>
-            )
+            <button
+              type="button"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+              onClick={() => handleAction('select')}
+            >
+              Select Note
+            </button>
+          )
           : (
-              <button
-                type="button"
-                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-                onClick={() => handleAction('deselect')}
-              >
-                Deselect Note
-              </button>
-            )}
+            <button
+              type="button"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+              onClick={() => handleAction('deselect')}
+            >
+              Deselect Note
+            </button>
+          )}
       </div>
     </div>
   );

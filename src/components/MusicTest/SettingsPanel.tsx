@@ -160,20 +160,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Accidentals Settings */}
       <div className="setting-group mb-6">
         <h4 className="mb-3 text-sm font-semibold text-gray-700">Chromatic Notes</h4>
-        
+
         <label className="mb-3 flex items-center">
           <input
             type="checkbox"
             checked={false} // This will be a session setting, not persisted
             onChange={() => {
               // This will be handled by the game controller
-              console.log('Accidentals toggle - to be implemented');
+
             }}
             className="mr-2 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
           <span className="text-sm font-medium">Include accidentals (♯/♭)</span>
         </label>
-        
+
         <div className="ml-6">
           <label htmlFor="accidental-mode" className="mb-2 block text-sm font-medium text-gray-600">
             Accidental type:

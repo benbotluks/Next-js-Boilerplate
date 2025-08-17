@@ -15,7 +15,6 @@ import { settingsManager } from '@/libs/SettingsManager';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 import { EMPTY_OBJECT } from '@/types/MusicTypes';
 import { validateAnswer } from '@/utils/AnswerValidation';
-import { convertFromVexFlowFormat, convertToVexFlowFormat } from '@/utils/musicUtils';
 import ClickableNoteInput from './ClickableNoteInput';
 
 const MusicTestController: React.FC<GameControllerProps> = ({
@@ -98,14 +97,11 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       const noteCount = Math.floor(Math.random() * (settings.maxNotes - settings.minNotes + 1)) + settings.minNotes;
       const standardNotes = audioEngine.generateNoteSet(
         noteCount,
-        settings.includeAccidentals,
-        settings.accidentalMode,
       );
-      const vexFlowNotes = standardNotes.map(convertToVexFlowFormat);
 
       setGameState(prev => ({
         ...prev,
-        currentNotes: vexFlowNotes,
+        currentNotes: standardNotes,
         selectedNotes: [],
         gamePhase: 'listening',
       }));
@@ -145,9 +141,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       setAudioError(null);
       setIsPlaying(true);
 
-      // Convert VexFlow format back to standard format for audio playback
-      const standardNotes = gameState.currentNotes.map(convertFromVexFlowFormat);
-      await audioEngine.playNotes(standardNotes);
+      await audioEngine.playNotes(gameState.currentNotes);
 
       setTimeout(() => {
         setIsPlaying(false);
@@ -194,16 +188,12 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     const result = validateAnswer(gameState.currentNotes, gameState.selectedNotes);
     setValidationResult(result);
 
-    // Convert to standard format for statistics tracking
-    const standardCurrentNotes = gameState.currentNotes.map(convertFromVexFlowFormat);
-    const standardSelectedNotes = gameState.selectedNotes.map(convertFromVexFlowFormat);
-
     // Record session in statistics
     statisticsTracker.recordSession(
       gameState.difficulty,
       result.isCorrect,
-      standardCurrentNotes,
-      standardSelectedNotes,
+      gameState.currentNotes,
+      gameState.selectedNotes,
     );
 
     // Update game state with results
@@ -290,7 +280,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
             <select
               id="audioMode"
               value={settings.audioMode}
-              onChange={e => handleSettingsChange({ audioMode: e.target.value as 'individual' | 'chord' })}
+              onChange={e => handleSettingsChange({ audioMode: e.target.value })}
               className="rounded-md border border-gray-300 px-3 py-1 text-sm"
             >
               {UI_CONFIG.AUDIO_MODE_OPTIONS.map(option => (
@@ -494,8 +484,8 @@ const MusicTestController: React.FC<GameControllerProps> = ({
                 validationResult={validationResult}
                 disabled={true}
                 enableAudio={true}
-                audioMode="chord"
-                width={GAME_CONFIG.STAFF_WIDTH * 1.5} // Make it wider to accommodate both chords
+                audioMode="poly"
+                width={GAME_CONFIG.STAFF_WIDTH * 1.5}
                 height={GAME_CONFIG.STAFF_HEIGHT}
               />
 

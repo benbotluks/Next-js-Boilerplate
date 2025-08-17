@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import type { Note } from '@/types/MusicTypes';
 import type { StaffPosition } from '../types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
+import { toDisplayFormat } from '@/utils/musicUtils';
 
 type AccessibilityAnnouncementsProps = {
   selectedNotes: Note[];
@@ -40,16 +41,16 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
       const removed = prev.filter(note => !current.includes(note));
 
       if (added.length > 0) {
-        const announcement = added.length === 1 
-          ? `Added note ${added[0]}`
-          : `Added ${added.length} notes: ${added.join(', ')}`;
+        const announcement = added.length === 1
+          ? `Added note ${toDisplayFormat(added[0]!)}`
+          : `Added ${added.length} notes: ${added.map(toDisplayFormat).join(', ')}`;
         announceToScreenReader(announcement);
       }
 
       if (removed.length > 0) {
-        const announcement = removed.length === 1 
-          ? `Removed note ${removed[0]}`
-          : `Removed ${removed.length} notes: ${removed.join(', ')}`;
+        const announcement = removed.length === 1
+          ? `Removed note ${toDisplayFormat(removed[0]!)}`
+          : `Removed ${removed.length} notes: ${removed.map(toDisplayFormat).join(', ')}`;
         announceToScreenReader(announcement);
       }
 
@@ -66,15 +67,15 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
 
   // Announce focus position changes in keyboard mode
   useEffect(() => {
-    if (keyboardMode && focusedPosition && 
-        (!previousFocusedPosition.current || 
-         previousFocusedPosition.current.pitch !== focusedPosition.pitch)) {
-      
-      const pitchName = focusedPosition.pitch;
+    if (keyboardMode && focusedPosition &&
+      (!previousFocusedPosition.current ||
+        previousFocusedPosition.current.pitch !== focusedPosition.pitch)) {
+
+      const pitchName = toDisplayFormat(focusedPosition.pitch);
       const positionType = focusedPosition.isLine ? 'line' : 'space';
       const ledgerInfo = focusedPosition.requiresLedgerLine ? ' with ledger line' : '';
       const isSelected = selectedNotes.includes(focusedPosition.pitch) ? ', selected' : '';
-      
+
       announceToScreenReader(`Focused on ${pitchName} ${positionType}${ledgerInfo}${isSelected}`);
     }
 
@@ -110,13 +111,13 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
   return (
     <>
       {/* Screen reader only announcements */}
-      <div 
-        aria-live="polite" 
-        aria-atomic="true" 
+      <div
+        aria-live="polite"
+        aria-atomic="true"
         className="sr-only"
         id="staff-announcements"
       />
-      
+
       {/* Additional context for screen readers */}
       <div className="sr-only">
         <h3>Music Staff Instructions</h3>
@@ -133,18 +134,18 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
           <li>Use letter keys (C, D, E, F, G, A, B) to jump to specific note names</li>
           <li>Hold Ctrl/Cmd while pressing a letter key to immediately place that note</li>
         </ul>
-        
+
         {selectedNotes.length > 0 && (
           <div>
             <h4>Currently Selected Notes:</h4>
             <ul>
               {selectedNotes.map((note, index) => (
-                <li key={`${note}-${index}`}>{note}</li>
+                <li key={`${toDisplayFormat(note)}-${index}`}>{toDisplayFormat(note)}</li>
               ))}
             </ul>
           </div>
         )}
-        
+
         {validationResult && (
           <div>
             <h4>Validation Result:</h4>

@@ -1,5 +1,5 @@
 import type { StaffPosition } from '../types/StaffInteraction';
-import { detectAccidental, linePositionToPitch } from './notePositioning';
+import { linePositionToPitch } from './notePositioning';
 
 /**
  * Utility class for converting between screen coordinates and staff positions
@@ -25,7 +25,7 @@ export class StaffCoordinates {
     const pitch = linePositionToPitch(linePosition);
     const isLine = this.isOnStaffLine(linePosition);
     const requiresLedgerLine = this.requiresLedgerLine(linePosition);
-    const accidental = detectAccidental(pitch);
+    const accidental = pitch.accidental;
 
     return {
       x,

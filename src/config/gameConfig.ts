@@ -1,77 +1,12 @@
-/**
- * Centralized Game Configuration
- * All game settings, constraints, and defaults are defined here
- */
-
 import type { Note } from '@/types/MusicTypes';
+import { RuntimeError } from 'vexflow';
+import { noteToMidiNumber } from '@/utils/musicUtils';
 
 // Note range configuration
 export const NOTE_CONFIG = {
-  // Available notes for the game (reasonable range for ear training)
-  AVAILABLE_NOTES: [
-    // Octave 3
-    'B3',
-    // Octave 4 - Full chromatic scale
-    'C4',
-    'C#4',
-    'D4',
-    'D#4',
-    'E4',
-    'F4',
-    'F#4',
-    'G4',
-    'G#4',
-    'A4',
-    'A#4',
-    'B4',
-    // Octave 5 - Full chromatic scale
-    'C5',
-    'C#5',
-    'D5',
-    'D#5',
-    'E5',
-    'F5',
-    'F#5',
-    'G5',
-    'G#5',
-    'A5',
-    'A#5',
-    'B5',
-  ] as Note[],
 
-  // Natural notes only (for beginners)
-  NATURAL_NOTES_ONLY: [
-    'B3',
-    'C4',
-    'D4',
-    'E4',
-    'F4',
-    'G4',
-    'A4',
-    'B4',
-    'C5',
-    'D5',
-    'E5',
-    'F5',
-    'G5',
-    'A5',
-    'B5',
-  ] as Note[],
-
-  // Chromatic notes only (for advanced users)
-  CHROMATIC_NOTES_ONLY: [
-    'C#4',
-    'D#4',
-    'F#4',
-    'G#4',
-    'A#4',
-    'C#5',
-    'D#5',
-    'F#5',
-    'G#5',
-    'A#5',
-  ] as Note[],
-
+  DEFAULT_MIN_PITCH: { noteClass: 'C', octave: 3, accidental: 'natural' } as Note,
+  DEFAULT_MAX_PITCH: { noteClass: 'C', octave: 6, accidental: 'natural' } as Note,
   // Note count constraints
   MIN_NOTES: 1,
   MAX_NOTES: 8,
@@ -90,8 +25,8 @@ export const AUDIO_CONFIG = {
   DEFAULT_VOLUME: 0.7,
 
   // Audio modes
-  AUDIO_MODES: ['individual', 'chord'] as const,
-  DEFAULT_AUDIO_MODE: 'individual' as const,
+  AUDIO_MODES: ['mono', 'poly'] as const,
+  DEFAULT_AUDIO_MODE: 'mono' as const,
 
   // Timing
   NOTE_PLAY_DURATION: 2000, // milliseconds
@@ -142,8 +77,6 @@ export const DEFAULT_GAME_SETTINGS = {
 export const DEFAULT_SESSION_SETTINGS = {
   limitNotes: GAME_CONFIG.DEFAULT_LIMIT_NOTES,
   audioMode: AUDIO_CONFIG.DEFAULT_AUDIO_MODE,
-  includeAccidentals: GAME_CONFIG.DEFAULT_INCLUDE_ACCIDENTALS,
-  accidentalMode: 'sharps' as const, // Default to sharps when accidentals are enabled
 } as const;
 
 // UI Configuration
@@ -172,8 +105,8 @@ export const UI_CONFIG = {
   })),
 
   AUDIO_MODE_OPTIONS: [
-    { value: 'individual', label: 'Individual notes' },
-    { value: 'chord', label: 'All notes as chord' },
+    { value: 'mono', label: 'Individual notes' },
+    { value: 'poly', label: 'All notes as chord' },
   ] as const,
 
   ACCIDENTAL_MODE_OPTIONS: [
@@ -182,6 +115,14 @@ export const UI_CONFIG = {
     { value: 'flats', label: 'Include flats (♭)' },
     { value: 'both', label: 'Include sharps & flats' },
   ] as const,
+} as const;
+
+// Mobile input configuration
+export const MOBILE_INPUT_CONFIG = {
+  MIN_NOTE: 'C3' as Note,
+  MAX_NOTE: 'C6' as Note,
+  DEFAULT_OCTAVE: 4,
+  ACTIVE_NOTE_COLOR: '#ff6b35', // Orange color for active/editing note
 } as const;
 
 // Storage configuration
@@ -249,32 +190,61 @@ export const CONFIG_HELPERS = {
   /**
    * Get available notes based on accidental settings
    */
-  getAvailableNotes: (includeAccidentals: boolean, accidentalMode: 'none' | 'sharps' | 'flats' | 'both' = 'none'): Note[] => {
-    if (!includeAccidentals || accidentalMode === 'none') {
-      return NOTE_CONFIG.NATURAL_NOTES_ONLY;
-    }
 
-    switch (accidentalMode) {
-      case 'sharps':
-        return [...NOTE_CONFIG.NATURAL_NOTES_ONLY, ...NOTE_CONFIG.CHROMATIC_NOTES_ONLY.filter(note => note.includes('#'))];
-      case 'flats': {
-        // Convert sharps to flats for flat mode
-        const flatNotes = NOTE_CONFIG.CHROMATIC_NOTES_ONLY
-          .filter(note => note.includes('#'))
-          .map(note => note.replace('#', 'b') as Note);
-        return [...NOTE_CONFIG.NATURAL_NOTES_ONLY, ...flatNotes];
-      }
-      case 'both':
-        return NOTE_CONFIG.AVAILABLE_NOTES;
-      default:
-        return NOTE_CONFIG.NATURAL_NOTES_ONLY;
+  getMidiNoteRange: (minPitch: Note = NOTE_CONFIG.DEFAULT_MIN_PITCH, maxPitch: Note = NOTE_CONFIG.DEFAULT_MAX_PITCH): number[] => {
+    const [minMidiNumber, maxMidiNumber] = [minPitch, maxPitch].map(pitch => noteToMidiNumber(pitch));
+    if (!(minMidiNumber && maxMidiNumber)) {
+      throw new RuntimeError('At least one of the midi numbers is not defined', JSON.stringify([minMidiNumber, maxMidiNumber]));
     }
+    return Array.from({ length: maxMidiNumber - minMidiNumber + 1 }, (_, i) => minMidiNumber + i);
   },
 
   /**
-   * Check if a note is chromatic (has accidental)
+   * Mobile input helpers
    */
-  isChromatic: (note: Note): boolean => {
-    return note.includes('#') || note.includes('b');
+  mobile: {
+    /**
+     * Check if a note is within the mobile input range
+     */
+    isNoteInRange: (note: Note): boolean => {
+      // Simple string comparison works for our note format
+      return note >= MOBILE_INPUT_CONFIG.MIN_NOTE && note <= MOBILE_INPUT_CONFIG.MAX_NOTE;
+    },
+
+    /**
+     * Clamp a note to the mobile input range
+     */
+    clampNoteToRange: (note: Note): Note => {
+      if (note < MOBILE_INPUT_CONFIG.MIN_NOTE) {
+        return MOBILE_INPUT_CONFIG.MIN_NOTE;
+      }
+      if (note > MOBILE_INPUT_CONFIG.MAX_NOTE) {
+        return MOBILE_INPUT_CONFIG.MAX_NOTE;
+      }
+      return note;
+    },
+
+    /**
+     * Get the next available staff position for a note class
+     */
+    getNextAvailablePosition: (lastNote: Note | null, noteClass: string, selectedNotes: Note[]): Note => {
+      const defaultNote = `${noteClass}${MOBILE_INPUT_CONFIG.DEFAULT_OCTAVE}` as Note;
+
+      if (!lastNote) {
+        return defaultNote;
+      }
+
+      // Find the next higher position for this note class
+      let octave = MOBILE_INPUT_CONFIG.DEFAULT_OCTAVE;
+      let candidate = `${noteClass}${octave}` as Note;
+
+      // If this note class already exists, find next available octave
+      while (selectedNotes.includes(candidate) && octave <= 6) {
+        octave++;
+        candidate = `${noteClass}${octave}` as Note;
+      }
+
+      return CONFIG_HELPERS.mobile.clampNoteToRange(candidate);
+    },
   },
 } as const;

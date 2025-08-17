@@ -6,12 +6,13 @@ import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerV
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
+import { toDisplayFormat } from '@/utils/musicUtils';
 import { AccessibilityAnnouncements, KeyboardShortcuts, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
-import { pitchToLinePosition } from './utils';
+import { noteToLinePosition } from './utils';
 import { clearAndRedrawStaff, renderEnhancedPreviewNote, renderNotesOnStaff } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
@@ -34,10 +35,8 @@ export type ClickableNoteInputProps = {
   height: number;
   disabled?: boolean;
   className?: string;
-  /** Whether to play audio when notes are added/removed */
   enableAudio?: boolean;
-  /** Whether to play individual notes on selection or all notes together */
-  audioMode?: 'individual' | 'chord';
+  audioMode?: 'mono' | 'poly';
 };
 
 const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
@@ -54,7 +53,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   disabled = false,
   className = '',
   enableAudio = true,
-  audioMode = 'individual',
+  audioMode = 'mono',
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<any>(null);
@@ -89,7 +88,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Find if there's a note at this staff position (check all possible accidentals)
       const existingNote = selectedNotes.find((note) => {
         // Convert both notes to the same format for comparison
-        const noteLinePos = pitchToLinePosition(note);
+        const noteLinePos = noteToLinePosition(note);
         return noteLinePos === position.linePosition;
       });
 
@@ -100,13 +99,22 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           preventDefault: () => { },
           stopPropagation: () => { },
         } as React.MouseEvent, existingNote);
+      } else {
+        // No existing note, but still show context menu to add a note with accidentals
+        // Use the natural note at this position as the base
+        handleContextMenu({
+          clientX: position.contextMenu.x,
+          clientY: position.contextMenu.y,
+          preventDefault: () => { },
+          stopPropagation: () => { },
+        } as React.MouseEvent, position.pitch);
       }
       return;
     }
 
     // Find existing note at this staff position (any accidental)
     const existingNote = selectedNotes.find((note) => {
-      const noteLinePos = pitchToLinePosition(note);
+      const noteLinePos = noteToLinePosition(note);
       return noteLinePos === position.linePosition;
     });
 
@@ -132,9 +140,9 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Play audio for addition if enabled
       if (enableAudio && audioEngine.isSupported()) {
         try {
-          if (audioMode === 'individual') {
+          if (audioMode === 'mono') {
             await audioEngine.playNotes([position.pitch]);
-          } else if (audioMode === 'chord') {
+          } else if (audioMode === 'poly') {
             const updatedNotes = [...selectedNotes, position.pitch];
             await audioEngine.playNotes(updatedNotes);
           }
@@ -144,14 +152,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       }
     }
   }, [disabled, selectedNotes, toggleNote, enableAudio, audioMode, handleContextMenu]);
-
-  // Handle right-click on notes
-  const _handleNoteRightClick = (event: React.MouseEvent, note: Note) => {
-    if (disabled) {
-      return;
-    }
-    handleContextMenu(event, note);
-  };
 
   // Handle accidental changes
   const handleAccidentalChange = useCallback((oldNote: Note, newNote: Note) => {
@@ -248,7 +248,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       const stave = new Stave(
         10,
         40,
-        // width - 20,
         140,
       );
 
@@ -288,7 +287,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     let description = '';
 
     if (focusedPosition && keyboardMode) {
-      const pitchName = focusedPosition.pitch;
+      const pitchName = toDisplayFormat(focusedPosition.pitch);
       const positionType = focusedPosition.isLine ? 'line' : 'space';
       const ledgerInfo = focusedPosition.requiresLedgerLine ? ' with ledger line' : '';
       description += `Focused on ${pitchName} ${positionType}${ledgerInfo}. `;
@@ -465,7 +464,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             🔊 Play Notes
           </button>
           <span className="text-sm text-gray-600">
-            {selectedNotes.join(', ')}
+            {selectedNotes.map(toDisplayFormat).join(', ')}
           </span>
         </div>
       )}
@@ -492,7 +491,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           <span className="ml-2 text-purple-500">
             Focus:
             {' '}
-            {focusedPosition.pitch}
+            {toDisplayFormat(focusedPosition.pitch)}
             {' '}
             (line
             {' '}
@@ -504,7 +503,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           <span className="ml-2 text-blue-500">
             Hover:
             {' '}
-            {hoveredPosition.pitch}
+            {hoveredPosition.pitch && toDisplayFormat(hoveredPosition.pitch)}
             {' '}
             (line
             {' '}
@@ -513,12 +512,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           </span>
         )}
         {canAddNote()
-          ? (
-              <span className="ml-2 text-green-500">Can add more notes</span>
-            )
-          : (
-              <span className="ml-2 text-orange-500">Maximum notes reached</span>
-            )}
+          ? (<span className="ml-2 text-green-500">Can add more notes</span>)
+          : (<span className="ml-2 text-orange-500">Maximum notes reached</span>)}
       </div>
     </div>
   );
