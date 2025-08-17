@@ -123,7 +123,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       toggleNote(existingNote);
 
       // Play audio for removal if enabled
-      if (enableAudio && audioEngine.isSupported() && audioMode === 'chord') {
+      if (enableAudio && audioEngine.isSupported() && audioMode === 'poly') {
         try {
           const updatedNotes = selectedNotes.filter(note => note !== existingNote);
           if (updatedNotes.length > 0) {
@@ -347,7 +347,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           hoveredPosition.pitch,
           hoveredPosition.x,
           previewAnimation,
-          true, // Show guidelines
+          false,
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
         // Keyboard mode: show focus preview
@@ -357,7 +357,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           focusedPosition.pitch,
           focusedPosition.x,
           previewAnimation,
-          true, // Show guidelines
+          false, // Show guidelines
         );
       }
     } catch (error) {

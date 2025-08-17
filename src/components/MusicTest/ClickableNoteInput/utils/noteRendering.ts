@@ -5,9 +5,8 @@ import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { toVexFlowFormat } from '@/utils/musicUtils';
 
-/**
- * Configuration for note rendering styles
- */
+const justifyWidth = (stave: Stave) => stave.getWidth() - 100;
+
 export type NoteStyle = {
   fillStyle: string;
   strokeStyle: string;
@@ -161,7 +160,6 @@ export const renderNoteGroup = (
     }
 
     staveNote.setStyle(style);
-
     staveNote.setStave(stave);
 
     // Create a voice to hold the notes
@@ -175,7 +173,7 @@ export const renderNoteGroup = (
     // Format the voice to fit the stave
     const formatter = new Formatter();
     formatter.joinVoices([voice]);
-    formatter.format([voice], stave.getWidth() - 100);
+    formatter.format([voice], justifyWidth(stave));
 
     // Draw the voice
     voice.draw(context, stave);
@@ -284,7 +282,7 @@ export const renderPreviewNote = (
     // Format and draw
     const formatter = new Formatter();
     formatter.joinVoices([voice]);
-    formatter.format([voice]);
+    formatter.format([voice], justifyWidth(stave));
 
     voice.draw(context, stave);
   } catch (error) {
@@ -331,7 +329,7 @@ export const renderEnhancedPreviewNote = (
   pitch: Note,
   x: number,
   animationState?: 'fadeIn' | 'fadeOut' | null,
-  showGuidelines: boolean = true,
+  showGuidelines: boolean = false,
 ): void => {
   try {
     // Render guidelines if enabled
