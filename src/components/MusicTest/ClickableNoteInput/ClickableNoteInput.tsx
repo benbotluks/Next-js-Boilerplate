@@ -115,6 +115,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     // Find existing note at this staff position (any accidental)
     const existingNote = selectedNotes.find((note) => {
       const noteLinePos = noteToLinePosition(note);
+      console.log('note pos', noteLinePos);
       return noteLinePos === position.linePosition;
     });
 
