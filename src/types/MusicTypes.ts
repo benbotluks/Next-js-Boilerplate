@@ -1,17 +1,90 @@
+import type { AudioMode } from '@/config/gameConfig';
 import type { ACCIDENTALS, NOTE_CLASSES, OCTAVES } from '@/utils/MusicConstants';
+import { nanoid } from 'nanoid';
 
-// Core music note types (derived from constants for future enum usage)
-export type NoteClass = typeof NOTE_CLASSES[number]; // 'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B'
-export type Accidental = typeof ACCIDENTALS[number]; // 'natural' | 'sharp' | 'flat'
-export type Octave = typeof OCTAVES[number]; // 1 | 2 | 3 | 4 | 5 | 6
+export type NoteClass = typeof NOTE_CLASSES[number];
+export type Accidental = typeof ACCIDENTALS[number];
+export type Octave = typeof OCTAVES[number];
 
-// Legacy string-based note types (for backward compatibility during migration)
-export type NoteName = 'c' | 'c#' | 'd' | 'd#' | 'e' | 'f' | 'f#' | 'g' | 'g#' | 'a' | 'a#' | 'b';
-export type NoteNameUpper = 'C' | 'C#' | 'D' | 'D#' | 'E' | 'F' | 'F#' | 'G' | 'G#' | 'A' | 'A#' | 'B';
-export type LegacyNote = `${NoteName}/${Octave}` | `${NoteNameUpper}${Octave}`;
+// Note class for object-based operations
+export class Note {
+  public readonly id: string;
 
-// Current object-based note type (using constants)
-export type Note = {
+  constructor(
+    public readonly noteClass: NoteClass,
+    public readonly octave: Octave,
+    public readonly accidental: Accidental = 'natural',
+  ) {
+    this.id = nanoid();
+  }
+
+  // Computed properties
+  get displayFormat(): string {
+    const accidentalSymbol = this.accidental === 'natural'
+      ? ''
+      : this.accidental === 'sharp'
+        ? '#'
+        : 'b';
+    return `${this.noteClass}${accidentalSymbol}${this.octave}`;
+  }
+
+  get vexFlowFormat(): string {
+    return this.displayFormat;
+  }
+
+  // Immutable update methods
+  withOctave(newOctave: Octave): Note {
+    return new Note(this.noteClass, newOctave, this.accidental);
+  }
+
+  withAccidental(newAccidental: Accidental): Note {
+    return new Note(this.noteClass, this.octave, newAccidental);
+  }
+
+  withNoteClass(newNoteClass: NoteClass): Note {
+    return new Note(newNoteClass, this.octave, this.accidental);
+  }
+
+  // Utility methods
+  equals(other: Note): boolean {
+    return this.id === other.id;
+  }
+
+  samePitch(other: Note): boolean {
+    return this.noteClass === other.noteClass
+      && this.octave === other.octave
+      && this.accidental === other.accidental;
+  }
+
+  // For backward compatibility during migration
+  toString(): string {
+    return this.displayFormat;
+  }
+
+  // Static factory methods
+  static fromString(noteString: string): Note {
+    // Parse "C4", "F#5", "Bb3" etc.
+    const match = noteString.match(/^([A-G])([#b]?)(\d+)$/);
+    if (!match) {
+      throw new Error(`Invalid note format: ${noteString}`);
+    }
+
+    const noteClass = match[1] as NoteClass;
+    const octave = Number.parseInt(match[3]!) as Octave;
+    let accidental: Accidental = 'natural';
+
+    if (match[2] === '#') {
+      accidental = 'sharp';
+    } else if (match[2] === 'b') {
+      accidental = 'flat';
+    }
+
+    return new Note(noteClass, octave, accidental);
+  }
+}
+
+// Current object-based note type (using constants) - keeping for backward compatibility
+export type NoteObject = {
   noteClass: NoteClass;
   octave: Octave;
   accidental: Accidental;
@@ -48,6 +121,7 @@ export type GameSettings = {
   maxNotes: number; // 1-8 notes
   volume: number; // 0-1
   autoReplay: boolean;
+  audioMode: AudioMode;
 };
 
 // Statistics tracking

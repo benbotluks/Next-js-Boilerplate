@@ -7,7 +7,10 @@ export const NOTE_CONFIG = {
 
   DEFAULT_MIN_PITCH: { noteClass: 'C', octave: 3, accidental: 'natural' } as Note,
   DEFAULT_MAX_PITCH: { noteClass: 'C', octave: 6, accidental: 'natural' } as Note,
-  // Note count constraints
+
+  MIN_PITCH_MIDI: 48,
+  MAX_PITCH_MIDI: 84,
+
   MIN_NOTES: 1,
   MAX_NOTES: 8,
 
@@ -26,7 +29,7 @@ export const AUDIO_CONFIG = {
 
   // Audio modes
   AUDIO_MODES: ['mono', 'poly'] as const,
-  DEFAULT_AUDIO_MODE: 'mono' as const,
+  DEFAULT_AUDIO_MODE: 'mono' as 'mono' | 'poly',
 
   // Timing
   NOTE_PLAY_DURATION: 2000, // milliseconds
@@ -71,6 +74,8 @@ export const DEFAULT_GAME_SETTINGS = {
   maxNotes: NOTE_CONFIG.DEFAULT_MAX_NOTES,
   volume: AUDIO_CONFIG.DEFAULT_VOLUME,
   autoReplay: GAME_CONFIG.DEFAULT_AUTO_REPLAY,
+  startingOctave: 4,
+  audioMode: 'mono',
 } as const;
 
 // Game-specific settings (session-only, not persisted)

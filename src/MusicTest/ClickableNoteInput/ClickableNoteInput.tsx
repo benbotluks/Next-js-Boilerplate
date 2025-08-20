@@ -7,7 +7,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
 import { toDisplayFormat } from '@/utils/musicUtils';
-import { AccessibilityAnnouncements, KeyboardShortcuts, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { AccessibilityAnnouncements, KeyboardShortcuts, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
@@ -37,6 +37,7 @@ export type ClickableNoteInputProps = {
   className?: string;
   enableAudio?: boolean;
   audioMode?: 'mono' | 'poly';
+  respectGamePhase?: boolean; // New prop to control phase restrictions
 };
 
 const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
@@ -54,6 +55,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   className = '',
   enableAudio = true,
   audioMode = 'mono',
+  respectGamePhase: _respectGamePhase = true, // Default to respecting game phase
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<any>(null);
@@ -114,8 +116,15 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
     // Find existing note at this staff position (any accidental)
     const existingNote = selectedNotes.find((note) => {
-      const noteLinePos = noteToLinePosition(note);
-      console.log('note pos', noteLinePos);
+      // Handle both Note class instances and NoteObject types
+      let noteLinePos: number;
+      if ('id' in note) {
+        // Note class instance - convert to string and use existing utility
+        noteLinePos = noteToLinePosition(note.toString());
+      } else {
+        // NoteObject - convert to string and use existing utility
+        noteLinePos = noteToLinePosition(note);
+      }
       return noteLinePos === position.linePosition;
     });
 
@@ -446,6 +455,17 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       {/* Keyboard Shortcuts Help */}
       <KeyboardShortcuts className="mt-2" />
+
+      {/* Mobile Note Input */}
+      <div className="mt-4 border-t pt-4">
+        <MobileNoteInput
+          selectedNotes={selectedNotes}
+          onNoteSelect={onNoteSelect}
+          onNoteDeselect={onNoteDeselect}
+          disabled={disabled}
+          className="w-full"
+        />
+      </div>
 
       {/* Audio Controls */}
       {enableAudio && selectedNotes.length > 0 && (

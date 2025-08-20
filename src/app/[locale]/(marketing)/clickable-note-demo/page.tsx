@@ -2,7 +2,7 @@
 
 import type { Note } from '@/types/MusicTypes';
 import { useState } from 'react';
-import ClickableNoteInput from '@/components/MusicTest/ClickableNoteInput';
+import ClickableNoteInput from '@/MusicTest/ClickableNoteInput';
 import { toDisplayFormat } from '@/utils/musicUtils';
 
 export default function ClickableNoteDemoPage() {

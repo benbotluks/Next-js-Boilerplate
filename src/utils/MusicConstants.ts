@@ -1,5 +1,6 @@
 // Note class constants (for future enum-like usage)
 export type NOTE_CLASS = 'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B';
+export type OCTAVE = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export const NOTE_CLASSES: NOTE_CLASS[] = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const;
 export const PITCH_CLASSES = [
   { noteClass: 'C', accidental: 'natural' },

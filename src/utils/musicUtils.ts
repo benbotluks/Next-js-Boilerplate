@@ -1,7 +1,9 @@
 import type { NOTE_CLASS } from './MusicConstants';
-import type { Note, Octave } from '@/types/MusicTypes';
+import type { Octave } from '@/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
-import { detectAccidental, getNaturalNote, getOctave } from '@/components/MusicTest/ClickableNoteInput/utils';
+import { NOTE_CONFIG } from '@/config/gameConfig';
+import { detectAccidental, getNaturalNote, getOctave } from '@/MusicTest/ClickableNoteInput/utils';
+import { Note } from '@/types/MusicTypes';
 import { ACCIDENTALS, ACCIDENTALS_MAP, CLEF_POSITION_REF, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 
 export const toVexFlowFormat = (note: Note): string => {
@@ -12,25 +14,35 @@ export const toDisplayFormat = (note: Note): string => {
   return `${note.noteClass.toUpperCase()}${ACCIDENTALS_MAP[note.accidental].vexFlowSymbol}${note.octave}`;
 };
 
-/**
- * Cycle through accidental variations of a note
- * Natural → Sharp → Flat → Natural
- */
 export const cycleAccidental = (note: Note): Note => {
   const { noteClass, octave } = note;
 
   const accidental = ACCIDENTALS[(ACCIDENTALS.indexOf(note.accidental) + 1) % ACCIDENTALS.length]!;
-  return {
-    noteClass,
-    octave,
-    accidental,
-  };
+  return new Note(noteClass, octave, accidental);
 };
 
 export const noteToMidiNumber = (note: Note): number => {
   const semitone = NOTE_CLASS_NUMBER_MAP[note.noteClass] + ACCIDENTALS_MAP[note.accidental].increment;
 
   return (note.octave + 1) * 12 + semitone;
+};
+
+export const isTooLow = (note: Note, inclusive: boolean = true): boolean => {
+  // "inclusive" means whether to accept note that IS the minimum
+  if (inclusive) {
+    return (noteToMidiNumber(note) < NOTE_CONFIG.MIN_PITCH_MIDI);
+  } else {
+    return (noteToMidiNumber(note) <= NOTE_CONFIG.MIN_PITCH_MIDI);
+  }
+};
+
+export const isTooHigh = (note: Note, inclusive: boolean = true): boolean => {
+  // "inclusive" means whether to accept note that IS the minimum
+  if (inclusive) {
+    return (noteToMidiNumber(note) > NOTE_CONFIG.MAX_PITCH_MIDI);
+  } else {
+    return (noteToMidiNumber(note) >= NOTE_CONFIG.MAX_PITCH_MIDI);
+  }
 };
 
 export const midiNumberToNote = (midiNumber: number): Note => {
@@ -42,12 +54,11 @@ export const midiNumberToNote = (midiNumber: number): Note => {
   }
 
   const octave = calculatedOctave as Octave;
-  return { noteClass, accidental, octave };
+  return new Note(noteClass, octave, accidental);
 };
 
 const euclidMod = (n: number, d: number) => ((n % d) + d) % d;
 const getRefIndex = (refLetter: NOTE_CLASS): number => NOTE_CLASSES.indexOf(refLetter);
-const getAbsRefPosition = (refOctave: number, refIndex: number): number => 7 * refOctave * refIndex;
 
 export const treblePositionFromNote = (note: Note, clef: 'treble' = 'treble'): number => {
   const idx = NOTE_CLASSES.indexOf(note.noteClass);
@@ -151,3 +162,5 @@ export const mobileUtils = {
     return ensureVexFlowFormat(`${naturalNote}${accidentalSymbol}${octave}`);
   },
 };
+
+;
