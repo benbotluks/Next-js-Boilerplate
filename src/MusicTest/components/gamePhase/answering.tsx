@@ -1,7 +1,7 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
 import type { GameSettings, Note } from '@/types/MusicTypes';
 import { GAME_CONFIG } from '@/config/gameConfig';
-import ClickableNoteInput from '@/MusicTest/ClickableNoteInput';
+import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
 
 type AnsweringProps = {
   settings: GameSettings;

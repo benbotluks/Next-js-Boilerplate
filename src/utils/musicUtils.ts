@@ -2,7 +2,7 @@ import type { NOTE_CLASS } from './MusicConstants';
 import type { Octave } from '@/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { NOTE_CONFIG } from '@/config/gameConfig';
-import { detectAccidental, getNaturalNote, getOctave } from '@/MusicTest/ClickableNoteInput/utils';
+import { detectAccidental, getNaturalNote, getOctave } from '@/MusicTest/components/ClickableNoteInput/utils';
 import { Note } from '@/types/note';
 import { ACCIDENTALS, ACCIDENTALS_MAP, CLEF_POSITION_REF, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 

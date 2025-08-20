@@ -2,7 +2,7 @@ import type { MusicCallback } from '@/MusicTest/types/game';
 import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import { GAME_CONFIG } from '@/config/gameConfig';
-import ClickableNoteInput from '@/MusicTest/ClickableNoteInput';
+import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
 
 type ValidationProps = {
   validationResult: ValidationResult;
