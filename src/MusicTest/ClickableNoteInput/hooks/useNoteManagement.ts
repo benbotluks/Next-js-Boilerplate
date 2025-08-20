@@ -1,5 +1,5 @@
 import type { ValidationResult } from '../types/StaffInteraction';
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/types/note';
 import { useCallback, useMemo } from 'react';
 
 /**

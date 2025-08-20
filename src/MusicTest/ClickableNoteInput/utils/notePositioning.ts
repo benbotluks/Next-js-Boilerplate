@@ -88,13 +88,9 @@ export const noteToLinePosition = (note: Note): number => {
 
   // First try direct
   const naturalNote = naturalizeNote(note);
-  const linePosition = PITCH_TO_LINE_POSITION[toVexFlowFormat(naturalNote)];
+  const linePosition = PITCH_TO_LINE_POSITION[toVexFlowFormat(naturalNote)]!;
 
-  if (linePosition !== undefined) {
-    return linePosition;
-  }
-
-  // return 4; // Default to middle line (b/4)
+  return linePosition;
 };
 
 /**

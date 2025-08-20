@@ -1,18 +1,17 @@
 'use client';
 
 import type { StaffPosition } from './types/StaffInteraction';
-import type { Note } from '@/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
+import { Note } from '@/types/note';
 import { toDisplayFormat } from '@/utils/musicUtils';
 import { AccessibilityAnnouncements, KeyboardShortcuts, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
-import { noteToLinePosition } from './utils';
 import { clearAndRedrawStaff, renderEnhancedPreviewNote, renderNotesOnStaff } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
@@ -64,6 +63,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
   // Use note management hook
   const {
+    addNote,
+    removeNote,
     toggleNote,
     canAddNote,
     removeNotes,
@@ -90,8 +91,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Find if there's a note at this staff position (check all possible accidentals)
       const existingNote = selectedNotes.find((note) => {
         // Convert both notes to the same format for comparison
-        const noteLinePos = noteToLinePosition(note);
-        return noteLinePos === position.linePosition;
+        return note.linePosition === position.linePosition;
       });
 
       if (existingNote) {
@@ -113,24 +113,14 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       }
       return;
     }
-
+    const { linePosition, pitch } = position;
     // Find existing note at this staff position (any accidental)
     const existingNote = selectedNotes.find((note) => {
-      // Handle both Note class instances and NoteObject types
-      let noteLinePos: number;
-      if ('id' in note) {
-        // Note class instance - convert to string and use existing utility
-        noteLinePos = noteToLinePosition(note.toString());
-      } else {
-        // NoteObject - convert to string and use existing utility
-        noteLinePos = noteToLinePosition(note);
-      }
-      return noteLinePos === position.linePosition;
+      return note.linePosition === linePosition;
     });
 
     if (existingNote) {
-      // If there's already a note at this position, remove it
-      toggleNote(existingNote);
+      removeNote(existingNote);
 
       // Play audio for removal if enabled
       if (enableAudio && audioEngine.isSupported() && audioMode === 'poly') {
@@ -144,16 +134,16 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         }
       }
     } else {
-      // No existing note, add the natural note at this position
-      toggleNote(position.pitch);
+      const newNote = new Note({ ...pitch, linePosition });
+      addNote(newNote);
 
       // Play audio for addition if enabled
       if (enableAudio && audioEngine.isSupported()) {
         try {
           if (audioMode === 'mono') {
-            await audioEngine.playNotes([position.pitch]);
+            await audioEngine.playNotes([newNote]);
           } else if (audioMode === 'poly') {
-            const updatedNotes = [...selectedNotes, position.pitch];
+            const updatedNotes = selectedNotes;
             await audioEngine.playNotes(updatedNotes);
           }
         } catch (error) {
