@@ -35,7 +35,6 @@ export const ValidationDisplay: React.FC<ValidationDisplayProps> = ({
     // Calculate validation state
     const correctSelected = selectedNotes.filter(note => correctNotes.includes(note));
     const incorrectSelected = selectedNotes.filter(note => !correctNotes.includes(note));
-    const _missingNotes = correctNotes.filter(note => !selectedNotes.includes(note));
 
     let newMessageType: 'success' | 'error' | 'partial' = 'success';
     let newMessage = '';
