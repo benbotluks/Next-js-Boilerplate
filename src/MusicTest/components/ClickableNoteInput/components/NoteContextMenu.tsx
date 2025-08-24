@@ -1,5 +1,6 @@
-import type { Note } from '@/types';
+import { Note } from '@/types';
 import { ACCIDENTALS, ACCIDENTALS_MAP } from '@/utils/MusicConstants';
+import { setNoteAccidental } from '@/utils/musicUtils';
 import React from 'react';
 
 type NoteContextMenuProps = {
@@ -7,7 +8,7 @@ type NoteContextMenuProps = {
   position: { x: number; y: number };
   isSelected: boolean;
   onAction: (action: 'delete' | 'select' | 'deselect' | 'cycleAccidental') => void;
-  onAccidentalChange?: (newNote: Note) => void;
+  onAccidentalChange: (newNote: Note) => void;
   onClose: () => void;
   showAccidentalOptions?: boolean;
 };
@@ -31,7 +32,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
   };
 
   const handleAccidentalChange = (newNote: Note) => {
-    onAccidentalChange?.(newNote);
+    onAccidentalChange(newNote);
     onClose();
   };
 
@@ -63,7 +64,9 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
                 type="button"
                 className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${isCurrentVariant ? 'bg-blue-50 text-blue-700' : ''
                   }`}
-                onClick={() => handleAccidentalChange({ noteClass: note.noteClass, octave: note.octave, accidental: variant } as Note)}
+                onClick={() => {
+                  const newNote = setNoteAccidental(note, variant)
+                  return handleAccidentalChange(newNote)}}
                 disabled={isCurrentVariant}
               >
                 <span className="font-mono text-base mr-2">
@@ -76,7 +79,8 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
             );
           })}
         </>
-      )}
+      )
+      }
 
       {/* Standard actions */}
       <div className="border-t border-gray-200 mt-1">
@@ -108,6 +112,6 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
             </button>
           )}
       </div>
-    </div>
+    </div >
   );
 };

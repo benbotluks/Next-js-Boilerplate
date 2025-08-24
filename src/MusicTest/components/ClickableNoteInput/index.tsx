@@ -64,8 +64,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
   // Use note management hook
   const {
-    addNote,
-    removeNote,
     toggleNote,
     canAddNote,
     removeNotes,
@@ -108,19 +106,17 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     const existingNote = selectedNotes.find((note) => {
       return note.linePosition === linePosition;
     });
+    const focusNote = existingNote || new Note({ ...pitch, linePosition });
     if (contextMenu) {
-      const contextNote = existingNote || pitch;
-
       handleContextMenu({
         clientX: contextMenu.x,
         clientY: contextMenu.y,
         preventDefault: () => { },
         stopPropagation: () => { },
-      } as React.MouseEvent, contextNote);
+      } as React.MouseEvent, focusNote);
 
       return;
     }
-    const focusNote = existingNote || new Note({ ...pitch, linePosition });
     toggleNote(focusNote);
     handleAudioPlayback(existingNote ? undefined : focusNote);
 
@@ -133,19 +129,11 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       return;
     }
 
-    // Replace the old note with the new one
+    console.log(oldNote, newNote);
     onNoteDeselect(oldNote);
     onNoteSelect(newNote);
-
-    // Play the new note if audio is enabled
-    if (enableAudio && audioEngine.isSupported()) {
-      try {
-        audioEngine.playNotes([newNote]);
-      } catch (error) {
-        console.warn('Failed to play audio:', error);
-      }
-    }
-  }, [disabled, onNoteDeselect, onNoteSelect, enableAudio]);
+    handleAudioPlayback(newNote);
+  }, [disabled, onNoteDeselect, onNoteSelect, handleAudioPlayback]);
 
   // Use staff interaction hook
   const {

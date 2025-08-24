@@ -45,6 +45,14 @@ export const isTooHigh = (note: Note, inclusive: boolean = true): boolean => {
   }
 };
 
+export const setNoteAccidental = (note: Note, accidental: 'natural' | 'sharp' | 'flat'): Note => {
+  if (note.accidental === accidental) {
+    throw new RuntimeError(`Accidental ${accidental} matches existing note`, Note);
+    return;
+  }
+  return new Note({ noteClass: note.noteClass, octave: note.octave, linePosition: note.linePosition, accidental });
+};
+
 export const midiNumberToNote = (midiNumber: number): Note => {
   const { noteClass, accidental } = PITCH_CLASSES[midiNumber % 12]!;
   const calculatedOctave = Math.floor(midiNumber / 12) - 1;
@@ -154,13 +162,7 @@ export const mobileUtils = {
   /**
    * Change the accidental of a note
    */
-  setNoteAccidental: (note: Note, accidental: 'natural' | 'sharp' | 'flat'): Note => {
-    const naturalNote = getNaturalNote(note);
-    const octave = getOctave(note);
 
-    const accidentalSymbol = accidental === 'sharp' ? '#' : accidental === 'flat' ? 'b' : '';
-    return ensureVexFlowFormat(`${naturalNote}${accidentalSymbol}${octave}`);
-  },
 };
 
 ;

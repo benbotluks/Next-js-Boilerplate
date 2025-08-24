@@ -1,4 +1,4 @@
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/types/';
 import { useCallback, useEffect, useState } from 'react';
 
 /**
@@ -104,6 +104,7 @@ export const useNoteSelection = (
    * Handles right-click context menu
    */
   const handleContextMenu = useCallback((event: React.MouseEvent, note: Note) => {
+    console.log('🔍 handleContextMenu called with note:', note);
     event.preventDefault();
     setContextMenuNote(note);
     setContextMenuPosition({ x: event.clientX, y: event.clientY });
