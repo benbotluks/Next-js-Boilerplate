@@ -66,6 +66,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   const {
     addNote,
     removeNote,
+    toggleNote,
     canAddNote,
     removeNotes,
   } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
@@ -87,7 +88,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
     try {
       if (audioMode === 'poly') {
-        console.log(selectedNotes);
         await audioEngine.playNotes([...selectedNotes]);
       } else if (audioMode === 'mono') {
         newNote && await audioEngine.playNotes([newNote]);
@@ -120,18 +120,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       return;
     }
+    const focusNote = existingNote || new Note({ ...pitch, linePosition });
+    toggleNote(focusNote);
+    handleAudioPlayback(existingNote ? undefined : focusNote);
 
-    if (existingNote) {
-      removeNote(existingNote);
-      handleAudioPlayback();
-    } else {
-      const newNote = new Note({ ...pitch, linePosition });
-      addNote(newNote);
-      handleAudioPlayback(newNote);
-
-      // Play audio for addition if enabled
-    }
-  }, [disabled, selectedNotes, addNote, removeNote, handleContextMenu, handleAudioPlayback]);
+    // Play audio for addition if enabled
+  }, [disabled, selectedNotes, toggleNote, handleContextMenu, handleAudioPlayback]);
 
   // Handle accidental changes
   const handleAccidentalChange = useCallback((oldNote: Note, newNote: Note) => {
