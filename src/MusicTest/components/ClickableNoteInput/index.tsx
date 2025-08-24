@@ -66,7 +66,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   const {
     addNote,
     removeNote,
-    toggleNote,
     canAddNote,
     removeNotes,
   } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
@@ -81,6 +80,23 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     isNoteSelected: isInternallySelected,
   } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
+  const handleAudioPlayback = useCallback(async (newNote?: Note) => {
+    if (!enableAudio || !audioEngine.isSupported()) {
+      return;
+    }
+
+    try {
+      if (audioMode === 'poly') {
+        console.log(selectedNotes);
+        await audioEngine.playNotes([...selectedNotes]);
+      } else if (audioMode === 'mono') {
+        newNote && await audioEngine.playNotes([newNote]);
+      }
+    } catch (error) {
+      console.warn('Failed to play audio:', error);
+    }
+  }, [enableAudio, audioMode, selectedNotes]);
+
   // Handle note click from staff interaction
   const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
     if (disabled) {
@@ -88,61 +104,34 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
 
     // Check if this is a context menu request
-
-    if (position.contextMenu) {
-      const existingNote = selectedNotes.find((note) => {
-        return note.linePosition === position.linePosition;
-      });
-      const contextNote = existingNote || position.pitch;
+    const { linePosition, pitch, contextMenu } = position;
+    const existingNote = selectedNotes.find((note) => {
+      return note.linePosition === linePosition;
+    });
+    if (contextMenu) {
+      const contextNote = existingNote || pitch;
 
       handleContextMenu({
-        clientX: position.contextMenu.x,
-        clientY: position.contextMenu.y,
+        clientX: contextMenu.x,
+        clientY: contextMenu.y,
         preventDefault: () => { },
         stopPropagation: () => { },
       } as React.MouseEvent, contextNote);
 
       return;
     }
-    const { linePosition, pitch } = position;
-    // Find existing note at this staff position (any accidental)
-    const existingNote = selectedNotes.find((note) => {
-      return note.linePosition === linePosition;
-    });
 
     if (existingNote) {
       removeNote(existingNote);
-
-      // Play audio for removal if enabled
-      if (enableAudio && audioEngine.isSupported() && audioMode === 'poly') {
-        try {
-          const updatedNotes = selectedNotes.filter(note => note !== existingNote);
-          if (updatedNotes.length > 0) {
-            await audioEngine.playNotes(updatedNotes);
-          }
-        } catch (error) {
-          console.warn('Failed to play audio:', error);
-        }
-      }
+      handleAudioPlayback();
     } else {
       const newNote = new Note({ ...pitch, linePosition });
       addNote(newNote);
+      handleAudioPlayback(newNote);
 
       // Play audio for addition if enabled
-      if (enableAudio && audioEngine.isSupported()) {
-        try {
-          if (audioMode === 'mono') {
-            await audioEngine.playNotes([newNote]);
-          } else if (audioMode === 'poly') {
-            const updatedNotes = selectedNotes;
-            await audioEngine.playNotes(updatedNotes);
-          }
-        } catch (error) {
-          console.warn('Failed to play audio:', error);
-        }
-      }
     }
-  }, [disabled, selectedNotes, toggleNote, enableAudio, audioMode, handleContextMenu]);
+  }, [disabled, selectedNotes, addNote, removeNote, handleContextMenu, handleAudioPlayback]);
 
   // Handle accidental changes
   const handleAccidentalChange = useCallback((oldNote: Note, newNote: Note) => {

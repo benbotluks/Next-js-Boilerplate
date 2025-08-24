@@ -24,6 +24,7 @@ export default antfu(
     // Format settings
     formatters: {
       css: true,
+      prettier: true,
     },
 
     // Ignored paths
