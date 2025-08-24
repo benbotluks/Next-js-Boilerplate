@@ -64,6 +64,8 @@ export const useStaffInteraction = (
         setPreviewAnimation('fadeOut');
         setIsHovering(false);
 
+        setHoveredPosition(null);
+
         // Clear hover position after fade out animation
         hoverTimeoutRef.current = setTimeout(() => {
           setHoveredPosition(null);

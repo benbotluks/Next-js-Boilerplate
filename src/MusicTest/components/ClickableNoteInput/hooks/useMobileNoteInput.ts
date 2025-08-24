@@ -1,7 +1,7 @@
 import type { Octave } from '@/types';
 import type { Accidental } from '@/types/MusicTypes';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/types';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
@@ -17,7 +17,7 @@ export const useMobileNoteInput = (
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
 ) => {
-  const startingNote = new Note({ noteClass: 'C', octave: 4 });
+  const startingNote = useMemo(() => new Note({ noteClass: 'C', octave: 4 }), []);
   const [inputState, setInputState] = useState<MobileNoteInputState>({ isActive: false, note: startingNote });
 
   // Calculate the optimal octave for the next note based on previous notes

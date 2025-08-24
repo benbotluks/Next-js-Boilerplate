@@ -16,6 +16,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
   onNoteDeselect,
   disabled = false,
   className = '',
+
 }) => {
   const {
     inputState,
@@ -39,7 +40,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
   };
 
   return (
-    <div>
+    <div className={className}>
       { selectedNotes.length > 0
         && (
           <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">

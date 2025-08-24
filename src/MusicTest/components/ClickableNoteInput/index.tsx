@@ -248,7 +248,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Render preview note - prioritize hover over focus
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
-        // Mouse mode: show hover preview
         renderEnhancedPreviewNote(
           stave,
           context,
@@ -258,7 +257,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           false,
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
-        // Keyboard mode: show focus preview
         renderEnhancedPreviewNote(
           stave,
           context,
