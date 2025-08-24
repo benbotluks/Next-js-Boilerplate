@@ -10,7 +10,6 @@ export const useNoteManagement = (
   selectedNotes: Note[],
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
-  handleAudioPlayback: (note?: Note) => void,
   maxNotes: number,
   limitNotes: boolean,
 ) => {
@@ -68,7 +67,7 @@ export const useNoteManagement = (
       // handleAudioPlayback(note);
     }
     return success;
-  }, [selectedNotes, addNote, removeNote, handleAudioPlayback]);
+  }, [selectedNotes, addNote, removeNote]);
 
   /**
    * Checks if a new note can be added

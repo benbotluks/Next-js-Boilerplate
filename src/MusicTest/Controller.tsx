@@ -188,7 +188,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           selectedNotes: prev.selectedNotes.filter(n => n.id !== note.id),
         };
       });
-      handleAudioPlayback(undefined);
+      handleAudioPlayback();
     },
   }), []);
 

@@ -62,27 +62,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   const staveRef = useRef<any>(null);
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
-  const handleAudioPlayback = useCallback(async (newNote?: Note) => {
-    if (!enableAudio || !audioEngine.isSupported()) {
-      return;
-    }
-
-    try {
-      if (audioMode === 'poly') {
-        await audioEngine.playNotes([...selectedNotes]);
-      } else if (audioMode === 'mono') {
-        newNote && await audioEngine.playNotes([newNote]);
-      }
-    } catch (error) {
-      console.warn('Failed to play audio:', error);
-    }
-  }, [enableAudio, audioMode, selectedNotes]);
   // Use note management hook
   const {
     toggleNote,
     canAddNote,
     removeNotes,
-  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, handleAudioPlayback, maxNotes, limitNotes);
+  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
 
   // Use note selection hook
   const {
@@ -128,7 +113,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     }
     onNoteDeselect(oldNote);
     onNoteSelect(newNote);
-  }, [disabled, onNoteDeselect, onNoteSelect, handleAudioPlayback]);
+  }, [disabled, onNoteDeselect, onNoteSelect]);
 
   // Use staff interaction hook
   const {
