@@ -7,7 +7,7 @@ import { Renderer, Stave } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
 import { Note } from '@/types/note';
 import { toDisplayFormat } from '@/utils/musicUtils';
-import { AccessibilityAnnouncements, KeyboardShortcuts, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { AccessibilityAnnouncements, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
@@ -350,9 +350,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           />
         </div>
       )}
-
-      {/* Keyboard Shortcuts Help */}
-      <KeyboardShortcuts className="mt-2" />
 
       {/* Mobile Note Input */}
       <div className="mt-4 border-t pt-4">
