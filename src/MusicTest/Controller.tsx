@@ -1,7 +1,7 @@
 'use client';
 
 import type { NoteHandlers } from './types/game';
-import type { GameControllerProps, GameSettings, GameState, Note } from '@/types/MusicTypes';
+import type { GameControllerProps, GameSettings, GameState, Note } from '@/types';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {

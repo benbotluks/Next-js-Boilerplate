@@ -1,3 +1,4 @@
+import type { Note } from './note';
 import type { AudioMode } from '@/config/gameConfig';
 import type { ACCIDENTALS, NOTE_CLASSES, OCTAVES } from '@/utils/MusicConstants';
 

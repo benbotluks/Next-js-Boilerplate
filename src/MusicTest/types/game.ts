@@ -1,4 +1,4 @@
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/types/note';
 
 export type MusicCallback = () => void;
 export type GameCallback<T> = (arg: T) => void;
