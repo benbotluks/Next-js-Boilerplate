@@ -10,6 +10,7 @@ export const useNoteManagement = (
   selectedNotes: Note[],
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
+  handleAudioPlayback: (note?: Note) => void,
   maxNotes: number,
   limitNotes: boolean,
 ) => {
@@ -56,13 +57,18 @@ export const useNoteManagement = (
   /**
    * Toggles a note (adds if not present, removes if present)
    */
+
   const toggleNote = useCallback((note: Note): boolean => {
+    let success: boolean;
     if (selectedNotes.includes(note)) {
-      return removeNote(note);
+      success = removeNote(note);
+      // handleAudioPlayback(undefined);
     } else {
-      return addNote(note);
+      success = addNote(note);
+      // handleAudioPlayback(note);
     }
-  }, [selectedNotes, addNote, removeNote]);
+    return success;
+  }, [selectedNotes, addNote, removeNote, handleAudioPlayback]);
 
   /**
    * Checks if a new note can be added

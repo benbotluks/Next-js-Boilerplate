@@ -18,7 +18,7 @@ export const cycleAccidental = (note: Note): Note => {
   const { noteClass, octave } = note;
 
   const accidental = ACCIDENTALS[(ACCIDENTALS.indexOf(note.accidental) + 1) % ACCIDENTALS.length]!;
-  return new Note(noteClass, octave, accidental);
+  return new Note({ noteClass, octave, accidental });
 };
 
 export const noteToMidiNumber = (note: Note): number => {

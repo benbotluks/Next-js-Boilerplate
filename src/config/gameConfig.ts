@@ -82,6 +82,7 @@ export const DEFAULT_GAME_SETTINGS = {
 export const DEFAULT_SESSION_SETTINGS = {
   limitNotes: GAME_CONFIG.DEFAULT_LIMIT_NOTES,
   audioMode: AUDIO_CONFIG.DEFAULT_AUDIO_MODE,
+  enableAudio: true,
 } as const;
 
 // UI Configuration

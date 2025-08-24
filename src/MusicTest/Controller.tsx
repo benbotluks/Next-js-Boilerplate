@@ -152,12 +152,30 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     }
   }, [gameState.currentNotes]);
 
+  const handleAudioPlayback = useCallback(async (newNote?: Note) => {
+    if (!settings.enableAudio || !audioEngine.isSupported()) {
+      return;
+    }
+
+    try {
+      if (settings.audioMode === 'poly') {
+        await audioEngine.playNotes([...gameState.selectedNotes]);
+      } else if (settings.audioMode === 'mono') {
+        newNote && await audioEngine.playNotes([newNote]);
+      }
+    } catch (error) {
+      console.warn('Failed to play audio:', error);
+    }
+  }, [settings.enableAudio, settings.audioMode, gameState.selectedNotes]);
+
   const noteHandlers = useMemo<NoteHandlers>(() => ({
     select: (note: Note) => {
       setGameState(prev => ({
         ...prev,
         selectedNotes: [...prev.selectedNotes, note],
       }));
+
+      handleAudioPlayback(note);
     },
 
     deselect: (note: Note) => {
@@ -170,6 +188,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
           selectedNotes: prev.selectedNotes.filter(n => n.id !== note.id),
         };
       });
+      handleAudioPlayback(undefined);
     },
   }), []);
 

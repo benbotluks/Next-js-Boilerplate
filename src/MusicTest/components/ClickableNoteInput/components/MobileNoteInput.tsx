@@ -1,7 +1,5 @@
-import type { Note } from '@/types/MusicTypes';
-import React from 'react';
+import type { Note } from '@/types/';
 import { ACCIDENTALS, ACCIDENTALS_MAP, NOTE_CLASSES } from '@/utils/MusicConstants';
-import { toDisplayFormat } from '@/utils/musicUtils';
 import { useMobileNoteInput } from '../hooks/useMobileNoteInput';
 
 type MobileNoteInputProps = {
@@ -27,9 +25,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
     moveNoteDown,
     isNoteDownDisabled,
     moveOctaveUp,
-    isOctaveUpDisabled,
     moveOctaveDown,
-    isOctaveDownDisabled,
     changeAccidental,
     confirmNote,
     removeActiveNote,
@@ -38,25 +34,20 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
 
   // Check if a note class is currently being built
   const isNoteClassActive = (noteClass: typeof NOTE_CLASSES[number]): boolean => {
-    return inputState.isActive && inputState.noteClass === noteClass;
+    return Boolean(inputState.isActive && inputState.note?.noteClass === noteClass);
   };
 
-  // Check if an accidental is currently active
   const isAccidentalActive = (accidental: typeof ACCIDENTALS[number]): boolean => {
-    return inputState.isActive && inputState.accidental === accidental;
+    return inputState.isActive && (inputState.note?.accidental === accidental);
   };
 
   return (
-    <div className={`mobile-note-input ${className}`}>
+    <div className={className}>
       {/* Compact Current Note Display */}
-      {inputState.isActive && inputState.noteClass && (
+      {inputState.isActive && (
         <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">
           <div className="text-sm font-semibold text-blue-800">
-            {toDisplayFormat({
-              noteClass: inputState.noteClass,
-              octave: inputState.octave,
-              accidental: inputState.accidental,
-            })}
+            {inputState.note?.displayFormat}
           </div>
         </div>
       )}
@@ -96,22 +87,22 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
       </div>
 
       {/* Compact Controls Row - Only show when active */}
-      {inputState.isActive && (
+      {inputState.isActive && inputState.note && (
         <div className="space-y-2">
           {/* Movement and Octave Controls - Horizontal */}
           <div className="flex justify-center gap-2">
             <button
               type="button"
               onClick={moveNoteDown}
-              disabled={isNoteDownDisabled()}
+              disabled={!inputState.note.moveStep(-1)}
               className="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600 disabled:opacity-50"
             >
               ▼
             </button>
             <button
               type="button"
-              onClick={moveNoteUp}
-              disabled={isNoteUpDisabled()}
+              onClick={() => inputState.note?.moveStep(1)}
+              disabled={!inputState.note.moveStep(1)}
               className="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600 disabled:opacity-50"
             >
               ▲
@@ -119,7 +110,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
             <button
               type="button"
               onClick={moveOctaveDown}
-              disabled={isOctaveDownDisabled()}
+              disabled={!inputState.note.moveOctave(-1)}
               className="rounded bg-purple-500 px-3 py-1 text-xs text-white hover:bg-purple-600 disabled:opacity-50"
             >
               ▼▼
@@ -127,7 +118,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
             <button
               type="button"
               onClick={moveOctaveUp}
-              disabled={isOctaveUpDisabled()}
+              disabled={!inputState.note.moveOctave(1)}
               className="rounded bg-purple-500 px-3 py-1 text-xs text-white hover:bg-purple-600 disabled:opacity-50"
             >
               ▲▲

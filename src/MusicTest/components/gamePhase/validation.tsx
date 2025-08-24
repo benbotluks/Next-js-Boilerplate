@@ -38,15 +38,14 @@ export const Validation: React.FC<ValidationProps> = ({ validationResult, select
 
         <ClickableNoteInput
           selectedNotes={selectedNotes}
-          onNoteSelect={() => { }} // Read-only
-          onNoteDeselect={() => { }} // Read-only
+          onNoteSelect={() => { }}
+          onNoteDeselect={() => { }}
           maxNotes={Math.max(selectedNotes.length, currentNotes.length)}
           limitNotes={false}
           showCorrectAnswer={true}
           correctNotes={currentNotes}
           validationResult={validationResult}
           disabled={true}
-          enableAudio={true}
           audioMode="poly"
           width={GAME_CONFIG.STAFF_WIDTH * 1.5}
           height={GAME_CONFIG.STAFF_HEIGHT}

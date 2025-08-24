@@ -61,7 +61,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
 
             return (
               <Button
-                key="variant"
+                key={variant}
                 module='noteInput'
                 classNames={isCurrentVariant ? ['bg-blue-50, text-blue-700'] : [""]}
                 onClick={() => {

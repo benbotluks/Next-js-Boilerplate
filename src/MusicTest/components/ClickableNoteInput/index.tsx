@@ -62,23 +62,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   const staveRef = useRef<any>(null);
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
-  // Use note management hook
-  const {
-    toggleNote,
-    canAddNote,
-    removeNotes,
-  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, maxNotes, limitNotes);
-
-  // Use note selection hook
-  const {
-    contextMenuNote,
-    contextMenuPosition,
-    handleContextMenu,
-    closeContextMenu,
-    handleContextMenuAction,
-    isNoteSelected: isInternallySelected,
-  } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
-
   const handleAudioPlayback = useCallback(async (newNote?: Note) => {
     if (!enableAudio || !audioEngine.isSupported()) {
       return;
@@ -94,6 +77,22 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       console.warn('Failed to play audio:', error);
     }
   }, [enableAudio, audioMode, selectedNotes]);
+  // Use note management hook
+  const {
+    toggleNote,
+    canAddNote,
+    removeNotes,
+  } = useNoteManagement(selectedNotes, onNoteSelect, onNoteDeselect, handleAudioPlayback, maxNotes, limitNotes);
+
+  // Use note selection hook
+  const {
+    contextMenuNote,
+    contextMenuPosition,
+    handleContextMenu,
+    closeContextMenu,
+    handleContextMenuAction,
+    isNoteSelected: isInternallySelected,
+  } = useNoteSelection(selectedNotes, onNoteDeselect, removeNotes);
 
   // Handle note click from staff interaction
   const handleNoteClick = useCallback(async (position: StaffPosition & { contextMenu?: { x: number; y: number } }) => {
@@ -118,21 +117,17 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       return;
     }
     toggleNote(focusNote);
-    handleAudioPlayback(existingNote ? undefined : focusNote);
 
     // Play audio for addition if enabled
-  }, [disabled, selectedNotes, toggleNote, handleContextMenu, handleAudioPlayback]);
+  }, [disabled, selectedNotes, toggleNote, handleContextMenu]);
 
   // Handle accidental changes
   const handleAccidentalChange = useCallback((oldNote: Note, newNote: Note) => {
     if (disabled || oldNote === newNote) {
       return;
     }
-
-    console.log(oldNote, newNote);
     onNoteDeselect(oldNote);
     onNoteSelect(newNote);
-    handleAudioPlayback(newNote);
   }, [disabled, onNoteDeselect, onNoteSelect, handleAudioPlayback]);
 
   // Use staff interaction hook

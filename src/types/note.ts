@@ -1,26 +1,39 @@
 import type { Accidental, NoteClass, Octave } from './MusicTypes';
+import type { NOTE_CLASS } from '@/utils/MusicConstants';
 import { nanoid } from 'nanoid';
+import { NOTE_CLASSES } from '@/utils/MusicConstants';
+import { isTooHigh, isTooLow } from '@/utils/musicUtils';
 
 type NoteProps = {
   noteClass: NoteClass;
   octave: Octave;
-  linePosition: number;
+  linePosition?: number;
   accidental?: Accidental;
+};
+
+const LINE_OFFSET = {
+  note: 'E' as NOTE_CLASS,
+  octave: 4,
 };
 
 export class Note {
   public readonly id = nanoid();
   public readonly noteClass: NoteClass;
   public readonly octave: Octave;
-  public readonly linePosition: number;
   public readonly accidental: Accidental;
+  public readonly linePosition?: number;
 
-  constructor({ noteClass, octave, linePosition = -1, accidental = 'natural' }: NoteProps) {
+  constructor({ noteClass, octave, accidental = 'natural', linePosition }: NoteProps) {
     this.noteClass = noteClass;
     this.octave = octave;
-    this.linePosition = linePosition;
     this.accidental = accidental; // always defined now
     this.id = nanoid();
+    this.linePosition = linePosition || this.computeLinePosition;
+  }
+
+  get computeLinePosition(): number {
+    const octave_diff = this.octave - LINE_OFFSET.octave;
+    return (7 * octave_diff) + (NOTE_CLASSES.indexOf(this.noteClass) - NOTE_CLASSES.indexOf(LINE_OFFSET.note));
   }
 
   // Computed properties
@@ -66,24 +79,40 @@ export class Note {
     return this.displayFormat;
   }
 
-  // Static factory methods
-  // static fromString(noteString: string): Note {
-  //   // Parse "C4", "F#5", "Bb3" etc.
-  //   const match = noteString.match(/^([A-G])([#b]?)(\d+)$/);
-  //   if (!match) {
-  //     throw new Error(`Invalid note format: ${noteString}`);
-  //   }
+  moveStep(offset: number): Note | boolean {
+    const note_classes_len = NOTE_CLASSES.length;
+    const boundary_fn = offset >= 0 ? isTooHigh : isTooLow;
 
-  //   const noteClass = match[1] as NoteClass;
-  //   const octave = Number.parseInt(match[3]!) as Octave;
-  //   let accidental: Accidental = 'natural';
+    const currentIndex = NOTE_CLASSES.indexOf(this.noteClass);
+    const total = currentIndex + offset;
 
-  //   if (match[2] === '#') {
-  //     accidental = 'sharp';
-  //   } else if (match[2] === 'b') {
-  //     accidental = 'flat';
-  //   }
+    const newIndex = ((total % note_classes_len) + note_classes_len) % note_classes_len;
+    const octaveShift = Math.floor(total / note_classes_len);
 
-  //   return new Note(noteClass, octave, accidental);
-  // }
+    const newNote = new Note({
+      noteClass: NOTE_CLASSES[newIndex] as NoteClass,
+      octave: this.octave + octaveShift as Octave,
+      accidental: this.accidental,
+    });
+
+    const isOutOfBounds = boundary_fn(newNote, true);
+    if (isOutOfBounds) {
+      return false;
+    }
+    return newNote;
+  }
+
+  moveOctave(distance: number): Note | boolean {
+    const boundary_fn = distance >= 0 ? isTooHigh : isTooLow;
+    const newNote = new Note({
+      noteClass: this.noteClass,
+      octave: this.octave + distance as Octave,
+      accidental: this.accidental,
+    });
+    const isOutOfBounds = boundary_fn(newNote, true);
+    if (isOutOfBounds) {
+      return false;
+    }
+    return newNote;
+  }
 }

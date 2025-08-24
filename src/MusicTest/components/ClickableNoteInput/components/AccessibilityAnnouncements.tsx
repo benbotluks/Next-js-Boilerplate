@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/types';
 import type { StaffPosition } from '../types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { toDisplayFormat } from '@/utils/musicUtils';
@@ -21,7 +21,6 @@ type AccessibilityAnnouncementsProps = {
 export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProps> = ({
   selectedNotes,
   focusedPosition,
-  hoveredPosition,
   keyboardMode,
   validationResult,
   maxNotes,
