@@ -1,7 +1,8 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
-import type { GameSettings, Note } from '@/types/MusicTypes';
+import type { GameSettings, Note } from '@/types';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
+import { Button } from '../ui/button';
 
 type AnsweringProps = {
   settings: GameSettings;
@@ -27,22 +28,16 @@ export const Answering: React.FC<AnsweringProps> = ({ selectedNotes, currentNote
           </span>
         </p>
         <div className="flex justify-center gap-4">
-          <button
-            type="button"
+          <Button
             onClick={replayNotes}
             disabled={isPlaying}
-            className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 disabled:opacity-50"
-          >
-            {isPlaying ? 'Playing...' : 'Replay Notes'}
-          </button>
-          <button
-            type="button"
+            children={isPlaying ? 'Playing...' : 'Replay Notes'}
+          />
+          <Button
             onClick={submitAnswer}
             disabled={selectedNotes.length === 0}
-            className="rounded-lg bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Submit Answer
-          </button>
+            children="Submit Answer"
+          />
         </div>
       </div>
 

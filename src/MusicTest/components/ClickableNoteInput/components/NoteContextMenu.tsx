@@ -2,6 +2,7 @@ import { Note } from '@/types';
 import { ACCIDENTALS, ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { setNoteAccidental } from '@/utils/musicUtils';
 import React from 'react';
+import { Button } from '@/MusicTest/components/ui/button';
 
 type NoteContextMenuProps = {
   note: Note;
@@ -59,14 +60,14 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
             const isCurrentVariant = variant === note.accidental;
 
             return (
-              <button
-                key={variant}
-                type="button"
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none ${isCurrentVariant ? 'bg-blue-50 text-blue-700' : ''
-                  }`}
+              <Button
+                key="variant"
+                module='noteInput'
+                classNames={isCurrentVariant ? ['bg-blue-50, text-blue-700'] : [""]}
                 onClick={() => {
                   const newNote = setNoteAccidental(note, variant)
-                  return handleAccidentalChange(newNote)}}
+                  return handleAccidentalChange(newNote)
+                }}
                 disabled={isCurrentVariant}
               >
                 <span className="font-mono text-base mr-2">
@@ -75,42 +76,23 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
                 <span className="text-xs text-gray-500">
                   {variant.toUpperCase()}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </>
       )
       }
-
-      {/* Standard actions */}
       <div className="border-t border-gray-200 mt-1">
-        <button
-          type="button"
-          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+        <Button
           onClick={() => handleAction('delete')}
-        >
-          Delete Note
-        </button>
-
-        {!isSelected
-          ? (
-            <button
-              type="button"
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-              onClick={() => handleAction('select')}
-            >
-              Select Note
-            </button>
-          )
-          : (
-            <button
-              type="button"
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
-              onClick={() => handleAction('deselect')}
-            >
-              Deselect Note
-            </button>
-          )}
+          module="noteInput"
+          children="Delete Note"
+        />
+        <Button
+          onClick={() => handleAction(isSelected ? 'select' : 'deselect')}
+          module='noteInput'
+          children='Deselect Note'
+        />
       </div>
     </div >
   );

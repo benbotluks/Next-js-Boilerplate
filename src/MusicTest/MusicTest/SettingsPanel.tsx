@@ -8,6 +8,7 @@ import type { GameSettings } from '@/libs/SettingsManager';
 import React, { useState } from 'react';
 import { CONFIG_HELPERS, ERROR_MESSAGES, UI_CONFIG } from '@/config/gameConfig';
 import { settingsManager } from '@/libs/SettingsManager';
+import { Button } from '../components/ui/button';
 import { DualRangeSlider } from '../SettingsPanel/DualRangeSlider';
 
 export type SettingsPanelProps = {
@@ -197,13 +198,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
       {/* Reset Button */}
       <div className="setting-group mb-4">
-        <button
-          type="button"
+        <Button
           onClick={handleReset}
-          className="rounded-md bg-gray-500 px-4 py-2 text-white transition-colors hover:bg-gray-600 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
-        >
-          Reset to Defaults
-        </button>
+          module="settings"
+          children="Reset to Defaults"
+        />
       </div>
 
       {/* Save Status */}

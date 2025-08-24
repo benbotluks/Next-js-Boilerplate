@@ -149,7 +149,6 @@ export const DualRangeSlider: React.FC<DualRangeSliderProps> = ({
       )}
 
       <div className="relative">
-        {/* Track */}
         <div
           ref={sliderRef}
           className="relative h-2 w-full cursor-pointer rounded-lg bg-gray-200"

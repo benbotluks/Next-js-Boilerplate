@@ -1,5 +1,6 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
 import type { GameSettings } from '@/types/MusicTypes';
+import { Button } from '../ui/button';
 
 type SetupProps = {
   settings: GameSettings;
@@ -22,14 +23,11 @@ export const Setup: React.FC<SetupProps> = (props) => {
         {' '}
         notes played simultaneously. Identify them by clicking on the staff.
       </p>
-      <button
-        type="button"
+      <Button
         onClick={startNewRound}
         disabled={isPlaying}
-        className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {isPlaying ? 'Loading...' : 'Start New Round'}
-      </button>
+        children={isPlaying ? 'Loading...' : 'Start New Round'}
+      />
     </div>
   );
 };

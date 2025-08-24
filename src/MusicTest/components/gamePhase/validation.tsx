@@ -1,8 +1,9 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/types';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
+import { Button } from '../ui/button';
 
 type ValidationProps = {
   validationResult: ValidationResult;
@@ -73,28 +74,19 @@ export const Validation: React.FC<ValidationProps> = ({ validationResult, select
 
       {/* Compact feedback controls */}
       <div className="flex justify-center gap-4">
-        <button
-          type="button"
+        <Button
           onClick={replayNotes}
           disabled={isPlaying}
-          className="rounded-lg bg-gray-600 px-4 py-2 text-white hover:bg-gray-700 disabled:opacity-50"
-        >
-          {isPlaying ? 'Playing...' : '🔊 Replay Notes'}
-        </button>
-        <button
-          type="button"
+          children={isPlaying ? 'Playing...' : '🔊 Replay Notes'}
+        />
+        <Button
           onClick={startNewRound}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-        >
-          ➡️ Next Round
-        </button>
-        <button
-          type="button"
+          children="➡️ Next Round"
+        />
+        <Button
           onClick={resetGame}
-          className="rounded-lg bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-        >
-          🔄 Reset Game
-        </button>
+          children="➡️ Next Round"
+        />
       </div>
     </div>
   );
