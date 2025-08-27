@@ -1,3 +1,4 @@
+import type { Stave } from 'vexflow';
 import type { StaffPosition } from '../types/StaffInteraction';
 import { linePositionToPitch } from './notePositioning';
 
@@ -5,16 +6,18 @@ import { linePositionToPitch } from './notePositioning';
  * Utility class for converting between screen coordinates and staff positions
  */
 export class StaffCoordinates {
-  private stave: any; // VexFlow.Stave type
+  private staveTreble: Stave;
+  private staveBass: Stave;
   private lineSpacing: number;
   private staffTop: number;
   private staffBottom: number;
 
-  constructor(stave: any) {
-    this.stave = stave;
-    this.lineSpacing = stave.getSpacingBetweenLines();
-    this.staffTop = stave.getYForLine(0); // Top line of staff
-    this.staffBottom = stave.getYForLine(4); // Bottom line of staff
+  constructor(staves: { treble: Stave; bass: Stave }) {
+    this.staveTreble = staves?.treble;
+    this.staveBass = staves?.bass;
+    this.lineSpacing = staves?.treble.getSpacingBetweenLines();
+    this.staffTop = staves?.treble.getYForLine(0); // Top line of staff
+    this.staffBottom = staves?.bass.getYForLine(4); // Bottom line of staff
   }
 
   /**
@@ -96,8 +99,8 @@ export class StaffCoordinates {
 
   isWithinStaffArea(x: number, y: number): boolean {
     const margin = this.lineSpacing * 3; // Allow 3 line spaces above/below
-    const leftBound = this.stave.getX();
-    const rightBound = this.stave.getX() + this.stave.getWidth();
+    const leftBound = this.staveTreble.getX();
+    const rightBound = this.staveTreble.getX() + this.staveTreble.getWidth();
     const topBound = this.staffTop - margin;
     const bottomBound = this.staffBottom + margin;
 
@@ -107,8 +110,8 @@ export class StaffCoordinates {
   getStaffBounds(): { left: number; right: number; top: number; bottom: number } {
     const margin = this.lineSpacing * 3;
     return {
-      left: this.stave.getX(),
-      right: this.stave.getX() + this.stave.getWidth(),
+      left: this.staveTreble.getX(),
+      right: this.staveTreble.getX() + this.staveTreble.getWidth(),
       top: this.staffTop - margin,
       bottom: this.staffBottom + margin,
     };
@@ -120,7 +123,7 @@ export class StaffCoordinates {
    */
   getAllValidPositions(): StaffPosition[] {
     const positions: StaffPosition[] = [];
-    const staffX = this.stave.getX() + this.stave.getNoteStartX();
+    const staffX = this.staveTreble.getX() + this.staveTreble.getNoteStartX();
 
     // Only include positions that have actual pitch mappings
     const validLinePositions = [-6, -4, -2, 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14];
@@ -134,3 +137,5 @@ export class StaffCoordinates {
     return positions;
   }
 }
+
+export type SystemCoordinates = { treble: StaffCoordinates | null; bass: StaffCoordinates | null };

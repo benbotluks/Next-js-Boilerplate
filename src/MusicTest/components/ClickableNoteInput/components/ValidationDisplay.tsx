@@ -78,8 +78,8 @@ export const ValidationDisplay: React.FC<ValidationDisplayProps> = ({
   }
 
   return (
-    <div className={`${styles.validationOverlay} ${className}`}>
-      <div className={`${styles.validationMessage} ${styles[messageType]}`}>
+    <div className={`${className}`}>
+      <div className="">
         {message}
       </div>
     </div>
@@ -146,10 +146,9 @@ export const ValidationStats: React.FC<{
       )}
       <div className="flex justify-between border-t pt-1">
         <span>Accuracy:</span>
-        <span className={`font-medium ${
-          stats.accuracy >= 80
-            ? 'text-green-600'
-            : stats.accuracy >= 60 ? 'text-orange-600' : 'text-red-600'
+        <span className={`font-medium ${stats.accuracy >= 80
+          ? 'text-green-600'
+          : stats.accuracy >= 60 ? 'text-orange-600' : 'text-red-600'
         }`}
         >
           {stats.accuracy.toFixed(0)}

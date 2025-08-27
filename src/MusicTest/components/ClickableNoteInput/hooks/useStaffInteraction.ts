@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { StaffPosition } from '../types/StaffInteraction';
-import type { StaffCoordinates } from '../utils/staffCoordinates';
+import type { StaffCoordinates } from '../utils';
 import { useCallback, useRef, useState } from 'react';
 
 /**
@@ -38,7 +38,7 @@ export const useStaffInteraction = (
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-
+    console.log(staffCoordinatesRef.current);
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
 
@@ -63,6 +63,8 @@ export const useStaffInteraction = (
       if (isHovering) {
         setPreviewAnimation('fadeOut');
         setIsHovering(false);
+
+        setHoveredPosition(null);
 
         // Clear hover position after fade out animation
         hoverTimeoutRef.current = setTimeout(() => {
@@ -95,8 +97,8 @@ export const useStaffInteraction = (
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+    if (staffCoordinatesRef.current.treble?.isWithinStaffArea(x, y)) {
+      const position = staffCoordinatesRef.current.treble.getNearestStaffPosition(x, y);
       onNoteClick(position);
     }
   }, [staffCoordinatesRef, disabled, containerRef, onNoteClick]);
@@ -119,8 +121,8 @@ export const useStaffInteraction = (
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
 
-    if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
-      const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
+    if (staffCoordinatesRef.current.treble?.isWithinStaffArea(x, y)) {
+      const position = staffCoordinatesRef.current.treble.getNearestStaffPosition(x, y);
       // Create a special position object with context menu coordinates
       const contextMenuPosition = {
         ...position,

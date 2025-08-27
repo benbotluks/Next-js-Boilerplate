@@ -3,12 +3,15 @@ import { ACCIDENTALS, ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { setNoteAccidental } from '@/utils/musicUtils';
 import React from 'react';
 import { Button } from '@/MusicTest/components/ui/button';
+import { NoteAction } from '../types/StaffInteraction';
+
+
 
 type NoteContextMenuProps = {
   note: Note;
   position: { x: number; y: number };
   isSelected: boolean;
-  onAction: (action: 'delete' | 'select' | 'deselect' | 'cycleAccidental') => void;
+  onAction: (action: NoteAction) => void;
   onAccidentalChange: (newNote: Note) => void;
   onClose: () => void;
   showAccidentalOptions?: boolean;
@@ -27,7 +30,7 @@ export const NoteContextMenu: React.FC<NoteContextMenuProps> = ({
   onClose,
   showAccidentalOptions = true,
 }) => {
-  const handleAction = (action: 'delete' | 'select' | 'deselect' | 'cycleAccidental') => {
+  const handleAction = (action: NoteAction) => {
     onAction(action);
     onClose();
   };

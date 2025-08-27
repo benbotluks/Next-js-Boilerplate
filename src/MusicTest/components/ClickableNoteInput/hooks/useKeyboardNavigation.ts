@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import type { StaffPosition } from '../types/StaffInteraction';
-import type { StaffCoordinates } from '../utils/staffCoordinates';
+import type { SystemCoordinates } from '../utils/staffCoordinates';
 import { useCallback, useEffect, useState } from 'react';
 
 /**
@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
  */
 export const useKeyboardNavigation = (
   containerRef: RefObject<HTMLDivElement | null>,
-  staffCoordinates: StaffCoordinates | null,
+  staffCoordinates: SystemCoordinates | null,
   onNotePlace: (position: StaffPosition) => void,
   onNoteDelete?: () => void,
 ) => {
@@ -19,7 +19,7 @@ export const useKeyboardNavigation = (
   // Initialize valid positions when staff coordinates are available
   useEffect(() => {
     if (staffCoordinates) {
-      const positions = staffCoordinates.getAllValidPositions();
+      const positions = staffCoordinates.treble?.getAllValidPositions();
       setValidPositions(positions);
 
       // Don't set initial focus - only set focus when keyboard mode is actually activated

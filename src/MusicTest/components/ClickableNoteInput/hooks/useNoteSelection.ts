@@ -1,3 +1,4 @@
+import type { NoteAction } from '../types/StaffInteraction';
 import type { Note } from '@/types/';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -116,7 +117,7 @@ export const useNoteSelection = (
   /**
    * Handles context menu actions
    */
-  const handleContextMenuAction = useCallback((action: 'delete' | 'select' | 'deselect' | 'cycleAccidental') => {
+  const handleContextMenuAction = useCallback((action: NoteAction) => {
     if (!contextMenuNote) {
       return;
     }
@@ -135,10 +136,6 @@ export const useNoteSelection = (
         break;
       case 'deselect':
         deselectNote(contextMenuNote);
-        break;
-      case 'cycleAccidental':
-        // This action is handled by the parent component via onAccidentalChange
-        // We just close the context menu here
         break;
     }
 

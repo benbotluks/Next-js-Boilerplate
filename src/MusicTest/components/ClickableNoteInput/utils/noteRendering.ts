@@ -348,13 +348,16 @@ export const renderEnhancedPreviewNote = (
  * Clear the staff and redraw the base staff elements
  */
 export const clearAndRedrawStaff = (
-  stave: any, // VexFlow Stave
+  system: any, // VexFlow Stave
   context: any, // VexFlow RenderContext
 ): void => {
   try {
+    const { treble, bass } = system;
     context.clear();
-    stave.setContext(context);
-    stave.draw();
+    treble.setContext(context);
+    bass.setContext(context);
+    treble.draw();
+    bass.draw();
   } catch (error) {
     console.error('Failed to clear and redraw staff:', error);
   }

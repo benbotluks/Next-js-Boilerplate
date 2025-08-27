@@ -16,20 +16,18 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
   onNoteDeselect,
   disabled = false,
   className = '',
+
 }) => {
   const {
     inputState,
     startNoteInput,
     moveNoteUp,
-    isNoteUpDisabled,
     moveNoteDown,
-    isNoteDownDisabled,
     moveOctaveUp,
     moveOctaveDown,
     changeAccidental,
     confirmNote,
     removeActiveNote,
-    clearInput,
   } = useMobileNoteInput(selectedNotes, onNoteSelect, onNoteDeselect);
 
   // Check if a note class is currently being built
@@ -43,14 +41,28 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
 
   return (
     <div className={className}>
-      {/* Compact Current Note Display */}
-      {inputState.isActive && (
-        <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">
-          <div className="text-sm font-semibold text-blue-800">
-            {inputState.note?.displayFormat}
+      { selectedNotes.length > 0
+        && (
+          <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">
+            <div className="mb-2 text-xs font-medium text-blue-700">Selected Notes:</div>
+            <div className="flex flex-wrap justify-center gap-2">
+              {selectedNotes.map(note => (
+                <button
+                  key={note.id}
+                  type="button"
+                  onClick={() => onNoteDeselect(note)}
+                  className="rounded bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-300 active:bg-blue-400"
+                  title={`Click to remove ${note.displayFormat}`}
+                >
+                  {note.displayFormat}
+                </button>
+              ))}
+              {selectedNotes.length === 0 && (
+                <span className="text-sm text-blue-600 italic">No notes selected</span>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Note Class Buttons - Compact Grid */}
       <div className="mb-3">
@@ -72,7 +84,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
                 }}
                 disabled={disabled}
                 className={`
-                  flex h-10 w-full items-center justify-center rounded border-2 text-sm font-bold text-white transition-all
+                  flex h-10 w-full items-center justify-center rounded border-2 text-sm font-bold transition-all
                   ${isActive
                   && 'border-blue-500 bg-blue-500 shadow-lg'
               }
@@ -101,7 +113,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
             </button>
             <button
               type="button"
-              onClick={() => inputState.note?.moveStep(1)}
+              onClick={moveNoteUp}
               disabled={!inputState.note.moveStep(1)}
               className="rounded bg-gray-500 px-3 py-1 text-xs text-white hover:bg-gray-600 disabled:opacity-50"
             >
@@ -159,14 +171,6 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
               className="rounded bg-green-500 px-4 py-2 text-sm font-bold text-white hover:bg-green-600 disabled:opacity-50"
             >
               ✓ OK
-            </button>
-            <button
-              type="button"
-              onClick={clearInput}
-              disabled={disabled}
-              className="rounded bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
-            >
-              ✗ Clear
             </button>
           </div>
         </div>

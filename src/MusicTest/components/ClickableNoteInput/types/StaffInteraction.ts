@@ -77,3 +77,5 @@ export type TouchConfig = {
   /** Whether haptic feedback is enabled */
   hapticFeedback: boolean;
 };
+
+export type NoteAction = 'delete' | 'select' | 'deselect';

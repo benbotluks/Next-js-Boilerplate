@@ -61,10 +61,8 @@ export const useNoteManagement = (
     let success: boolean;
     if (selectedNotes.includes(note)) {
       success = removeNote(note);
-      // handleAudioPlayback(undefined);
     } else {
       success = addNote(note);
-      // handleAudioPlayback(note);
     }
     return success;
   }, [selectedNotes, addNote, removeNote]);

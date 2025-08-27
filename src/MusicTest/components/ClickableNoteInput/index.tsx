@@ -3,11 +3,11 @@
 import type { StaffPosition } from './types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Renderer, Stave } from 'vexflow';
+import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
 import { Note } from '@/types/note';
 import { toDisplayFormat } from '@/utils/musicUtils';
-import { AccessibilityAnnouncements, KeyboardShortcuts, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
+import { AccessibilityAnnouncements, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';
 import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
@@ -58,8 +58,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   respectGamePhase: _respectGamePhase = true, // Default to respecting game phase
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const rendererRef = useRef<any>(null);
-  const staveRef = useRef<any>(null);
+  const rendererRef = useRef<Renderer | null>(null);
+  const stavesRef = useRef<{ treble: Stave | null; bass: Stave | null }>({
+    treble: null,
+    bass: null,
+  });
+
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
   // Use note management hook
@@ -187,24 +191,38 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       const context = renderer.getContext();
 
       // Create staff directly using VexFlow classes
-      const stave = new Stave(
-        10,
-        40,
-        140,
-      );
+      const staveTreble = new Stave(10, 40, 140);
+      staveTreble.addClef('treble');
+      staveTreble.setContext(context);
+      staveTreble.draw();
 
-      // Add clef and time signature
-      stave.addClef('treble');
-      // stave.addTimeSignature('4/4');
+      const staveBass = new Stave(10, 100, 140);
+      staveBass.addClef('bass');
+      staveBass.setContext(context);
+      staveBass.draw();
 
-      // Set context and draw
-      stave.setContext(context);
-      stave.draw();
+      new StaveConnector(staveTreble, staveBass)
+        .setType('brace')
+        .setContext(context)
+        .draw();
+
+      new StaveConnector(staveTreble, staveBass)
+        .setType('singleLeft')
+        .setContext(context)
+        .draw();
+
+      new StaveConnector(staveTreble, staveBass)
+        .setType('singleRight')
+        .setContext(context)
+        .draw();
 
       // Store references
       rendererRef.current = renderer;
-      staveRef.current = stave;
-      staffCoordinatesRef.current = new StaffCoordinates(stave);
+
+      stavesRef.current.treble = staveTreble; // a Vex.Flow.Stave
+      stavesRef.current.bass = staveBass;
+
+      staffCoordinatesRef.current = new StaffCoordinates({ treble: staveTreble, bass: staveBass });
     } catch (error) {
       console.error('Failed to initialize VexFlow:', error);
       // Fallback: show error message
@@ -227,16 +245,16 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   // Render selected notes on the staff
   useEffect(() => {
     try {
-      const context = rendererRef.current.getContext();
-      const stave = staveRef.current;
+      const context = rendererRef.current?.getContext();
+      const { treble } = stavesRef.current;
 
       // Clear and redraw staff
-      clearAndRedrawStaff(stave, context);
+      clearAndRedrawStaff(stavesRef.current, context);
 
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
-          stave,
+          treble,
           context,
           selectedNotes,
           correctNotes,
@@ -248,9 +266,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Render preview note - prioritize hover over focus
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
-        // Mouse mode: show hover preview
         renderEnhancedPreviewNote(
-          stave,
+          treble,
           context,
           hoveredPosition.pitch,
           hoveredPosition.x,
@@ -258,9 +275,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           false,
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
-        // Keyboard mode: show focus preview
         renderEnhancedPreviewNote(
-          stave,
+          treble,
           context,
           focusedPosition.pitch,
           focusedPosition.x,
@@ -350,9 +366,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           />
         </div>
       )}
-
-      {/* Keyboard Shortcuts Help */}
-      <KeyboardShortcuts className="mt-2" />
 
       {/* Mobile Note Input */}
       <div className="mt-4 border-t pt-4">

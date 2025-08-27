@@ -1,14 +1,15 @@
 import type { Octave } from '@/types';
-import type { ACCIDENTALS, NOTE_CLASS } from '@/utils/MusicConstants';
-import { useCallback, useState } from 'react';
+import type { Accidental } from '@/types/MusicTypes';
+import type { NOTE_CLASS } from '@/utils/MusicConstants';
+import { useCallback, useMemo, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/types';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
-import { isTooHigh, isTooLow, noteToMidiNumber } from '@/utils/musicUtils';
+import { noteToMidiNumber } from '@/utils/musicUtils';
 
 export type MobileNoteInputState = {
   isActive: boolean;
-  note?: Note;
+  note: Note;
 };
 
 export const useMobileNoteInput = (
@@ -16,35 +17,33 @@ export const useMobileNoteInput = (
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
 ) => {
-  const [inputState, setInputState] = useState<MobileNoteInputState>({ isActive: false });
+  const startingNote = useMemo(() => new Note({ noteClass: 'C', octave: 4 }), []);
+  const [inputState, setInputState] = useState<MobileNoteInputState>({ isActive: false, note: startingNote });
 
   // Calculate the optimal octave for the next note based on previous notes
-  const calculateOptimalOctave = useCallback((noteClass: typeof NOTE_CLASSES[number]): Octave => {
+  const getOptimalNextNote = useCallback((noteClass: NOTE_CLASS): Note => {
     const lastSelectedNote: Note | undefined = selectedNotes[selectedNotes.length - 1];
-    if (!lastSelectedNote) {
-      return DEFAULT_GAME_SETTINGS.startingOctave;
-    }
-    let optimalOctave = lastSelectedNote.octave;
-    if (NOTE_CLASSES.indexOf(noteClass) <= NOTE_CLASSES.indexOf(lastSelectedNote.noteClass)) {
+
+    let optimalOctave = lastSelectedNote?.octave || DEFAULT_GAME_SETTINGS.startingOctave;
+    if (lastSelectedNote && NOTE_CLASSES.indexOf(noteClass) <= NOTE_CLASSES.indexOf(lastSelectedNote.noteClass)) {
       optimalOctave += 1;
     }
 
-    // check if note is in range
-    const noteMidi = noteToMidiNumber({ noteClass, octave: optimalOctave, accidental: 'natural' });
+    let note = new Note({ noteClass, octave: optimalOctave as Octave, accidental: 'natural' });
+    const noteMidi = noteToMidiNumber(note);
     if (noteMidi < NOTE_CONFIG.MIN_PITCH_MIDI) {
-      return optimalOctave + 1;
+      note = note.moveOctave(1) as Note;
     }
     if (noteMidi > NOTE_CONFIG.MAX_PITCH_MIDI) {
-      return optimalOctave - 1;
+      note = note.moveOctave(-1) as Note;
     }
 
-    return optimalOctave;
+    return note;
   }, [selectedNotes]);
 
   // Start building a new note
   const startNoteInput = useCallback((noteClass: NOTE_CLASS) => {
-    const octave = calculateOptimalOctave(noteClass);
-    const newNote = new Note({ noteClass, octave });
+    const newNote = getOptimalNextNote(noteClass);
 
     onNoteSelect(newNote);
     setInputState({
@@ -52,109 +51,52 @@ export const useMobileNoteInput = (
       isActive: true,
     });
     console.warn('Note added to staff and input state updated');
-  }, [calculateOptimalOctave, onNoteSelect]);
+  }, [getOptimalNextNote, onNoteSelect]);
 
-  const filterForNote = (selectedNote: Note, newNote: Note): boolean => {
-    return (selectedNote.noteClass === newNote.noteClass && selectedNote.octave === newNote.octave && selectedNote.accidental === newNote.accidental);
-  };
-
-  const moveNote = useCallback((callback: () => Note): void => {
-    if (!inputState.isActive) {
-      return;
-    }
-    const { note } = inputState;
-    const newNote = callback();
-
-    setInputState(_ => ({
-      isActive: true,
-      note: newNote,
-    }));
-
-    onNoteDeselect(note);
-    onNoteSelect(newNote);
-  }, [inputState, onNoteDeselect, onNoteSelect]);
-
-  // Move note up by single step (C→D→E→F→G→A→B→C)
-  const moveNoteUp = useCallback(() => {
-    moveNote(() => {
-      return inputState.note?.moveOctave(1);
-    });
-  }, [inputState.note, moveNote]);
-
-  const isNoteUpDisabled = useCallback(() => {
-    const { note, isActive } = inputState;
-    if (!isActive || !note) {
-      return true;
-    }
-    return isTooHigh(note, false);
-  }, [inputState]);
-
-  // Move note down by single step (C→B→A→G→F→E→D→C)
-  const moveNoteDown = useCallback(() => {
-    moveNote(() => {
-      return inputState.note?.moveStep(-1);
-    });
-  }, [inputState, moveNote]);
-
-  const isNoteDownDisabled = useCallback(() => {
+  const executeMovement = useCallback((movementFn: (note: Note) => Note | boolean) => {
     if (!inputState.isActive || !inputState.note) {
-      return true;
-    }
-    const { note } = inputState;
-    return isTooLow(note, false);
-  }, [inputState]);
-
-  // Move octave up
-  const moveOctaveUp = useCallback(() => {
-    moveNote(() => {
-      return inputState.note?.moveOctave(1);
-    });
-  }, [inputState, moveNote]);
-
-  // Move octave down
-  const moveOctaveDown = useCallback(() => {
-    moveNote(() => {
-      return inputState.note?.moveOctave(-1);
-    });
-  }, [inputState, moveNote]);
-
-  const isOctaveDownDisabled = useCallback(() => {
-    if (!inputState.isActive) {
-      return true;
-    }
-
-    const { noteClass, accidental } = inputState;
-    return isTooLow({ noteClass, accidental, octave: inputState.octave - 1 }, true);
-  }, [inputState]);
-
-  // Change accidental
-  const changeAccidental = useCallback((accidental: typeof ACCIDENTALS[number]) => {
-    if (!inputState.isActive) {
       return;
     }
+
+    const result = movementFn(inputState.note);
+    if (typeof result === 'boolean') {
+      return;
+    }
+
+    onNoteDeselect(inputState.note);
+    onNoteSelect(result);
+    setInputState(prev => ({ ...prev, note: result }));
+  }, [inputState.isActive, inputState.note, onNoteDeselect, onNoteSelect]);
+
+  const moveNoteUp = useCallback(() => executeMovement(note => note.moveStep(1)), [executeMovement]);
+  const moveNoteDown = useCallback(() => executeMovement(note => note.moveStep(-1)), [executeMovement]);
+  const moveOctaveUp = useCallback(() => executeMovement(note => note.moveOctave(1)), [executeMovement]);
+  const moveOctaveDown = useCallback(() => executeMovement(note => note.moveOctave(-1)), [executeMovement]);
+
+  // Change accidental - follows the same pattern
+  const changeAccidental = useCallback((accidental: Accidental) => {
+    if (!inputState.isActive || !inputState.note) {
+      return;
+    }
+    if (inputState.note.accidental === accidental) {
+      accidental = 'natural';
+    }
+    const newNote = inputState.note.withAccidental(accidental);
 
     // Update the note on the staff
-    const oldNote = selectedNotes.find(note => note.noteClass === inputState.noteClass);
-    if (oldNote) {
-      const newNote: Note = {
-        ...oldNote,
-        accidental,
-      };
+    onNoteDeselect(inputState.note);
+    onNoteSelect(newNote);
 
-      // Replace the old note with the new one
-      onNoteDeselect(oldNote);
-      onNoteSelect(newNote);
-    }
-
+    // Update local state
     setInputState(prev => ({
       ...prev,
-      accidental,
+      note: newNote,
     }));
-  }, [inputState.isActive, inputState.noteClass, selectedNotes, onNoteSelect, onNoteDeselect]);
+  }, [inputState.isActive, inputState.note, onNoteDeselect, onNoteSelect]);
 
   // Confirm and add the note
   const confirmNote = useCallback(() => {
-    if (!inputState.noteClass || !inputState.isActive) {
+    if (!(inputState.note && inputState.isActive)) {
       return;
     }
     setInputState(prev => ({
@@ -164,47 +106,28 @@ export const useMobileNoteInput = (
   }, [inputState]);
 
   const removeActiveNote = useCallback(() => {
-    const { noteClass, octave, accidental } = inputState;
-    const activeNote = selectedNotes.find(selectedNote => filterForNote(selectedNote, { noteClass, octave, accidental }));
-
-    activeNote && onNoteDeselect(activeNote);
-    setInputState(prev => ({
-      ...prev,
-      isActive: false,
-    }));
-  }, [inputState, onNoteDeselect, selectedNotes]);
-
-  // Remove a note by clicking its note class button
-  const removeNoteByClass = useCallback((noteClass: typeof NOTE_CLASSES[number]) => {
-    const noteToRemove = selectedNotes.find(note => note.noteClass === noteClass);
-    if (noteToRemove) {
-      onNoteDeselect(noteToRemove);
-    }
-  }, [selectedNotes, onNoteDeselect]);
-
-  // Clear current input
-  const clearInput = useCallback(() => {
-    setInputState({
-      noteClass: null,
-      octave: NOTE_CONFIG.DEFAULT_MIN_PITCH.octave,
-      accidental: 'natural',
-      isActive: false,
+    onNoteDeselect(inputState.note);
+    setInputState((_) => {
+      if (selectedNotes.length > 0) {
+        return { note: selectedNotes[selectedNotes.length - 1]!, isActive: true };
+      }
+      return {
+        note: startingNote,
+        isActive: false,
+      };
     });
-  }, []);
+  }, [inputState.note, onNoteDeselect, selectedNotes, startingNote]);
 
   return {
     inputState,
     startNoteInput,
     moveNoteUp,
-    isNoteUpDisabled,
     moveNoteDown,
-    isNoteDownDisabled,
     moveOctaveUp,
     moveOctaveDown,
-    isOctaveDownDisabled,
     changeAccidental,
     confirmNote,
     removeActiveNote,
-    clearInput,
+
   };
 };
