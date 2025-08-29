@@ -246,7 +246,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   useEffect(() => {
     try {
       const context = rendererRef.current?.getContext();
-      const { treble } = stavesRef.current;
+      const { treble, bass } = stavesRef.current;
 
       // Clear and redraw staff
       clearAndRedrawStaff(stavesRef.current, context);
@@ -255,6 +255,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
           treble,
+          bass,
           context,
           selectedNotes,
           correctNotes,

@@ -1,4 +1,4 @@
-import type { Stave } from 'vexflow';
+import type { RenderContext, Stave } from 'vexflow';
 import type { Note } from '@/types/';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
@@ -126,8 +126,9 @@ export const getNoteValidationState = (
 };
 
 export const renderNoteGroup = (
-  stave: any, // VexFlow Stave
-  context: any, // VexFlow RenderContext
+  trebleStave: Stave,
+  bassStave: Stave, // VexFlow Stave
+  context: RenderContext, // VexFlow RenderContext
   notesToRender: Note[],
   selectedNotes: Note[],
   correctNotes: Note[],
@@ -150,7 +151,20 @@ export const renderNoteGroup = (
       validationResult,
     );
 
-    const staveNote = createStaveNote(selectedNotes, style, stave);
+    const [bassNotes, trebleNotes] = selectedNotes.reduce(
+      ([bass, treble]: [Note[], Note[]], note: Note): [Note[], Note[]] => {
+        if (note.octave < 4) {
+          bass.push(note);
+        } else {
+          treble.push(note);
+        }
+        return [bass, treble];
+      },
+      [[], []],
+    );
+
+    const bassStaveNote = createStaveNote(bassNotes, style, bassStave);
+    const trebleStaveNote = createStaveNote(trebleNotes, style, trebleStave);
 
     // Apply styling based on the first note (they should all have similar validation state)
 
@@ -159,29 +173,39 @@ export const renderNoteGroup = (
       style = { ...NOTE_STYLES.correct, opacity: 0.4 };
     }
 
-    staveNote.setStyle(style);
-    staveNote.setStave(stave);
+    bassStaveNote.setStyle(style);
+    trebleStaveNote.setStyle(style);
+
+    bassStaveNote.setStave(bassStave);
+    trebleStaveNote.setStave(trebleStave);
 
     // Create a voice to hold the notes
-    const voice = new Voice({
+    const trebleVoice = new Voice({
+      numBeats: 1,
+      beatValue: 4,
+    });
+    const bassVoice = new Voice({
       numBeats: 1,
       beatValue: 4,
     });
 
-    voice.addTickables([staveNote]);
+    trebleVoice.addTickables([trebleStaveNote]);
+    bassVoice.addTickables([bassStaveNote]);
 
     // Format the voice to fit the stave
     const formatter = new Formatter();
-    formatter.joinVoices([voice]);
-    formatter.format([voice], justifyWidth(stave));
+    formatter.joinVoices([bassVoice, trebleVoice]);
+    formatter.format([bassVoice, trebleVoice], justifyWidth(trebleStave));
 
     // Draw the voice
-    voice.draw(context, stave);
+    trebleVoice.draw(context, trebleStave);
+    bassVoice.draw(context, bassStave);
   }
 };
 
 export const renderNoteGroups = (
-  stave: any, // VexFlow Stave
+  trebleStave,
+  bassStave, // VexFlow Stave
   context: any, // VexFlow RenderContext
   selectedNotes: Note[],
   correctNotes: Note[],
@@ -214,7 +238,8 @@ export const renderNoteGroups = (
  * Render notes on a staff with validation support
  */
 export const renderNotesOnStaff = (
-  stave: any, // VexFlow Stave
+  trebleStave: Stave,
+  bassStave: Stave,
   context: any, // VexFlow RenderContext
   selectedNotes: Note[],
   correctNotes: Note[] = [],
@@ -224,12 +249,13 @@ export const renderNotesOnStaff = (
 ): void => {
   try {
     if (showCorrectAnswer && validationResult) {
-      renderNoteGroups(stave, context, selectedNotes, correctNotes);
+      renderNoteGroups(trebleStave, bassStave, context, selectedNotes, correctNotes);
     } else {
       // Normal rendering - just render the selected notes as a chord
       if (selectedNotes.length > 0) {
         renderNoteGroup(
-          stave,
+          trebleStave,
+          bassStave,
           context,
           selectedNotes,
           selectedNotes,

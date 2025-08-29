@@ -38,7 +38,7 @@ export const useStaffInteraction = (
     if (hoverTimeoutRef.current) {
       clearTimeout(hoverTimeoutRef.current);
     }
-    console.log(staffCoordinatesRef.current);
+
     if (staffCoordinatesRef.current.isWithinStaffArea(x, y)) {
       const position = staffCoordinatesRef.current.getNearestStaffPosition(x, y);
 

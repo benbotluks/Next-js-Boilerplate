@@ -1,7 +1,9 @@
 import type { Stave } from 'vexflow';
 import type { StaffPosition } from '../types/StaffInteraction';
-import { linePositionToPitch } from './notePositioning';
+import { Note } from '@/types';
+import { NOTE_CLASSES } from '@/utils/MusicConstants';
 
+const MINIMUM_NOTE = -14;
 /**
  * Utility class for converting between screen coordinates and staff positions
  */
@@ -10,14 +12,24 @@ export class StaffCoordinates {
   private staveBass: Stave;
   private lineSpacing: number;
   private staffTop: number;
+  private middleLine: number;
   private staffBottom: number;
 
   constructor(staves: { treble: Stave; bass: Stave }) {
-    this.staveTreble = staves?.treble;
-    this.staveBass = staves?.bass;
-    this.lineSpacing = staves?.treble.getSpacingBetweenLines();
-    this.staffTop = staves?.treble.getYForLine(0); // Top line of staff
-    this.staffBottom = staves?.bass.getYForLine(4); // Bottom line of staff
+    this.staveTreble = staves.treble;
+    this.staveBass = staves.bass;
+    this.lineSpacing = staves.treble.getSpacingBetweenLines();
+    this.staffTop = staves.treble.getYForLine(0); // Top line of staff
+    this.middleLine = staves.treble.getYForLine(5);
+    this.staffBottom = staves.bass.getYForLine(4); // Bottom line of staff
+  }
+
+  linePositionToPitch(linePosition: number): Note {
+    // C/4 is 0
+    const noteClass = NOTE_CLASSES[((linePosition % 7) + 7) % 7]!;
+    const octave = 4 + Math.floor(linePosition / 7);
+
+    return new Note({ noteClass, octave });
   }
 
   /**
@@ -25,7 +37,7 @@ export class StaffCoordinates {
    */
   screenToStaffPosition(x: number, y: number): StaffPosition {
     const linePosition = this.getLinePositionFromY(y);
-    const pitch = linePositionToPitch(linePosition);
+    const pitch = this.linePositionToPitch(linePosition);
     const isLine = this.isOnStaffLine(linePosition);
     const requiresLedgerLine = this.requiresLedgerLine(linePosition);
     const accidental = pitch.accidental;
@@ -68,10 +80,10 @@ export class StaffCoordinates {
    */
   private getLinePositionFromY(y: number): number {
     // Calculate relative position from bottom of staff
-    const relativeY = this.staffBottom - y;
+    const relativeY = this.middleLine - y;
     const linePosition = Math.round(relativeY / (this.lineSpacing / 2));
 
-    return Math.max(-6, Math.min(14, linePosition)); // Limit to reasonable range
+    return Math.max(MINIMUM_NOTE, Math.min(14, linePosition));
   }
 
   /**
@@ -94,7 +106,7 @@ export class StaffCoordinates {
   }
 
   private requiresLedgerLine(linePosition: number): boolean {
-    return linePosition < 0 || linePosition > 8;
+    return linePosition < -10 || linePosition > 10;
   }
 
   isWithinStaffArea(x: number, y: number): boolean {
