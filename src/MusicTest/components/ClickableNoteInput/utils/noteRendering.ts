@@ -40,27 +40,24 @@ const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   return staveNote;
 };
 
-/**
- * Create VexFlow StaveNote from our Note type with accidentals
- */
-export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: Stave | Staves, clef: Clef, duration: string = 'q'): StaveNote => {
-  notes = Array.isArray(notes) ? notes : [notes];
-
+type StaveNoteProps = {
+  notes: Note[];
+  style: NoteStyle;
+  staves: Staves;
+  clef: Clef;
+};
+export const createStaveNote = ({ notes, style, staves, clef }: StaveNoteProps): StaveNote => {
   const keys = notes.map(toVexFlowFormat);
-
   const staveNote = new StaveNote({
     keys,
-    duration,
+    duration: 'q',
     clef,
   });
 
   addAccidentalsToStaveNote(notes, staveNote);
 
   staveNote.setStyle(style);
-  if ('treble' in stave && 'bass' in stave) {
-    stave = stave[clef];
-  }
-  staveNote.setStave(stave);
+  staveNote.setStave(staves[clef]);
 
   return staveNote;
 };
@@ -135,6 +132,31 @@ export const getNoteValidationState = (
   return 'neutral';
 };
 
+type NoteMap = { clef: Clef; notes: Note[]; style: NoteStyle };
+
+export const createAndRenderStaveNotes = (
+  staves: Staves, // VexFlow Stave
+  context: RenderContext, // VexFlow RenderContext
+  noteMaps: NoteMap[],
+) => {
+  const staveNotes = noteMaps.map(noteMap => createStaveNote({ ...noteMap, staves }));
+  const voices = staveNotes.map((staveNote) => {
+    const voice = new Voice({
+      numBeats: 1,
+      beatValue: 4,
+    });
+    voice.addTickables([staveNote]);
+    return voice;
+  });
+
+  // Format and draw
+  const formatter = new Formatter();
+  formatter.joinVoices(voices);
+  formatter.format(voices, justifyWidth(staves.treble));
+
+  voices.forEach((voice, i) => voice.draw(context, staves[noteMaps[i]?.clef as Clef]));
+};
+
 export const renderNoteGroup = (
   staves: Staves,
   context: RenderContext, // VexFlow RenderContext
@@ -162,7 +184,15 @@ export const renderNoteGroup = (
     const trebleNotes = selectedNotes.filter(n => n.octave >= 4);
     const bassNotes = selectedNotes.filter(n => n.octave < 4);
 
-    const voices = [];
+    const notesMap: NoteMap[] = [];
+    if (trebleNotes.length) {
+      notesMap.push({ clef: 'treble', style, notes: trebleNotes });
+    }
+    if (bassNotes.length) {
+      notesMap.push({ clef: 'bass', style, notes: bassNotes });
+    }
+
+    createAndRenderStaveNotes(staves, context, notesMap);
 
     if (bassNotes.length > 0) {
       const bassStaveNote = createStaveNote(bassNotes, style, staves, 'bass');
@@ -268,47 +298,15 @@ export const renderNotesOnStaff = (
   }
 };
 
-type NoteMap = { clef: Clef; notes: Note[]; style: NoteStyle };
-
-export const createAndRenderStaveNotes = (
-  staves: Staves, // VexFlow Stave
-  context: RenderContext, // VexFlow RenderContext
-  noteMaps: NoteMap[],
-) => {
-  const staveNotes = noteMaps.map(noteMap => createStaveNote(noteMap.notes, noteMap.style, staves, noteMap.clef));
-
-  // Create a temporary voice for the preview note
-  const voices = staveNotes.map((staveNote) => {
-    const voice = new Voice({
-      numBeats: 1,
-      beatValue: 4,
-    });
-    voice.addTickables([staveNote]);
-    return voice;
-  });
-
-  // Format and draw
-  const formatter = new Formatter();
-  formatter.joinVoices(voices);
-  formatter.format(voices, justifyWidth(staves.treble));
-
-  voices.forEach((voice, i) => voice.draw(context, staves[noteMaps[i]?.clef as Clef]));
-};
-
 export const renderPreviewNote = (
   staves: Staves, // VexFlow Stave
   context: RenderContext, // VexFlow RenderContext
   note: Note,
   animationState?: 'fadeIn' | 'fadeOut' | null,
 ): void => {
-  try {
-    const style: NoteStyle = NOTE_STYLES[animationState || 'preview'];
-
-    const clef: Clef = note.octave < 4 ? 'bass' : 'treble';
-    createAndRenderStaveNotes(staves, context, [{ clef, style, notes: [note] }]);
-  } catch (error) {
-    console.error('Failed to render preview note:', error);
-  }
+  const style: NoteStyle = NOTE_STYLES[animationState || 'preview'];
+  const clef: Clef = note.octave < 4 ? 'bass' : 'treble';
+  createAndRenderStaveNotes(staves, context, [{ clef, style, notes: [note] }]);
 };
 
 export const clearAndRedrawStaff = (
