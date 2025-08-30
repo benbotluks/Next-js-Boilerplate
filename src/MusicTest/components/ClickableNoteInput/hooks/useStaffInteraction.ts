@@ -84,7 +84,7 @@ export const useStaffInteraction = (
     }
 
     // Prevent context menu on right click - we'll handle it ourselves
-    if (event.button === 2) {
+    if (event.button > 2) {
       event.preventDefault();
       return;
     }

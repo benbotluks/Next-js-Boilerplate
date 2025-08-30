@@ -53,10 +53,6 @@ export const useNoteManagement = (
     return false;
   }, [selectedNotes, onNoteDeselect]);
 
-  /**
-   * Toggles a note (adds if not present, removes if present)
-   */
-
   const toggleNote = useCallback((note: Note): boolean => {
     let success: boolean;
     if (selectedNotes.includes(note)) {

@@ -12,7 +12,7 @@ type NoteProps = {
 };
 
 const LINE_OFFSET = {
-  note: 'E' as NOTE_CLASS,
+  note: 'C' as NOTE_CLASS,
   octave: 4,
 };
 
