@@ -1,3 +1,4 @@
+import type { Stave } from 'vexflow';
 import type { Note } from './note';
 import type { AudioMode } from '@/config/gameConfig';
 import type { ACCIDENTALS, NOTE_CLASSES, OCTAVES } from '@/utils/MusicConstants';
@@ -75,8 +76,15 @@ export type DigitalStaffProps = {
   validationResult?: import('@/utils/AnswerValidation').ValidationResult;
 };
 
+export type Clef = 'bass' | 'treble';
+
 export type GameControllerProps = {
   initialSettings?: Partial<GameSettings>;
+};
+
+export type Staves = {
+  treble: Stave;
+  bass: Stave;
 };
 
 // to avoid linting errors

@@ -1,5 +1,5 @@
 import type { RenderContext, Stave } from 'vexflow';
-import type { Note } from '@/types/';
+import type { Clef, Note, Staves } from '@/types/';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
@@ -43,20 +43,31 @@ const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
 /**
  * Create VexFlow StaveNote from our Note type with accidentals
  */
-export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: Stave, duration: string = 'q'): StaveNote => {
+export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: Stave | Staves, clef: Clef, duration: string = 'q'): StaveNote => {
   notes = Array.isArray(notes) ? notes : [notes];
 
+  const keys = notes.map(toVexFlowFormat);
+
   const staveNote = new StaveNote({
-    keys: notes.map(toVexFlowFormat),
+    keys,
     duration,
+    clef,
   });
 
   addAccidentalsToStaveNote(notes, staveNote);
 
   staveNote.setStyle(style);
+
+  if ('treble' in stave && 'bass' in stave) {
+    stave = stave[clef];
+  }
   staveNote.setStave(stave);
 
   return staveNote;
+};
+
+export const createSplitStaveNote = () => {
+
 };
 
 /**
@@ -126,8 +137,7 @@ export const getNoteValidationState = (
 };
 
 export const renderNoteGroup = (
-  trebleStave: Stave,
-  bassStave: Stave, // VexFlow Stave
+  staves: Staves,
   context: RenderContext, // VexFlow RenderContext
   notesToRender: Note[],
   selectedNotes: Note[],
@@ -135,14 +145,13 @@ export const renderNoteGroup = (
   hoveredPitch: Note | null,
   showCorrectAnswer: boolean,
   validationResult?: AnswerValidationResult,
-  isMissingNote: boolean = false,
 ): void => {
   if (notesToRender.length === 0) {
     return;
   }
 
   if (selectedNotes[0]) {
-    let style = getNoteStyle(
+    const style = getNoteStyle(
       selectedNotes[0],
       selectedNotes,
       correctNotes,
@@ -151,62 +160,53 @@ export const renderNoteGroup = (
       validationResult,
     );
 
-    const [bassNotes, trebleNotes] = selectedNotes.reduce(
-      ([bass, treble]: [Note[], Note[]], note: Note): [Note[], Note[]] => {
-        if (note.octave < 4) {
-          bass.push(note);
-        } else {
-          treble.push(note);
-        }
-        return [bass, treble];
-      },
-      [[], []],
-    );
+    const trebleNotes = selectedNotes.filter(n => n.octave >= 4);
+    const bassNotes = selectedNotes.filter(n => n.octave < 4);
 
-    const bassStaveNote = createStaveNote(bassNotes, style, bassStave);
-    const trebleStaveNote = createStaveNote(trebleNotes, style, trebleStave);
+    const voices = [];
 
-    // Apply styling based on the first note (they should all have similar validation state)
+    if (bassNotes.length > 0) {
+      const bassStaveNote = createStaveNote(bassNotes, style, staves, 'bass');
+      bassStaveNote.setStyle(style);
+      bassStaveNote.setStave(staves.bass);
 
-    // Override style for missing notes
-    if (isMissingNote) {
-      style = { ...NOTE_STYLES.correct, opacity: 0.4 };
+      // Create a voice to hold the notes
+      const bassVoice = new Voice({
+        numBeats: 1,
+        beatValue: 4,
+      });
+
+      bassVoice.addTickables([bassStaveNote]);
+      voices.push({ clef: 'bass', voice: bassVoice });
     }
 
-    bassStaveNote.setStyle(style);
-    trebleStaveNote.setStyle(style);
+    if (trebleNotes.length > 0) {
+      const trebleStaveNote = createStaveNote(trebleNotes, style, staves, 'treble');
+      trebleStaveNote.setStyle(style);
+      trebleStaveNote.setStave(staves.treble);
 
-    bassStaveNote.setStave(bassStave);
-    trebleStaveNote.setStave(trebleStave);
+      const trebleVoice = new Voice({
+        numBeats: 1,
+        beatValue: 4,
+      });
 
-    // Create a voice to hold the notes
-    const trebleVoice = new Voice({
-      numBeats: 1,
-      beatValue: 4,
-    });
-    const bassVoice = new Voice({
-      numBeats: 1,
-      beatValue: 4,
-    });
-
-    trebleVoice.addTickables([trebleStaveNote]);
-    bassVoice.addTickables([bassStaveNote]);
-
+      trebleVoice.addTickables([trebleStaveNote]);
+      voices.push({ clef: 'treble', voice: trebleVoice });
+    }
     // Format the voice to fit the stave
     const formatter = new Formatter();
-    formatter.joinVoices([bassVoice, trebleVoice]);
-    formatter.format([bassVoice, trebleVoice], justifyWidth(trebleStave));
+    const vexVoices = voices.map(v => v.voice);
 
-    // Draw the voice
-    trebleVoice.draw(context, trebleStave);
-    bassVoice.draw(context, bassStave);
+    formatter.joinVoices(vexVoices);
+    formatter.format(vexVoices, justifyWidth(staves.treble));
+
+    voices.forEach(v => v.voice.draw(context, staves[v.clef as keyof Staves]));
   }
 };
 
 export const renderNoteGroups = (
-  trebleStave,
-  bassStave, // VexFlow Stave
-  context: any, // VexFlow RenderContext
+  staves: Staves,
+  context: RenderContext,
   selectedNotes: Note[],
   correctNotes: Note[],
 ): void => {
@@ -238,9 +238,8 @@ export const renderNoteGroups = (
  * Render notes on a staff with validation support
  */
 export const renderNotesOnStaff = (
-  trebleStave: Stave,
-  bassStave: Stave,
-  context: any, // VexFlow RenderContext
+  staves: Staves,
+  context: RenderContext, // VexFlow RenderContext
   selectedNotes: Note[],
   correctNotes: Note[] = [],
   hoveredPitch: Note | null = null,
@@ -249,13 +248,12 @@ export const renderNotesOnStaff = (
 ): void => {
   try {
     if (showCorrectAnswer && validationResult) {
-      renderNoteGroups(trebleStave, bassStave, context, selectedNotes, correctNotes);
+      renderNoteGroups(staves, context, selectedNotes, correctNotes);
     } else {
       // Normal rendering - just render the selected notes as a chord
       if (selectedNotes.length > 0) {
         renderNoteGroup(
-          trebleStave,
-          bassStave,
+          staves,
           context,
           selectedNotes,
           selectedNotes,
@@ -278,9 +276,10 @@ export const renderNotesOnStaff = (
 /**
  * Render a preview note at a specific position (for hover effects)
  */
+
 export const renderPreviewNote = (
-  stave: any, // VexFlow Stave
-  context: any, // VexFlow RenderContext
+  staves: Staves, // VexFlow Stave
+  context: RenderContext, // VexFlow RenderContext
   pitch: Note,
   animationState?: 'fadeIn' | 'fadeOut' | null,
 ): void => {
@@ -292,7 +291,10 @@ export const renderPreviewNote = (
     } else if (animationState === 'fadeOut') {
       style = NOTE_STYLES.previewFadeOut;
     }
-    const staveNote = createStaveNote(pitch, style, stave);
+
+    const clef = pitch.octave < 4 ? 'bass' : 'treble';
+    const stave = staves[clef];
+    const staveNote = createStaveNote(pitch, style, stave, clef);
 
     staveNote.setStyle(style);
     staveNote.setStave(stave);
@@ -317,7 +319,7 @@ export const renderPreviewNote = (
 };
 
 export const renderPreviewGuidelines = (
-  context: any, // VexFlow RenderContext
+  context: RenderContext, // VexFlow RenderContext
   stave: any, // VexFlow Stave
   x: number,
 ): void => {
@@ -350,8 +352,8 @@ export const renderPreviewGuidelines = (
  * Render preview note with enhanced visual feedback
  */
 export const renderEnhancedPreviewNote = (
-  stave: any, // VexFlow Stave
-  context: any, // VexFlow RenderContext
+  staves: Staves, // VexFlow Stave
+  context: RenderContext, // VexFlow RenderContext
   pitch: Note,
   x: number,
   animationState?: 'fadeIn' | 'fadeOut' | null,
@@ -364,7 +366,7 @@ export const renderEnhancedPreviewNote = (
     }
 
     // Render the preview note
-    renderPreviewNote(stave, context, pitch, animationState);
+    renderPreviewNote(staves, context, pitch, animationState);
   } catch (error) {
     console.error('Failed to render enhanced preview note:', error);
   }
@@ -375,7 +377,7 @@ export const renderEnhancedPreviewNote = (
  */
 export const clearAndRedrawStaff = (
   system: any, // VexFlow Stave
-  context: any, // VexFlow RenderContext
+  context: RenderContext, // VexFlow RenderContext
 ): void => {
   try {
     const { treble, bass } = system;

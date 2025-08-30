@@ -246,7 +246,6 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   useEffect(() => {
     try {
       const context = rendererRef.current?.getContext();
-      const { treble, bass } = stavesRef.current;
 
       // Clear and redraw staff
       clearAndRedrawStaff(stavesRef.current, context);
@@ -254,8 +253,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
-          treble,
-          bass,
+          stavesRef.current,
           context,
           selectedNotes,
           correctNotes,
@@ -268,7 +266,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Render preview note - prioritize hover over focus
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
         renderEnhancedPreviewNote(
-          treble,
+          stavesRef.current,
           context,
           hoveredPosition.pitch,
           hoveredPosition.x,
@@ -277,7 +275,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
         renderEnhancedPreviewNote(
-          treble,
+          stavesRef.current,
           context,
           focusedPosition.pitch,
           focusedPosition.x,

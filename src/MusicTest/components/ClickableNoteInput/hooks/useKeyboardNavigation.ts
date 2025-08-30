@@ -157,7 +157,7 @@ export const useKeyboardNavigation = (
 
           // Find the closest position with this note name
           const targetPosition = validPositions.find(pos =>
-            pos.pitch.startsWith(noteName),
+            pos.pitch.noteClass === noteName,
           );
 
           if (targetPosition) {

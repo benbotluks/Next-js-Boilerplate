@@ -40,7 +40,6 @@ export class StaffCoordinates {
     const pitch = this.linePositionToPitch(linePosition);
     const isLine = this.isOnStaffLine(linePosition);
     const requiresLedgerLine = this.requiresLedgerLine(linePosition);
-    const accidental = pitch.accidental;
 
     return {
       x,
@@ -49,7 +48,6 @@ export class StaffCoordinates {
       linePosition,
       isLine,
       requiresLedgerLine,
-      accidental,
     };
   }
 

@@ -1,5 +1,5 @@
-import type { GameControllerProps, GameSettings, GameState, Octave } from './MusicTypes';
+import type { Clef, GameControllerProps, GameSettings, GameState, Octave, Staves } from './MusicTypes';
 import { Note } from './note';
 
 export { Note };
-export type { GameControllerProps, GameSettings, GameState, Octave };
+export type { Clef, GameControllerProps, GameSettings, GameState, Octave, Staves };
