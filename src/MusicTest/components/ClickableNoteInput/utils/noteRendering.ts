@@ -1,6 +1,7 @@
 import type { RenderContext, Stave } from 'vexflow';
 import type { Clef, Note, Staves } from '@/types/';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
+import style from 'styled-jsx/style';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { toVexFlowFormat } from '@/utils/musicUtils';
@@ -30,6 +31,27 @@ export const NOTE_STYLES = {
 
 export type NoteStyleKey = keyof typeof NOTE_STYLES;
 
+export const getNoteStyles = (
+  selectedNotes: Note[],
+  hoveredNote: Note | null,
+  animationState?: AnimationState,
+  showCorrectAnswer: boolean = false,
+  correctNotes?: Note[],
+  validationResult?: AnswerValidationResult,
+): NoteStyleKey[] => {
+  const noteStyles = selectedNotes.map((note) => {
+    if (animationState) {
+      return animationState;
+    }
+    if (hoveredNote?.linePosition === note.linePosition) {
+      return 'hovered';
+    }
+    return 'default';
+  });
+
+  return noteStyles;
+};
+
 const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   keys.forEach((note, index) => {
     if (note.accidental !== 'natural') {
@@ -42,11 +64,12 @@ const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
 
 type StaveNoteProps = {
   notes: Note[];
-  style: NoteStyle;
   staves: Staves;
   clef: Clef;
+  hoveredNote: Note | null;
+  animationState?: AnimationState;
 };
-export const createStaveNote = ({ notes, style, staves, clef }: StaveNoteProps): StaveNote => {
+export const createStaveNote = ({ notes, staves, clef, hoveredNote, animationState }: StaveNoteProps): StaveNote => {
   const keys = notes.map(toVexFlowFormat);
   const staveNote = new StaveNote({
     keys,
@@ -55,54 +78,14 @@ export const createStaveNote = ({ notes, style, staves, clef }: StaveNoteProps):
   });
 
   addAccidentalsToStaveNote(notes, staveNote);
+  const noteStyles = getNoteStyles(notes, hoveredNote, animationState);
+  console.log(noteStyles);
+  noteStyles.forEach((style, i) => staveNote.setKeyStyle(i, NOTE_STYLES[style]));
 
   staveNote.setStyle(style);
   staveNote.setStave(staves[clef]);
 
   return staveNote;
-};
-
-export const createSplitStaveNote = () => {
-
-};
-
-/**
- * Get the appropriate style for a note based on its state
- */
-export const getNoteStyle = (
-  pitch: Note,
-  selectedNotes: Note[],
-  correctNotes: Note[],
-  hoveredPitch: Note | null,
-  showCorrectAnswer: boolean,
-  validationResult?: AnswerValidationResult,
-): NoteStyle => {
-  // Hovered state takes precedence
-  if (hoveredPitch === pitch) {
-    return NOTE_STYLES.hovered;
-  }
-
-  // Validation result styling when showing correct answers or after validation
-  if (showCorrectAnswer || validationResult) {
-    const isSelected = selectedNotes.includes(pitch);
-    const isCorrect = correctNotes.includes(pitch);
-
-    if (isSelected && isCorrect) {
-      return NOTE_STYLES.correct;
-    } else if (isSelected && !isCorrect) {
-      return NOTE_STYLES.incorrect;
-    } else if (!isSelected && isCorrect && showCorrectAnswer) {
-      // Show correct answers that weren't selected (with reduced opacity)
-      return { ...NOTE_STYLES.correct, opacity: 0.4 };
-    }
-  }
-
-  // Selected state
-  if (selectedNotes.includes(pitch)) {
-    return NOTE_STYLES.selected;
-  }
-
-  return NOTE_STYLES.default;
 };
 
 /**
@@ -132,14 +115,18 @@ export const getNoteValidationState = (
   return 'neutral';
 };
 
-type NoteMap = { clef: Clef; notes: Note[]; style: NoteStyle };
+type NoteMap = { clef: Clef; notes: Note[] };
 
+type AnimationState = 'fadeIn' | 'fadeOut' | null;
 export const createAndRenderStaveNotes = (
   staves: Staves, // VexFlow Stave
   context: RenderContext, // VexFlow RenderContext
   noteMaps: NoteMap[],
+  hoveredNote: Note | null = null,
+  animationState?: AnimationState,
 ) => {
-  const staveNotes = noteMaps.map(noteMap => createStaveNote({ ...noteMap, staves }));
+  const staveNotes = noteMaps.map(noteMap => createStaveNote({ ...noteMap, staves, hoveredNote, animationState }));
+  console.log(staveNotes);
   const voices = staveNotes.map((staveNote) => {
     const voice = new Voice({
       numBeats: 1,
@@ -160,76 +147,22 @@ export const createAndRenderStaveNotes = (
 export const renderNoteGroup = (
   staves: Staves,
   context: RenderContext, // VexFlow RenderContext
-  notesToRender: Note[],
   selectedNotes: Note[],
-  correctNotes: Note[],
-  hoveredPitch: Note | null,
-  showCorrectAnswer: boolean,
-  validationResult?: AnswerValidationResult,
+  hoveredNote: Note | null = null,
 ): void => {
-  if (notesToRender.length === 0) {
-    return;
-  }
-
   if (selectedNotes[0]) {
-    const style = getNoteStyle(
-      selectedNotes[0],
-      selectedNotes,
-      correctNotes,
-      hoveredPitch,
-      showCorrectAnswer,
-      validationResult,
-    );
-
     const trebleNotes = selectedNotes.filter(n => n.octave >= 4);
     const bassNotes = selectedNotes.filter(n => n.octave < 4);
 
     const notesMap: NoteMap[] = [];
     if (trebleNotes.length) {
-      notesMap.push({ clef: 'treble', style, notes: trebleNotes });
+      notesMap.push({ clef: 'treble', notes: trebleNotes });
     }
     if (bassNotes.length) {
-      notesMap.push({ clef: 'bass', style, notes: bassNotes });
+      notesMap.push({ clef: 'bass', notes: bassNotes });
     }
 
-    createAndRenderStaveNotes(staves, context, notesMap);
-
-    if (bassNotes.length > 0) {
-      const bassStaveNote = createStaveNote(bassNotes, style, staves, 'bass');
-      bassStaveNote.setStyle(style);
-      bassStaveNote.setStave(staves.bass);
-
-      // Create a voice to hold the notes
-      const bassVoice = new Voice({
-        numBeats: 1,
-        beatValue: 4,
-      });
-
-      bassVoice.addTickables([bassStaveNote]);
-      voices.push({ clef: 'bass', voice: bassVoice });
-    }
-
-    if (trebleNotes.length > 0) {
-      const trebleStaveNote = createStaveNote(trebleNotes, style, staves, 'treble');
-      trebleStaveNote.setStyle(style);
-      trebleStaveNote.setStave(staves.treble);
-
-      const trebleVoice = new Voice({
-        numBeats: 1,
-        beatValue: 4,
-      });
-
-      trebleVoice.addTickables([trebleStaveNote]);
-      voices.push({ clef: 'treble', voice: trebleVoice });
-    }
-    // Format the voice to fit the stave
-    const formatter = new Formatter();
-    const vexVoices = voices.map(v => v.voice);
-
-    formatter.joinVoices(vexVoices);
-    formatter.format(vexVoices, justifyWidth(staves.treble));
-
-    voices.forEach(v => v.voice.draw(context, staves[v.clef as keyof Staves]));
+    createAndRenderStaveNotes(staves, context, notesMap, hoveredNote);
   }
 };
 
@@ -271,7 +204,7 @@ export const renderNotesOnStaff = (
   context: RenderContext, // VexFlow RenderContext
   selectedNotes: Note[],
   correctNotes: Note[] = [],
-  hoveredPitch: Note | null = null,
+  hoveredNote: Note | null = null,
   showCorrectAnswer: boolean = false,
   validationResult?: AnswerValidationResult,
 ): void => {
@@ -285,11 +218,7 @@ export const renderNotesOnStaff = (
           staves,
           context,
           selectedNotes,
-          selectedNotes,
-          correctNotes,
-          hoveredPitch,
-          showCorrectAnswer,
-          validationResult,
+          hoveredNote,
         );
       }
     }
@@ -302,11 +231,10 @@ export const renderPreviewNote = (
   staves: Staves, // VexFlow Stave
   context: RenderContext, // VexFlow RenderContext
   note: Note,
-  animationState?: 'fadeIn' | 'fadeOut' | null,
+  animationState?: AnimationState,
 ): void => {
-  const style: NoteStyle = NOTE_STYLES[animationState || 'preview'];
   const clef: Clef = note.octave < 4 ? 'bass' : 'treble';
-  createAndRenderStaveNotes(staves, context, [{ clef, style, notes: [note] }]);
+  createAndRenderStaveNotes(staves, context, [{ clef, notes: [note] }], undefined, animationState);
 };
 
 export const clearAndRedrawStaff = (

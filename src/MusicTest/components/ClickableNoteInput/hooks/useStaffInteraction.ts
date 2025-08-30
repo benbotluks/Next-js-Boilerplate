@@ -15,7 +15,7 @@ export const useStaffInteraction = (
 ) => {
   const [hoveredPosition, setHoveredPosition] = useState<StaffPosition | null>(null);
   const [isHovering, setIsHovering] = useState(false);
-  const [previewAnimation, setPreviewAnimation] = useState<'fadeIn' | 'fadeOut' | null>(null);
+  const [previewAnimation, setPreviewAnimation] = useState<'fadeIn' | 'fadeOut' | 'preview'>('preview');
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
@@ -55,7 +55,7 @@ export const useStaffInteraction = (
 
         // Clear animation state after animation completes
         hoverTimeoutRef.current = setTimeout(() => {
-          setPreviewAnimation(null);
+          setPreviewAnimation('preview');
         }, 150);
       }
     } else {
@@ -69,7 +69,7 @@ export const useStaffInteraction = (
         // Clear hover position after fade out animation
         hoverTimeoutRef.current = setTimeout(() => {
           setHoveredPosition(null);
-          setPreviewAnimation(null);
+          setPreviewAnimation('preview');
         }, 150);
       }
     }
@@ -151,7 +151,7 @@ export const useStaffInteraction = (
       // Clear hover position after fade out animation
       hoverTimeoutRef.current = setTimeout(() => {
         setHoveredPosition(null);
-        setPreviewAnimation(null);
+        setPreviewAnimation('preview');
       }, 150);
     }
   }, [isHovering]);
