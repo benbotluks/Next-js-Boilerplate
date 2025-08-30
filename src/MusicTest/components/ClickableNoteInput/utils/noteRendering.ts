@@ -24,8 +24,8 @@ export const NOTE_STYLES = {
   incorrect: { fillStyle: '#dc2626', strokeStyle: '#dc2626', opacity: 1 }, // Darker red for better visibility
   hovered: { fillStyle: '#6b7280', strokeStyle: '#6b7280', opacity: 0.6 },
   preview: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.5 },
-  previewFadeIn: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.6 },
-  previewFadeOut: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.3 },
+  fadeIn: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.6 },
+  fadeOut: { fillStyle: '#9ca3af', strokeStyle: '#9ca3af', opacity: 0.3 },
 } as const satisfies Record<string, NoteStyle>;
 
 export type NoteStyleKey = keyof typeof NOTE_STYLES;
@@ -57,7 +57,6 @@ export const createStaveNote = (notes: Note | Note[], style: NoteStyle, stave: S
   addAccidentalsToStaveNote(notes, staveNote);
 
   staveNote.setStyle(style);
-
   if ('treble' in stave && 'bass' in stave) {
     stave = stave[clef];
   }
@@ -269,124 +268,56 @@ export const renderNotesOnStaff = (
   }
 };
 
-/**
- * Render a group of notes with consistent styling
- */
+type NoteMap = { clef: Clef; notes: Note[]; style: NoteStyle };
 
-/**
- * Render a preview note at a specific position (for hover effects)
- */
-
-export const renderPreviewNote = (
+export const createAndRenderStaveNotes = (
   staves: Staves, // VexFlow Stave
   context: RenderContext, // VexFlow RenderContext
-  pitch: Note,
-  animationState?: 'fadeIn' | 'fadeOut' | null,
-): void => {
-  try {
-    // Choose style based on animation state
-    let style: NoteStyle = NOTE_STYLES.preview;
-    if (animationState === 'fadeIn') {
-      style = NOTE_STYLES.previewFadeIn;
-    } else if (animationState === 'fadeOut') {
-      style = NOTE_STYLES.previewFadeOut;
-    }
+  noteMaps: NoteMap[],
+) => {
+  const staveNotes = noteMaps.map(noteMap => createStaveNote(noteMap.notes, noteMap.style, staves, noteMap.clef));
 
-    const clef = pitch.octave < 4 ? 'bass' : 'treble';
-    const stave = staves[clef];
-    const staveNote = createStaveNote(pitch, style, stave, clef);
-
-    staveNote.setStyle(style);
-    staveNote.setStave(stave);
-
-    // Create a temporary voice for the preview note
+  // Create a temporary voice for the preview note
+  const voices = staveNotes.map((staveNote) => {
     const voice = new Voice({
       numBeats: 1,
       beatValue: 4,
     });
-
     voice.addTickables([staveNote]);
+    return voice;
+  });
 
-    // Format and draw
-    const formatter = new Formatter();
-    formatter.joinVoices([voice]);
-    formatter.format([voice], justifyWidth(stave));
+  // Format and draw
+  const formatter = new Formatter();
+  formatter.joinVoices(voices);
+  formatter.format(voices, justifyWidth(staves.treble));
 
-    voice.draw(context, stave);
+  voices.forEach((voice, i) => voice.draw(context, staves[noteMaps[i]?.clef as Clef]));
+};
+
+export const renderPreviewNote = (
+  staves: Staves, // VexFlow Stave
+  context: RenderContext, // VexFlow RenderContext
+  note: Note,
+  animationState?: 'fadeIn' | 'fadeOut' | null,
+): void => {
+  try {
+    const style: NoteStyle = NOTE_STYLES[animationState || 'preview'];
+
+    const clef: Clef = note.octave < 4 ? 'bass' : 'treble';
+    createAndRenderStaveNotes(staves, context, [{ clef, style, notes: [note] }]);
   } catch (error) {
     console.error('Failed to render preview note:', error);
   }
 };
 
-export const renderPreviewGuidelines = (
-  context: RenderContext, // VexFlow RenderContext
-  stave: any, // VexFlow Stave
-  x: number,
-): void => {
-  try {
-    const originalStrokeStyle = context.strokeStyle;
-    const originalLineWidth = context.lineWidth;
-    const originalGlobalAlpha = context.globalAlpha;
-
-    // Set guideline style
-    context.strokeStyle = '#e5e7eb';
-    context.lineWidth = 1;
-    context.globalAlpha = 0.5;
-
-    // Draw vertical guideline
-    context.beginPath();
-    context.moveTo(x, stave.getYForTopText() - 10);
-    context.lineTo(x, stave.getBottomLineY() + 10);
-    context.stroke();
-
-    // Restore original context settings
-    context.strokeStyle = originalStrokeStyle;
-    context.lineWidth = originalLineWidth;
-    context.globalAlpha = originalGlobalAlpha;
-  } catch (error) {
-    console.error('Failed to render preview guidelines:', error);
-  }
-};
-
-/**
- * Render preview note with enhanced visual feedback
- */
-export const renderEnhancedPreviewNote = (
+export const clearAndRedrawStaff = (
   staves: Staves, // VexFlow Stave
   context: RenderContext, // VexFlow RenderContext
-  pitch: Note,
-  x: number,
-  animationState?: 'fadeIn' | 'fadeOut' | null,
-  showGuidelines: boolean = false,
 ): void => {
-  try {
-    // Render guidelines if enabled
-    if (showGuidelines) {
-      renderPreviewGuidelines(context, stave, x);
-    }
-
-    // Render the preview note
-    renderPreviewNote(staves, context, pitch, animationState);
-  } catch (error) {
-    console.error('Failed to render enhanced preview note:', error);
-  }
-};
-
-/**
- * Clear the staff and redraw the base staff elements
- */
-export const clearAndRedrawStaff = (
-  system: any, // VexFlow Stave
-  context: RenderContext, // VexFlow RenderContext
-): void => {
-  try {
-    const { treble, bass } = system;
-    context.clear();
-    treble.setContext(context);
-    bass.setContext(context);
-    treble.draw();
-    bass.draw();
-  } catch (error) {
-    console.error('Failed to clear and redraw staff:', error);
-  }
+  context.clear();
+  Object.values(staves).forEach((stave) => {
+    stave.setContext(context);
+    stave.draw();
+  });
 };

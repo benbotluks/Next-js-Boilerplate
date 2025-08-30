@@ -1,6 +1,8 @@
 'use client';
 
+import type { RenderContext } from 'vexflow';
 import type { StaffPosition } from './types/StaffInteraction';
+import type { Staves } from '@/types';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
@@ -13,7 +15,7 @@ import { useNoteManagement } from './hooks/useNoteManagement';
 import { useNoteSelection } from './hooks/useNoteSelection';
 import { useStaffInteraction } from './hooks/useStaffInteraction';
 import { getStaffAriaDescription, getStaffAriaLabel } from './utils/accessibility';
-import { clearAndRedrawStaff, renderEnhancedPreviewNote, renderNotesOnStaff } from './utils/noteRendering';
+import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from './utils/noteRendering';
 import { StaffCoordinates } from './utils/staffCoordinates';
 
 const EMPTY_ARRAY: Note[] = [];
@@ -253,8 +255,8 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
-          stavesRef.current,
-          context,
+          stavesRef.current as Staves,
+          context as RenderContext,
           selectedNotes,
           correctNotes,
           hoveredPosition?.pitch || null,
@@ -265,22 +267,18 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Render preview note - prioritize hover over focus
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
-        renderEnhancedPreviewNote(
-          stavesRef.current,
-          context,
+        renderPreviewNote(
+          stavesRef.current as Staves,
+          context as RenderContext,
           hoveredPosition.pitch,
-          hoveredPosition.x,
           previewAnimation,
-          false,
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
-        renderEnhancedPreviewNote(
+        renderPreviewNote(
           stavesRef.current,
           context,
           focusedPosition.pitch,
-          focusedPosition.x,
           previewAnimation,
-          false, // Show guidelines
         );
       }
     } catch (error) {
