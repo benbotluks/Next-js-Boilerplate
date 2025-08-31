@@ -1,6 +1,6 @@
 import type { RenderContext } from 'vexflow';
 import type { NoteStyle } from '../types/';
-import type { Clef, Note, Staves } from '@/types/';
+import type { Clef, Note, Staves } from '@/MusicTest/types';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';

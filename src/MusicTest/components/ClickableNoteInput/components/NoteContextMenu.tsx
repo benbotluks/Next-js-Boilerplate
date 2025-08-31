@@ -1,4 +1,4 @@
-import { Note } from '@/types';
+import { Note } from '@/MusicTest/types';
 import { ACCIDENTALS, ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { setNoteAccidental } from '@/utils/musicUtils';
 import React from 'react';

@@ -1,6 +1,6 @@
 'use client';
 
-import type { Note } from '@/types/note';
+import type { Note } from '@/MusicTest/core/note';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import React, { useEffect, useState } from 'react';
 

@@ -1,7 +1,9 @@
 'use client';
 
+import type { Note } from './core';
 import type { NoteHandlers } from './types/game';
-import type { GameControllerProps, GameSettings, GameState, Note } from '@/types';
+
+import type { GameControllerProps, GameSettings, GameState } from '@/MusicTest/types';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -12,7 +14,7 @@ import {
 import { audioEngine } from '@/libs/AudioEngine';
 import { settingsManager } from '@/libs/SettingsManager';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
-import { EMPTY_OBJECT } from '@/types/MusicTypes';
+import { EMPTY_OBJECT } from '@/MusicTest/types';
 import { validateAnswer } from '@/utils/AnswerValidation';
 import { Dashboard } from './components/dashboard';
 import { GameError } from './components/error';

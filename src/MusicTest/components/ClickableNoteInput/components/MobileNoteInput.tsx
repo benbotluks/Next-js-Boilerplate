@@ -1,6 +1,6 @@
-import type { Note } from '@/types/';
+import type { Note } from '@/MusicTest/core';
+import { useMobileNoteInput } from '@/MusicTest/hooks/clickableNoteInput/useMobileNoteInput';
 import { ACCIDENTALS, ACCIDENTALS_MAP, NOTE_CLASSES } from '@/utils/MusicConstants';
-import { useMobileNoteInput } from '../hooks/useMobileNoteInput';
 
 type MobileNoteInputProps = {
   selectedNotes: Note[];

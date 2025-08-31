@@ -1,22 +1,15 @@
-import type { Note } from '@/types/note';
+import type { Note } from '@/MusicTest/core/note';
 
 /**
  * Represents a position on the musical staff
  */
 export type StaffPosition = {
-  /** Horizontal position on staff */
   x: number;
-  /** Vertical position on staff */
   y: number;
-  /** Musical pitch (e.g., 'C4', 'F#5') */
   pitch: Note;
-  /** Staff line index (0-10, where 0 is bottom line) */
   linePosition: number;
-  /** true for lines, false for spaces */
   isLine: boolean;
-  /** true if position needs ledger lines */
   requiresLedgerLine: boolean;
-  /** Accidental if needed */
   accidental?: 'sharp' | 'flat' | 'natural';
 };
 

@@ -1,4 +1,4 @@
+export * from '../mobileUtils/touchHandling';
+export * from './accessibility';
 export * from './noteRendering';
-// Utility exports
 export * from './staffCoordinates';
-export * from './touchHandling';

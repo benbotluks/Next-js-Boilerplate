@@ -2,27 +2,20 @@
 
 import type { RenderContext } from 'vexflow';
 import type { StaffPosition } from './types/StaffInteraction';
-import type { Staves } from '@/types';
+import type { Staves } from '@/MusicTest/types';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
+
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
-import { Note } from '@/types/note';
+import { Note } from '@/MusicTest/core';
+import { useKeyboardNavigation, useNoteManagement, useNoteSelection, useStaffInteraction } from '@/MusicTest/hooks/clickableNoteInput';
 import { toDisplayFormat } from '@/utils/musicUtils';
 import { AccessibilityAnnouncements, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
-import { useKeyboardNavigation } from './hooks';
-import { useNoteManagement } from './hooks/useNoteManagement';
-import { useNoteSelection } from './hooks/useNoteSelection';
-import { useStaffInteraction } from './hooks/useStaffInteraction';
-import { getStaffAriaDescription, getStaffAriaLabel } from './utils/accessibility';
-import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from './utils/noteRendering';
-import { StaffCoordinates } from './utils/staffCoordinates';
+import { clearAndRedrawStaff, getStaffAriaDescription, getStaffAriaLabel, renderNotesOnStaff, renderPreviewNote, StaffCoordinates } from './utils/';
 
 const EMPTY_ARRAY: Note[] = [];
 
-/**
- * Props for the ClickableNoteInput component
- */
 export type ClickableNoteInputProps = {
 
   selectedNotes: Note[];

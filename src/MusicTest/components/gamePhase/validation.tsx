@@ -1,5 +1,5 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
-import type { Note } from '@/types';
+import type { Note } from '@/MusicTest/types';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import { GAME_CONFIG } from '@/config/gameConfig';
 import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
