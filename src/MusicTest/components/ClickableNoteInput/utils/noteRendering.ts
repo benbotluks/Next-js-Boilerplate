@@ -1,18 +1,10 @@
-import type { RenderContext, Stave } from 'vexflow';
+import type { RenderContext } from 'vexflow';
+import type { NoteStyle } from '../types/';
 import type { Clef, Note, Staves } from '@/types/';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { toVexFlowFormat } from '@/utils/musicUtils';
-
-const justifyWidth = (stave: Stave) => stave.getWidth() - 100;
-
-export type NoteStyle = {
-  fillStyle: string;
-  strokeStyle: string;
-  strokeWidth?: number;
-  opacity?: number;
-};
 
 /**
  * Default note styles with enhanced hover and animation support
@@ -29,19 +21,6 @@ export const NOTE_STYLES = {
 } as const satisfies Record<string, NoteStyle>;
 
 export type NoteStyleKey = keyof typeof NOTE_STYLES;
-
-type RenderProps = {
-  staves: Staves; // VexFlow Stave
-  context: RenderContext; // VexFlow RenderContext
-  selectedNotes: Note[];
-  hoveredNote?: Note;
-  offset?: number;
-  animationState?: AnimationState;
-};
-
-type CreateAndRenderProps = Omit<RenderProps, 'selectedNotes'> & {
-  noteMaps: NoteMap[];
-};
 
 export const getNoteStyles = (
   selectedNotes: Note[],
@@ -74,13 +53,6 @@ const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   return staveNote;
 };
 
-type StaveNoteProps = {
-  notes: Note[];
-  staves: Staves;
-  clef: Clef;
-  hoveredNote?: Note;
-  animationState?: AnimationState;
-};
 export const createStaveNote = ({ notes, staves, clef, hoveredNote, animationState }: StaveNoteProps): StaveNote => {
   const keys = notes.map(toVexFlowFormat);
   const staveNote = new StaveNote({
@@ -124,10 +96,6 @@ export const getNoteValidationState = (
 
   return 'neutral';
 };
-
-type NoteMap = { clef: Clef; notes: Note[] };
-
-type AnimationState = 'fadeIn' | 'fadeOut' | null;
 
 export const createAndRenderStaveNotes = (
   { staves, context, noteMaps, hoveredNote, offset, animationState }: CreateAndRenderProps,

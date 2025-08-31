@@ -259,7 +259,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           context as RenderContext,
           selectedNotes,
           correctNotes,
-          hoveredPosition?.pitch || null,
+          hoveredPosition?.pitch,
           showCorrectAnswer,
           validationResult,
         );

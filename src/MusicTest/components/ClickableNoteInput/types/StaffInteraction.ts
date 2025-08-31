@@ -20,6 +20,12 @@ export type StaffPosition = {
   accidental?: 'sharp' | 'flat' | 'natural';
 };
 
+export type NoteStyle = {
+  fillStyle: string;
+  strokeStyle: string;
+  strokeWidth?: number;
+  opacity?: number;
+};
 /**
  * Tracks the current interaction state
  */

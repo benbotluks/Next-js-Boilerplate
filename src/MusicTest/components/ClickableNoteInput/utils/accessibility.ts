@@ -57,3 +57,7 @@ export const getStaffAriaDescription = (
 
   return description.trim();
 };
+
+export const requiresLedgerLine = (linePosition: number): boolean => {
+  return (linePosition === 0 || Math.abs(linePosition) >= 12);
+};

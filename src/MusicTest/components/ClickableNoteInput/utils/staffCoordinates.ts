@@ -1,5 +1,6 @@
 import type { Stave } from 'vexflow';
 import type { StaffPosition } from '../types/StaffInteraction';
+import type { Octave } from '@/types';
 import { Note } from '@/types';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
 
@@ -27,7 +28,7 @@ export class StaffCoordinates {
   linePositionToPitch(linePosition: number): Note {
     // C/4 is 0
     const noteClass = NOTE_CLASSES[((linePosition % 7) + 7) % 7]!;
-    const octave = 4 + Math.floor(linePosition / 7);
+    const octave = 4 + Math.floor(linePosition / 7) as Octave;
 
     return new Note({ noteClass, octave });
   }
