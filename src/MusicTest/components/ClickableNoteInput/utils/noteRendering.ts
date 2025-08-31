@@ -146,8 +146,12 @@ export const createAndRenderStaveNotes = (
   const formatter = new Formatter();
   formatter.joinVoices(voices);
 
-  const notePosition = offset ? staves.treble.getWidth() + offset : justifyWidth(staves.treble);
-  formatter.format(voices, notePosition);
+  formatter.format(voices, staves.treble.getWidth());
+  if (offset) {
+    const startX = staves.treble.getNoteStartX();
+    staves.treble.setNoteStartX(startX + offset);
+    staves.bass.setNoteStartX(startX + offset);
+  }
 
   voices.forEach((voice, i) => voice.draw(context, staves[noteMaps[i]?.clef as Clef]));
 };
@@ -171,36 +175,6 @@ export const renderNoteGroup = (
   }
 };
 
-export const renderNoteGroups = (
-  staves: Staves,
-  context: RenderContext,
-  selectedNotes: Note[],
-  correctNotes: Note[],
-): void => {
-  try {
-    const selectedStaveNote = createStaveNote({ notes: selectedNotes, staves }, NOTE_STYLES.selected, stave);
-    const correctStaveNote = createStaveNote(correctNotes, NOTE_STYLES.correct, stave);
-
-    // Create a voice to hold the notes
-    const voice = new Voice({
-      numBeats: 2,
-      beatValue: 4,
-    });
-
-    voice.addTickables([selectedStaveNote, correctStaveNote]);
-
-    // Format the voice to fit the stave
-    const formatter = new Formatter();
-    formatter.joinVoices([voice]);
-    formatter.format([voice], stave.getWidth() - 48);
-
-    // Draw the voice
-    voice.draw(context, stave);
-  } catch (error) {
-    console.error('Failed to render side-by-side note group:', error);
-  }
-};
-
 /**
  * Render notes on a staff with validation support
  */
@@ -219,7 +193,7 @@ export const renderNotesOnStaff = (
     );
   }
   if (showCorrectAnswer) {
-    renderNoteGroup({ staves, context, selectedNotes: correctNotes, offset: 0 });
+    renderNoteGroup({ staves, context, selectedNotes: correctNotes, offset: 24 });
   }
 };
 
