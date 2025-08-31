@@ -3,7 +3,7 @@ import type { Accidental } from '@/types/MusicTypes';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
 import { useCallback, useMemo, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';
-import { Note } from '@/types';
+import { Note } from '@/libs/Note';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
 import { noteToMidiNumber } from '@/utils/musicUtils';
 

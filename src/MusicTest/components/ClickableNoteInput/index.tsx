@@ -7,7 +7,7 @@ import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerV
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
-import { Note } from '@/types/note';
+import { Note } from '@/libs/Note';
 import { toDisplayFormat } from '@/utils/musicUtils';
 import { AccessibilityAnnouncements, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
 import { useKeyboardNavigation } from './hooks';

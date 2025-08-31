@@ -2,7 +2,7 @@ import type { NOTE_CLASS } from './MusicConstants';
 import type { Octave } from '@/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { NOTE_CONFIG } from '@/config/gameConfig';
-import { Note } from '@/types/note';
+import { Note } from '@/libs/Note';
 import { ACCIDENTALS, ACCIDENTALS_MAP, CLEF_POSITION_REF, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 
 export const toVexFlowFormat = (note: Note): string => {

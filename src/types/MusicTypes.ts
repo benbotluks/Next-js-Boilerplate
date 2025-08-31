@@ -1,6 +1,6 @@
 import type { Stave } from 'vexflow';
-import type { Note } from './note';
 import type { AudioMode } from '@/config/gameConfig';
+import type { Note } from '@/libs/Note';
 import type { ACCIDENTALS, NOTE_CLASSES, OCTAVES } from '@/utils/MusicConstants';
 
 export type NoteClass = typeof NOTE_CLASSES[number];

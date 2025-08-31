@@ -1,4 +1,4 @@
-import type { Accidental, NoteClass, Octave } from './MusicTypes';
+import type { Accidental, NoteClass, Octave } from '@/types/';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
 import { nanoid } from 'nanoid';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';

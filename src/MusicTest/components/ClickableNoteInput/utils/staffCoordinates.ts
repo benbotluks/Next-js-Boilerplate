@@ -1,7 +1,7 @@
 import type { Stave } from 'vexflow';
 import type { StaffPosition } from '../types/StaffInteraction';
 import type { Octave } from '@/types';
-import { Note } from '@/types';
+import { Note } from '@/libs/Note';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
 
 const MINIMUM_NOTE = -14;
