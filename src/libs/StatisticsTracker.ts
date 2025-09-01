@@ -3,7 +3,7 @@
  * Handles performance data collection and analysis
  */
 
-import type { Note, SessionResult, UserStatistics } from '@/types/MusicTypes';
+import type { Note, SessionResult, UserStatistics } from '@/MusicTest/types/MusicTypes';
 
 export type StatisticsValidationResult = {
   isValid: boolean;

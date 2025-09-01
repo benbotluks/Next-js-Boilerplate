@@ -1,4 +1,4 @@
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/MusicTest/types/MusicTypes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AudioEngine } from '../AudioEngine';
 

@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
-import type { StaffPosition } from '../types/StaffInteraction';
 import type { StaffCoordinates } from '../utils';
+import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useRef, useState } from 'react';
 
 /**

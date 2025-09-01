@@ -1,5 +1,5 @@
 import type { NOTE_CLASS } from './MusicConstants';
-import type { Octave } from '@/types/MusicTypes';
+import type { Octave } from '@/MusicTest/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/libs/Note';

@@ -9,7 +9,7 @@ import React, { useState } from 'react';
 import { CONFIG_HELPERS, ERROR_MESSAGES, UI_CONFIG } from '@/config/gameConfig';
 import { settingsManager } from '@/libs/SettingsManager';
 import { Button } from '../components/ui/button';
-import { DualRangeSlider } from '../SettingsPanel/DualRangeSlider';
+import { DualRangeSlider } from './DualRangeSlider';
 
 export type SettingsPanelProps = {
   onSettingsChange?: (settings: GameSettings) => void;

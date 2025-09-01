@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import type { Note } from '@/types';
-import type { StaffPosition } from '../types/StaffInteraction';
+import type { StaffPosition } from '../../types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { toDisplayFormat } from '@/utils/musicUtils';
 

@@ -1,5 +1,5 @@
 import type { MusicCallback } from '@/MusicTest/types/game';
-import type { GameSettings } from '@/types/MusicTypes';
+import type { GameSettings } from '@/MusicTest/types/MusicTypes';
 import { Button } from '../ui/button';
 
 type SetupProps = {

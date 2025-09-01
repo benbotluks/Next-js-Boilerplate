@@ -1,6 +1,6 @@
 import type { Stave } from 'vexflow';
-import type { StaffPosition } from '../types/StaffInteraction';
-import type { Octave } from '@/types';
+import type { Octave } from '@/MusicTest/types/MusicTypes';
+import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import { Note } from '@/libs/Note';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
 

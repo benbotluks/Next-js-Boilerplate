@@ -1,4 +1,4 @@
-import type { GameSettings, GameState } from '@/types/MusicTypes';
+import type { GameSettings, GameState } from '@/MusicTest/types/MusicTypes';
 
 type StatsProps = {
   gameState: GameState;

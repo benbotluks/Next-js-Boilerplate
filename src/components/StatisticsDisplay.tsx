@@ -5,7 +5,7 @@
 
 'use client';
 
-import type { SessionResult, UserStatistics } from '@/types/MusicTypes';
+import type { SessionResult, UserStatistics } from '@/MusicTest/types/MusicTypes';
 import { useEffect, useState } from 'react';
 import { statisticsTracker } from '@/libs/StatisticsTracker';
 

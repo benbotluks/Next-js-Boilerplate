@@ -2,7 +2,7 @@
  * Unit tests for StatisticsTracker
  */
 
-import type { Note, SessionResult, UserStatistics } from '@/types/MusicTypes';
+import type { Note, SessionResult, UserStatistics } from '@/MusicTest/types/MusicTypes';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StatisticsTracker } from '../StatisticsTracker';
 

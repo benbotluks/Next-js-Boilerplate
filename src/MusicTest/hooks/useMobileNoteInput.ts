@@ -1,5 +1,4 @@
-import type { Octave } from '@/types';
-import type { Accidental } from '@/types/MusicTypes';
+import type { Accidental, Octave } from '@/MusicTest/types/MusicTypes';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
 import { useCallback, useMemo, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';

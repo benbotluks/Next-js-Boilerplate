@@ -1,25 +1,33 @@
 'use client';
 
 import type { RenderContext } from 'vexflow';
-import type { StaffPosition } from './types/StaffInteraction';
-import type { Staves } from '@/types';
+import type { StaffPosition } from '../../types/StaffInteraction';
+import type { Staves } from '@/MusicTest/types/MusicTypes';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
+
 import React, { useCallback, useEffect, useRef } from 'react';
 import { Renderer, Stave, StaveConnector } from 'vexflow';
 import { audioEngine } from '@/libs/AudioEngine';
 import { Note } from '@/libs/Note';
+import {
+  useKeyboardNavigation,
+  useNoteManagement,
+  useNoteSelection,
+  useStaffInteraction,
+} from '@/MusicTest/hooks';
+import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
+import { renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
+import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 import { toDisplayFormat } from '@/utils/musicUtils';
-import { AccessibilityAnnouncements, MobileNoteInput, NoteContextMenu, ValidationDisplay, ValidationStats } from './components';
-import { useKeyboardNavigation } from './hooks';
-import { useNoteManagement } from './hooks/useNoteManagement';
-import { useNoteSelection } from './hooks/useNoteSelection';
-import { useStaffInteraction } from './hooks/useStaffInteraction';
-import { getStaffAriaDescription, getStaffAriaLabel } from './utils/accessibility';
-import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from './utils/noteRendering';
-import { StaffCoordinates } from './utils/staffCoordinates';
+import {
+  AccessibilityAnnouncements,
+  MobileNoteInput,
+  NoteContextMenu,
+  ValidationDisplay,
+  ValidationStats,
+} from './sections';
 
 const EMPTY_ARRAY: Note[] = [];
-
 /**
  * Props for the ClickableNoteInput component
  */
@@ -249,8 +257,10 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     try {
       const context = rendererRef.current?.getContext();
 
-      // Clear and redraw staff
-      clearAndRedrawStaff(stavesRef.current, context);
+      if (!context) {
+        console.error('Context is undefined');
+        return;
+      }
 
       // Render selected notes
       if (selectedNotes.length > 0) {
@@ -269,7 +279,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       if (!keyboardMode && hoveredPosition && !selectedNotes.includes(hoveredPosition.pitch)) {
         renderPreviewNote(
           stavesRef.current as Staves,
-          context as RenderContext,
+          context,
           hoveredPosition.pitch,
           previewAnimation,
         );

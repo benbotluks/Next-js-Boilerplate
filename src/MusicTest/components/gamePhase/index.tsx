@@ -1,5 +1,6 @@
+import type { Note } from '@/libs/Note';
 import type { MusicCallback, NoteHandlers } from '@/MusicTest/types/game';
-import type { GameSettings, Note } from '@/types/MusicTypes';
+import type { GameSettings } from '@/MusicTest/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import { Answering } from './answering';
 import { Listening } from './listening';

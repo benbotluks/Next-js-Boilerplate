@@ -1,5 +1,5 @@
 import type { AudioMode } from '@/config/gameConfig';
-import type { GameSettings, GameState } from '@/types/MusicTypes';
+import type { GameSettings, GameState } from '@/MusicTest/types/MusicTypes';
 import { AudioModeSelect } from './audioModeSelect';
 import { SettingsTab } from './gameSettings';
 import { GameStats } from './stats';

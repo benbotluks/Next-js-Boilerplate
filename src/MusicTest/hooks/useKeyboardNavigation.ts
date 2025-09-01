@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
-import type { StaffPosition } from '../types/StaffInteraction';
-import type { SystemCoordinates } from '../utils/staffCoordinates';
+import type { StaffCoordinates } from '../utils/staffCoordinates';
+import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useEffect, useState } from 'react';
 
 /**
@@ -8,23 +8,26 @@ import { useCallback, useEffect, useState } from 'react';
  */
 export const useKeyboardNavigation = (
   containerRef: RefObject<HTMLDivElement | null>,
-  staffCoordinates: SystemCoordinates | null,
+  staffCoordinates: StaffCoordinates | null,
   onNotePlace: (position: StaffPosition) => void,
   onNoteDelete?: () => void,
 ) => {
   const [focusedPosition, setFocusedPosition] = useState<StaffPosition | null>(null);
   const [keyboardMode, setKeyboardMode] = useState(false);
-  const [validPositions, setValidPositions] = useState<StaffPosition[]>([]);
+  const [validPositions, _] = useState<StaffPosition[]>([]);
 
   // Initialize valid positions when staff coordinates are available
-  useEffect(() => {
-    if (staffCoordinates) {
-      const positions = staffCoordinates.treble?.getAllValidPositions();
-      setValidPositions(positions);
+  // useEffect(() => {
+  //   if (staffCoordinates) {
+  //     const positions = staffCoordinates.treble?.getAllValidPositions();
+  //     if (!positions) {
+  //       return;
+  //     }
+  //     setValidPositions(positions);
 
-      // Don't set initial focus - only set focus when keyboard mode is actually activated
-    }
-  }, [staffCoordinates]);
+  //     // Don't set initial focus - only set focus when keyboard mode is actually activated
+  //   }
+  // }, [staffCoordinates]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((event: KeyboardEvent) => {

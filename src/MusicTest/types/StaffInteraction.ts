@@ -1,4 +1,4 @@
-import type { Note } from '@/types/note';
+import type { Note } from '@/libs/Note';
 
 /**
  * Represents a position on the musical staff

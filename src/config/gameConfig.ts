@@ -1,4 +1,4 @@
-import type { Note } from '@/types/MusicTypes';
+import type { Note } from '@/MusicTest/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { noteToMidiNumber } from '@/utils/musicUtils';
 
