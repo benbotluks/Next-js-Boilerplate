@@ -53,7 +53,8 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({
             {isCorrect ? 'Correct!' : 'Incorrect'}
           </span>
           <span className="text-sm font-medium">
-            {accuracy}% Accuracy
+            {accuracy}
+            % Accuracy
           </span>
         </div>
       </div>
@@ -73,10 +74,10 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({
           <div className="flex flex-wrap gap-2">
             {correctNotes.map(note => (
               <span
-                key={note}
+                key={note.id}
                 className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800"
               >
-                {note}
+                {note.toString()}
               </span>
             ))}
           </div>
@@ -100,10 +101,10 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({
 
                     return (
                       <span
-                        key={note}
+                        key={note.id}
                         className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${colorClass}`}
                       >
-                        {note}
+                        {note.toString()}
                       </span>
                     );
                   })
@@ -125,10 +126,10 @@ const FeedbackDisplay: React.FC<FeedbackDisplayProps> = ({
             <div className="flex flex-wrap gap-2">
               {missedNotes.map(note => (
                 <span
-                  key={note}
+                  key={note.id}
                   className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-800"
                 >
-                  {note}
+                  {note.toString()}
                 </span>
               ))}
             </div>
