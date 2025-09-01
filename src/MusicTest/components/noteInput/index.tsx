@@ -16,7 +16,7 @@ import {
   useStaffInteraction,
 } from '@/MusicTest/hooks';
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
-import { renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
+import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
 import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 
 import {
@@ -261,7 +261,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         console.error('Context is undefined');
         return;
       }
-
+      clearAndRedrawStaff(stavesRef.current, context);
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
