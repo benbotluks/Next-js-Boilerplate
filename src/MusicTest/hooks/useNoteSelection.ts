@@ -1,5 +1,5 @@
-import type { NoteAction } from '../types/StaffInteraction';
-import type { Note } from '@/types/';
+import type { Note } from '@/libs/Note';
+import type { NoteAction } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useEffect, useState } from 'react';
 
 /**

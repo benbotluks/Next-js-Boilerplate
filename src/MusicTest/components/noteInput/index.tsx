@@ -18,7 +18,7 @@ import {
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
 import { renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
 import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
-import { toDisplayFormat } from '@/utils/musicUtils';
+
 import {
   AccessibilityAnnouncements,
   MobileNoteInput,
@@ -285,7 +285,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         );
       } else if (keyboardMode && focusedPosition && !selectedNotes.includes(focusedPosition.pitch)) {
         renderPreviewNote(
-          stavesRef.current,
+          stavesRef.current as Staves,
           context,
           focusedPosition.pitch,
           previewAnimation,
@@ -403,7 +403,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             🔊 Play Notes
           </button>
           <span className="text-sm text-gray-600">
-            {selectedNotes.map(toDisplayFormat).join(', ')}
+            {selectedNotes.map(note => note.toString).join(', ')}
           </span>
         </div>
       )}
@@ -428,26 +428,12 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
         {keyboardMode && <span className="ml-2 text-blue-500">(Keyboard Mode)</span>}
         {focusedPosition && keyboardMode && (
           <span className="ml-2 text-purple-500">
-            Focus:
-            {' '}
-            {toDisplayFormat(focusedPosition.pitch)}
-            {' '}
-            (line
-            {' '}
-            {focusedPosition.linePosition}
-            )
+            {`Focus: ${focusedPosition.pitch.toString()} (line ${focusedPosition.linePosition})`}
           </span>
         )}
         {hoveredPosition && !keyboardMode && (
           <span className="ml-2 text-blue-500">
-            Hover:
-            {' '}
-            {hoveredPosition.pitch && toDisplayFormat(hoveredPosition.pitch)}
-            {' '}
-            (line
-            {' '}
-            {hoveredPosition.linePosition}
-            )
+            {`Hover: ${hoveredPosition.pitch && hoveredPosition.pitch.toString()} (line ${hoveredPosition.linePosition})`}
           </span>
         )}
         {canAddNote()

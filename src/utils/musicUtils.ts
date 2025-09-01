@@ -1,27 +1,17 @@
-import type { NOTE_CLASS } from './MusicConstants';
 import type { Octave } from '@/MusicTest/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/libs/Note';
-import { ACCIDENTALS, ACCIDENTALS_MAP, CLEF_POSITION_REF, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES, OCTAVES, PITCH_CLASSES } from './MusicConstants';
+import { ACCIDENTALS_MAP, NOTE_CLASS_NUMBER_MAP, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 
 export const toVexFlowFormat = (note: Note): string => {
-  return `${note.noteClass.toLowerCase()}${ACCIDENTALS_MAP[note.accidental].vexFlowSymbol}/${note.octave}`;
-};
-
-export const toDisplayFormat = (note: Note): string => {
-  return `${note.noteClass.toUpperCase()}${ACCIDENTALS_MAP[note.accidental].vexFlowSymbol}${note.octave}`;
-};
-
-export const cycleAccidental = (note: Note): Note => {
-  const { noteClass, octave } = note;
-
-  const accidental = ACCIDENTALS[(ACCIDENTALS.indexOf(note.accidental) + 1) % ACCIDENTALS.length]!;
-  return new Note({ noteClass, octave, accidental });
+  return `${note.noteClass.toLowerCase()}${ACCIDENTALS_MAP[note.accidental as keyof typeof ACCIDENTALS_MAP].vexFlowSymbol}/${note.octave}`;
 };
 
 export const noteToMidiNumber = (note: Note): number => {
-  const semitone = NOTE_CLASS_NUMBER_MAP[note.noteClass] + ACCIDENTALS_MAP[note.accidental].increment;
+  const semitone
+    = NOTE_CLASS_NUMBER_MAP[note.noteClass as keyof typeof NOTE_CLASS_NUMBER_MAP]
+      + ACCIDENTALS_MAP[note.accidental as keyof typeof ACCIDENTALS_MAP].increment;
 
   return (note.octave + 1) * 12 + semitone;
 };
@@ -46,8 +36,7 @@ export const isTooHigh = (note: Note, inclusive: boolean = true): boolean => {
 
 export const setNoteAccidental = (note: Note, accidental: 'natural' | 'sharp' | 'flat'): Note => {
   if (note.accidental === accidental) {
-    throw new RuntimeError(`Accidental ${accidental} matches existing note`, Note);
-    return;
+    throw new RuntimeError(`Accidental ${accidental} matches existing note`);
   }
   return new Note({ noteClass: note.noteClass, octave: note.octave, linePosition: note.linePosition, accidental });
 };
@@ -63,20 +52,3 @@ export const midiNumberToNote = (midiNumber: number): Note => {
   const octave = calculatedOctave as Octave;
   return new Note({ noteClass, octave, accidental });
 };
-
-const euclidMod = (n: number, d: number) => ((n % d) + d) % d;
-const getRefIndex = (refLetter: NOTE_CLASS): number => NOTE_CLASSES.indexOf(refLetter);
-
-export const treblePositionFromNote = (note: Note, clef: 'treble' = 'treble'): number => {
-  const idx = NOTE_CLASSES.indexOf(note.noteClass);
-  const { noteClass, octave } = CLEF_POSITION_REF[clef];
-  return 7 * (note.octave - octave) + (idx - getRefIndex(noteClass as NOTE_CLASS));
-};
-
-/** Staff position -> { letter, octave } (treble) */
-export function noteFromTreblePosition(pos: number): { letter: Letter; octave: number } {
-  const abs = REF_ABS + pos; // absolute diatonic number
-  const octave = Math.floor(abs / 7); // Euclidean floor works in JS
-  const idx = euclidMod(abs, 7) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  return { letter: LETTERS[idx], octave };
-}

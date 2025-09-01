@@ -1,7 +1,7 @@
-import type { Note } from '@/MusicTest/types/MusicTypes';
+import type { Note } from '@/libs/Note';
 import * as Tone from 'tone';
 import { CONFIG_HELPERS } from '@/config/gameConfig';
-import { midiNumberToNote, toDisplayFormat } from '@/utils/musicUtils';
+import { midiNumberToNote } from '@/utils/musicUtils';
 
 export class AudioEngine {
   private sampler: Tone.Sampler | null = null;
@@ -82,7 +82,7 @@ export class AudioEngine {
       await Tone.loaded();
 
       // Convert notes to Tone.js format and play them
-      const toneNotes = notes.map(toDisplayFormat);
+      const toneNotes = notes.map(note => note.toString());
       this.sampler.triggerAttackRelease(toneNotes, '2n');
     } catch (error) {
       console.error('Failed to play notes:', error);

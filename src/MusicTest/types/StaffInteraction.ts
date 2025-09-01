@@ -1,3 +1,5 @@
+import type { RenderContext } from 'vexflow';
+import type { Clef, Staves } from './MusicTypes';
 import type { Note } from '@/libs/Note';
 
 /**
@@ -85,3 +87,30 @@ export type TouchConfig = {
 };
 
 export type NoteAction = 'delete' | 'select' | 'deselect';
+export type AnimationState = 'fadeIn' | 'fadeOut' | 'preview';
+
+export type StaveNoteProps = {
+  notes: Note[];
+  staves: Staves;
+  clef: Clef;
+  hoveredNote?: Note;
+  animationState?: AnimationState;
+};
+export type NoteMap = { notes: Note[]; clef: Clef };
+
+export type RenderProps = {
+  staves: Staves;
+  context: RenderContext;
+  selectedNotes: Note[];
+  offset?: number;
+  hoveredNote?: Note;
+};
+
+export type CreateAndRenderProps = {
+  staves: Staves;
+  context: RenderContext;
+  noteMaps: NoteMap[];
+  offset?: number;
+  animationState?: AnimationState;
+  hoveredNote?: Note;
+};

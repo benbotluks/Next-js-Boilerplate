@@ -2,6 +2,10 @@ import type { Note } from '@/libs/Note';
 import type { ValidationResult } from '@/MusicTest/types/StaffInteraction';
 import { useCallback, useMemo } from 'react';
 
+/**
+ * Hook for managing note state and operations
+ * Handles adding, removing, and toggling notes with validation
+ */
 export const useNoteManagement = (
   selectedNotes: Note[],
   onNoteSelect: (note: Note) => void,

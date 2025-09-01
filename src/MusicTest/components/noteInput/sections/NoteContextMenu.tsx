@@ -1,9 +1,9 @@
-import { Note } from '@/types';
+import { Note } from '@/libs/Note';
 import { ACCIDENTALS, ACCIDENTALS_MAP } from '@/utils/MusicConstants';
 import { setNoteAccidental } from '@/utils/musicUtils';
 import React from 'react';
 import { Button } from '@/MusicTest/components/ui/button';
-import { NoteAction } from '../../types/StaffInteraction';
+import { NoteAction } from '@/MusicTest/types/StaffInteraction';
 
 
 

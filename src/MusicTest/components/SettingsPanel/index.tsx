@@ -1,15 +1,9 @@
-/* eslint-disable tailwindcss/no-custom-classname */
-/**
- * Settings Panel Component for Music Note Identification Game
- * Provides UI for difficulty selection and other game preferences
- */
-
 import type { GameSettings } from '@/libs/SettingsManager';
 import React, { useState } from 'react';
 import { CONFIG_HELPERS, ERROR_MESSAGES, UI_CONFIG } from '@/config/gameConfig';
 import { settingsManager } from '@/libs/SettingsManager';
-import { Button } from '../components/ui/button';
-import { DualRangeSlider } from './DualRangeSlider';
+import { Button } from '../ui/button';
+import { DualRangeSlider } from './dualRangeSlider';
 
 export type SettingsPanelProps = {
   onSettingsChange?: (settings: GameSettings) => void;

@@ -1,3 +1,5 @@
+import type { Accidental } from '@/MusicTest/types/MusicTypes';
+
 // Note class constants (for future enum-like usage)
 export type NOTE_CLASS = 'C' | 'D' | 'E' | 'F' | 'G' | 'A' | 'B';
 export type OCTAVE = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
@@ -17,7 +19,13 @@ export const PITCH_CLASSES = [
   { noteClass: 'B', accidental: 'natural' },
 ] as const;
 export const ACCIDENTALS = ['natural', 'sharp', 'flat'] as const;
-export const ACCIDENTALS_MAP = {
+
+type AccidentalMap = {
+  increment: number;
+  symbol: string;
+  vexFlowSymbol: string;
+};
+export const ACCIDENTALS_MAP: Record<Accidental, AccidentalMap> = {
   natural: {
     increment: 0,
     symbol: '♮',
@@ -35,9 +43,10 @@ export const ACCIDENTALS_MAP = {
     vexFlowSymbol: 'b',
   },
 };
+
 export const OCTAVES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 
-export const NOTE_CLASS_NUMBER_MAP = {
+export const NOTE_CLASS_NUMBER_MAP: Record<NOTE_CLASS, number> = {
   C: 0,
   D: 2,
   E: 4,

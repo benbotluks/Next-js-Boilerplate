@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import type { Note } from '@/types';
-import type { StaffPosition } from '../../types/StaffInteraction';
+import type { Note } from '@/libs/Note';
+import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
-import { toDisplayFormat } from '@/utils/musicUtils';
+
 
 type AccessibilityAnnouncementsProps = {
   selectedNotes: Note[];
@@ -41,15 +41,15 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
 
       if (added.length > 0) {
         const announcement = added.length === 1
-          ? `Added note ${toDisplayFormat(added[0]!)}`
-          : `Added ${added.length} notes: ${added.map(toDisplayFormat).join(', ')}`;
+          ? `Added note ${added[0]!.toString()}`
+          : `Added ${added.length} notes: ${added.map(note => note.toString()).join(', ')}`;
         announceToScreenReader(announcement);
       }
 
       if (removed.length > 0) {
         const announcement = removed.length === 1
-          ? `Removed note ${toDisplayFormat(removed[0]!)}`
-          : `Removed ${removed.length} notes: ${removed.map(toDisplayFormat).join(', ')}`;
+          ? `Removed note ${removed[0]!.toString()}`
+          : `Removed ${removed.length} notes: ${removed.map(note => note.toString()).join(', ')}`;
         announceToScreenReader(announcement);
       }
 
@@ -70,7 +70,7 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
       (!previousFocusedPosition.current ||
         previousFocusedPosition.current.pitch !== focusedPosition.pitch)) {
 
-      const pitchName = toDisplayFormat(focusedPosition.pitch);
+      const pitchName = focusedPosition.pitch.toString();
       const positionType = focusedPosition.isLine ? 'line' : 'space';
       const ledgerInfo = focusedPosition.requiresLedgerLine ? ' with ledger line' : '';
       const isSelected = selectedNotes.includes(focusedPosition.pitch) ? ', selected' : '';
@@ -138,8 +138,8 @@ export const AccessibilityAnnouncements: React.FC<AccessibilityAnnouncementsProp
           <div>
             <h4>Currently Selected Notes:</h4>
             <ul>
-              {selectedNotes.map((note, index) => (
-                <li key={`${toDisplayFormat(note)}-${index}`}>{toDisplayFormat(note)}</li>
+              {selectedNotes.map((note) => (
+                <li key={note.id}>{note.toString()}</li>
               ))}
             </ul>
           </div>

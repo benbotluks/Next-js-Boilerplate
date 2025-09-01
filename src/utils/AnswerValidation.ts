@@ -1,4 +1,4 @@
-import type { Note } from '@/MusicTest/types/MusicTypes';
+import type { Note } from '@/libs/Note';
 
 /**
  * Result of answer validation containing detailed feedback information

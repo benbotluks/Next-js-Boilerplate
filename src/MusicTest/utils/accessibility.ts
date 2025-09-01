@@ -1,7 +1,6 @@
-import type { StaffPosition } from '../../../types/StaffInteraction';
-import type { Note } from '@/types';
+import type { Note } from '@/libs/Note';
+import type { StaffPosition } from '@/MusicTest/types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
-import { toDisplayFormat } from '@/utils/musicUtils';
 
 /**
  * Generates the main ARIA label for the music staff
@@ -33,7 +32,7 @@ export const getStaffAriaDescription = (
   let description = '';
 
   if (focusedPosition && keyboardMode) {
-    const pitchName = toDisplayFormat(focusedPosition.pitch);
+    const pitchName = focusedPosition.pitch.toString();
     const positionType = focusedPosition.isLine ? 'line' : 'space';
     const ledgerInfo = focusedPosition.requiresLedgerLine ? ' with ledger line' : '';
     description += `Focused on ${pitchName} ${positionType}${ledgerInfo}. `;

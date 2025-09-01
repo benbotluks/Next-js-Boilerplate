@@ -1,6 +1,14 @@
 import type { RenderContext } from 'vexflow';
-import type { NoteStyle } from '../types/';
-import type { Clef, Note, Staves } from '@/types/';
+import type { Note } from '@/libs/Note';
+import type { Clef, Staves } from '@/MusicTest/types/MusicTypes';
+import type {
+  AnimationState,
+  CreateAndRenderProps,
+  NoteMap,
+  NoteStyle,
+  RenderProps,
+  StaveNoteProps,
+} from '@/MusicTest/types/StaffInteraction';
 import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
 import { Accidental, Formatter, StaveNote, Voice } from 'vexflow';
 import { ACCIDENTALS_MAP } from '@/utils/MusicConstants';
@@ -46,7 +54,8 @@ export const getNoteStyles = (
 const addAccidentalsToStaveNote = (keys: Note[], staveNote: StaveNote) => {
   keys.forEach((note, index) => {
     if (note.accidental !== 'natural') {
-      staveNote.addModifier(new Accidental(ACCIDENTALS_MAP[note.accidental].vexFlowSymbol), index);
+      const acc = note.accidental as keyof typeof ACCIDENTALS_MAP;
+      staveNote.addModifier(new Accidental(ACCIDENTALS_MAP[acc].vexFlowSymbol), index);
     }
   });
 
@@ -172,7 +181,7 @@ export const renderPreviewNote = (
   animationState?: AnimationState,
 ): void => {
   const clef: Clef = note.octave < 4 ? 'bass' : 'treble';
-  const noteMaps = [{ clef, notes: [note] }] as NoteMap[];
+  const noteMaps = [{ clef, notes: [note] }];
   createAndRenderStaveNotes({ staves, context, noteMaps, animationState });
 };
 

@@ -1,9 +1,8 @@
 'use client';
 
-import type { Note } from '@/MusicTest/types/MusicTypes';
+import type { Note } from '@/libs/Note';
 import { useState } from 'react';
-import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
-import { toDisplayFormat } from '@/utils/musicUtils';
+import ClickableNoteInput from '@/MusicTest/components/noteInput';
 
 export default function ClickableNoteDemoPage() {
   const [selectedNotes, setSelectedNotes] = useState<Note[]>([]);
@@ -115,12 +114,12 @@ export default function ClickableNoteDemoPage() {
                 <span className="text-gray-500">No notes selected</span>
               )
             : (
-                selectedNotes.map((note, index) => (
+                selectedNotes.map(note => (
                   <span
-                    key={`${note}-${index}`}
+                    key={note.id}
                     className="rounded bg-blue-100 px-2 py-1 text-blue-800"
                   >
-                    {toDisplayFormat(note)}
+                    {note.toString()}
                   </span>
                 ))
               )}

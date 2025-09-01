@@ -1,7 +1,8 @@
+import type { Note } from '@/libs/Note';
 import type { MusicCallback } from '@/MusicTest/types/game';
-import type { GameSettings, Note } from '@/types';
+import type { GameSettings } from '@/MusicTest/types/MusicTypes';
 import { GAME_CONFIG } from '@/config/gameConfig';
-import ClickableNoteInput from '@/MusicTest/components/ClickableNoteInput';
+import ClickableNoteInput from '@/MusicTest/components/noteInput';
 import { Button } from '../ui/button';
 
 type AnsweringProps = {
