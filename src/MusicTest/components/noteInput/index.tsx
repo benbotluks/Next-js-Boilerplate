@@ -69,10 +69,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
-  const stavesRef = useRef<{ treble: Stave | null; bass: Stave | null }>({
-    treble: null,
-    bass: null,
-  });
+  const stavesRef = useRef<{ treble?: Stave; bass?: Stave }>({});
 
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
@@ -257,11 +254,10 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     try {
       const context = rendererRef.current?.getContext();
 
-      if (!context) {
-        console.error('Context is undefined');
-        return;
-      }
-      clearAndRedrawStaff(stavesRef.current, context);
+      clearAndRedrawStaff(
+        { treble: stavesRef.current.treble!, bass: stavesRef.current.bass! },
+        context!,
+      );
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
@@ -403,7 +399,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
             🔊 Play Notes
           </button>
           <span className="text-sm text-gray-600">
-            {selectedNotes.map(note => note.toString).join(', ')}
+            {selectedNotes.map(note => note.toString()).join(', ')}
           </span>
         </div>
       )}
