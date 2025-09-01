@@ -69,7 +69,14 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<Renderer | null>(null);
-  const stavesRef = useRef<{ treble?: Stave; bass?: Stave }>({});
+  const stavesRef = useRef<{
+    treble?:
+    Stave;
+    bass?: Stave;
+    brace?: StaveConnector;
+    leftConnector?: StaveConnector;
+    rightConnector?: StaveConnector;
+  }>({});
 
   const staffCoordinatesRef = useRef<StaffCoordinates | null>(null);
 
@@ -197,37 +204,45 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       renderer.resize(width, height);
       const context = renderer.getContext();
 
-      // Create staff directly using VexFlow classes
-      const staveTreble = new Stave(10, 40, 140);
+      const { clientWidth, clientHeight } = containerRef.current;
+      console.log(clientHeight);
+      const stavesWidth = Math.min(clientWidth - 40, 200);
+      const stavesX = Math.floor((clientWidth - stavesWidth) / 2);
+      const stavesVerticalCenter = Math.floor(clientHeight / 4);
+
+      const staveTreble = new Stave(stavesX, stavesVerticalCenter - 30, stavesWidth);
       staveTreble.addClef('treble');
       staveTreble.setContext(context);
       staveTreble.draw();
 
-      const staveBass = new Stave(10, 100, 140);
+      const staveBass = new Stave(stavesX, stavesVerticalCenter + 30, stavesWidth);
       staveBass.addClef('bass');
       staveBass.setContext(context);
       staveBass.draw();
 
-      new StaveConnector(staveTreble, staveBass)
-        .setType('brace')
-        .setContext(context)
-        .draw();
+      const brace = new StaveConnector(staveTreble, staveBass);
+      brace.setType('brace');
+      brace.setContext(context);
+      brace.draw();
 
-      new StaveConnector(staveTreble, staveBass)
-        .setType('singleLeft')
-        .setContext(context)
-        .draw();
+      const leftConnector = new StaveConnector(staveTreble, staveBass);
+      leftConnector.setType('singleLeft');
+      leftConnector.setContext(context);
+      leftConnector.draw();
 
-      new StaveConnector(staveTreble, staveBass)
-        .setType('singleRight')
-        .setContext(context)
-        .draw();
+      const rightConnector = new StaveConnector(staveTreble, staveBass);
+      rightConnector.setType('boldDoubleRight');
+      rightConnector.setContext(context);
+      rightConnector.draw();
 
       // Store references
       rendererRef.current = renderer;
 
       stavesRef.current.treble = staveTreble; // a Vex.Flow.Stave
       stavesRef.current.bass = staveBass;
+      stavesRef.current.brace = brace;
+      stavesRef.current.leftConnector = leftConnector;
+      stavesRef.current.rightConnector = rightConnector;
 
       staffCoordinatesRef.current = new StaffCoordinates({ treble: staveTreble, bass: staveBass });
     } catch (error) {
