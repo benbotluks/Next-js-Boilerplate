@@ -17,8 +17,8 @@ import {
 } from '@/MusicTest/hooks';
 import { getStaffAriaDescription, getStaffAriaLabel } from '@/MusicTest/utils/accessibility';
 import { clearAndRedrawStaff, renderNotesOnStaff, renderPreviewNote } from '@/MusicTest/utils/noteRendering';
-import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 
+import { StaffCoordinates } from '@/MusicTest/utils/staffCoordinates';
 import {
   AccessibilityAnnouncements,
   MobileNoteInput,
@@ -254,10 +254,16 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
     try {
       const context = rendererRef.current?.getContext();
 
-      clearAndRedrawStaff(
-        { treble: stavesRef.current.treble!, bass: stavesRef.current.bass! },
-        context!,
-      );
+      if (!context) {
+        console.error('Context is not initialized!');
+        return;
+      }
+      if (!stavesRef.current) {
+        console.error('stavesRef not initialized!');
+        return;
+      }
+
+      clearAndRedrawStaff(stavesRef.current as Staves, context!);
       // Render selected notes
       if (selectedNotes.length > 0) {
         renderNotesOnStaff(
