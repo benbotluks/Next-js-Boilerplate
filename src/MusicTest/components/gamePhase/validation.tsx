@@ -45,7 +45,7 @@ export const Validation: React.FC<ValidationProps> = ({ validationResult, select
           showCorrectAnswer={true}
           correctNotes={currentNotes}
           validationResult={validationResult}
-          disabled={true}
+          disabled={false}
           audioMode="poly"
           width={GAME_CONFIG.STAFF_WIDTH * 1.5}
           height={GAME_CONFIG.STAFF_HEIGHT}
@@ -80,10 +80,6 @@ export const Validation: React.FC<ValidationProps> = ({ validationResult, select
         />
         <Button
           onClick={startNewRound}
-          children="➡️ Next Round"
-        />
-        <Button
-          onClick={resetGame}
           children="➡️ Next Round"
         />
       </div>

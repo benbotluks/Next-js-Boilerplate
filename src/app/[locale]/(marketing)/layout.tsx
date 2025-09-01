@@ -17,7 +17,6 @@ export default async function Layout(props: {
 
   return (
     <>
-      <DemoBanner />
       <BaseTemplate
         leftNav={(
           <>
