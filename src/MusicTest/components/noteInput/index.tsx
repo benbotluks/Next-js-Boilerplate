@@ -205,7 +205,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       const context = renderer.getContext();
 
       const { clientWidth, clientHeight } = containerRef.current;
-      console.log(clientHeight);
+
       const stavesWidth = Math.min(clientWidth - 40, 200);
       const stavesX = Math.floor((clientWidth - stavesWidth) / 2);
       const stavesVerticalCenter = Math.floor(clientHeight / 4);
