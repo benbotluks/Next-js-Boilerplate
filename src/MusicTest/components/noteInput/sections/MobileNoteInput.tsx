@@ -25,6 +25,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
     moveNoteDown,
     moveOctaveUp,
     moveOctaveDown,
+    focusNote,
     changeAccidental,
     confirmNote,
     removeActiveNote,
@@ -41,7 +42,7 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
 
   return (
     <div className={className}>
-      { selectedNotes.length > 0
+      {selectedNotes.length > 0
         && (
           <div className="mb-3 rounded-lg border bg-blue-50 p-2 text-center">
             <div className="mb-2 text-xs font-medium text-blue-700">Selected Notes:</div>
@@ -50,9 +51,9 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
                 <button
                   key={note.id}
                   type="button"
-                  onClick={() => onNoteDeselect(note)}
+                  onClick={_ => focusNote(note)}
                   className="rounded bg-blue-200 px-3 py-1 text-sm font-semibold text-blue-800 transition-colors hover:bg-blue-300 active:bg-blue-400"
-                  title={`Click to remove ${note.displayFormat}`}
+                  title={`Click to remove ${note.toString()}`}
                 >
                   {note.displayFormat}
                 </button>

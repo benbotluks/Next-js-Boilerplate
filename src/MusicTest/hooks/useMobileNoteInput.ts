@@ -1,6 +1,6 @@
 import type { Accidental, Octave } from '@/MusicTest/types/MusicTypes';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/libs/Note';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
@@ -8,7 +8,7 @@ import { noteToMidiNumber } from '@/utils/musicUtils';
 
 export type MobileNoteInputState = {
   isActive: boolean;
-  note: Note;
+  note: Note | null;
 };
 
 export const useMobileNoteInput = (
@@ -16,8 +16,7 @@ export const useMobileNoteInput = (
   onNoteSelect: (note: Note) => void,
   onNoteDeselect: (note: Note) => void,
 ) => {
-  const startingNote = useMemo(() => new Note({ noteClass: 'C', octave: 4 }), []);
-  const [inputState, setInputState] = useState<MobileNoteInputState>({ isActive: false, note: startingNote });
+  const [inputState, setInputState] = useState<MobileNoteInputState>({ isActive: false, note: null });
 
   // Calculate the optimal octave for the next note based on previous notes
   const getOptimalNextNote = useCallback((noteClass: NOTE_CLASS): Note => {
@@ -93,6 +92,13 @@ export const useMobileNoteInput = (
     }));
   }, [inputState.isActive, inputState.note, onNoteDeselect, onNoteSelect]);
 
+  const focusNote = useCallback((note: Note) => {
+    setInputState(_ => ({
+      isActive: true,
+      note,
+    }));
+  }, []);
+
   // Confirm and add the note
   const confirmNote = useCallback(() => {
     if (!(inputState.note && inputState.isActive)) {
@@ -105,17 +111,17 @@ export const useMobileNoteInput = (
   }, [inputState]);
 
   const removeActiveNote = useCallback(() => {
-    onNoteDeselect(inputState.note);
+    onNoteDeselect(inputState.note!);
     setInputState((_) => {
       if (selectedNotes.length > 0) {
         return { note: selectedNotes[selectedNotes.length - 1]!, isActive: true };
       }
       return {
-        note: startingNote,
+        note: null,
         isActive: false,
       };
     });
-  }, [inputState.note, onNoteDeselect, selectedNotes, startingNote]);
+  }, [inputState.note, onNoteDeselect, selectedNotes]);
 
   return {
     inputState,
@@ -125,6 +131,7 @@ export const useMobileNoteInput = (
     moveOctaveUp,
     moveOctaveDown,
     changeAccidental,
+    focusNote,
     confirmNote,
     removeActiveNote,
 
