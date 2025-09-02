@@ -113,15 +113,12 @@ export const useMobileNoteInput = (
   const removeActiveNote = useCallback(() => {
     onNoteDeselect(inputState.note!);
     setInputState((_) => {
-      if (selectedNotes.length > 0) {
-        return { note: selectedNotes[selectedNotes.length - 1]!, isActive: true };
-      }
       return {
         note: null,
         isActive: false,
       };
     });
-  }, [inputState.note, onNoteDeselect, selectedNotes]);
+  }, [inputState.note, onNoteDeselect]);
 
   return {
     inputState,
