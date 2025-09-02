@@ -1,4 +1,4 @@
-import type { Note } from '@/MusicTest/types/MusicTypes';
+import type { Note } from '@/libs/Note';
 import { RuntimeError } from 'vexflow';
 import { noteToMidiNumber } from '@/utils/musicUtils';
 
@@ -8,7 +8,7 @@ export const NOTE_CONFIG = {
   DEFAULT_MIN_PITCH: { noteClass: 'C', octave: 3, accidental: 'natural' } as Note,
   DEFAULT_MAX_PITCH: { noteClass: 'C', octave: 6, accidental: 'natural' } as Note,
 
-  MIN_PITCH_MIDI: 48,
+  MIN_PITCH_MIDI: 36,
   MAX_PITCH_MIDI: 84,
 
   MIN_NOTES: 1,
