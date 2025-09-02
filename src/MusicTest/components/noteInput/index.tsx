@@ -201,7 +201,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
 
       // Create VexFlow renderer
       const renderer = new Renderer(containerRef.current, Renderer.Backends.SVG);
-      renderer.resize(width, height);
+      renderer.resize(containerRef.current.clientWidth, height);
       const context = renderer.getContext();
 
       const { clientWidth, clientHeight } = containerRef.current;
@@ -316,7 +316,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
   return (
     <div className={`${className}`}>
       {/* Main staff container */}
-      <div className="relative" style={{ width, height }}>
+      <div className="relative" style={{ height }}>
         <div
           ref={containerRef}
           className={`
