@@ -173,6 +173,17 @@ export const MobileNoteInput: React.FC<MobileNoteInputProps> = ({
             >
               ✓ OK
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                console.warn('OK button clicked, inputState:', inputState);
+                removeActiveNote();
+              }}
+              disabled={!inputState.isActive}
+              className="rounded bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-600 disabled:opacity-50"
+            >
+              ✗
+            </button>
           </div>
         </div>
       )}

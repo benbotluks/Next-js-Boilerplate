@@ -1,7 +1,8 @@
 'use client';
 
 import type { NoteHandlers } from './types/game';
-import type { GameControllerProps, GameSettings, GameState, Note } from '@/types';
+import type { Note } from '@/libs/Note';
+import type { GameControllerProps, GameSettings, GameState } from '@/MusicTest/types/MusicTypes';
 import type { ValidationResult } from '@/utils/AnswerValidation';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -179,7 +180,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
     },
 
     deselect: (note: Note) => {
-      setGameState((prev) => {
+      setGameState((prev: GameState) => {
         if (prev.gamePhase !== 'answering') {
           return prev;
         }
@@ -190,7 +191,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       });
       handleAudioPlayback();
     },
-  }), []);
+  }), [handleAudioPlayback]);
 
   // Submit answer and show feedback
   const submitAnswer = useCallback(() => {
