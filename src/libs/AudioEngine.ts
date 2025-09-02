@@ -1,4 +1,6 @@
 import type { Note } from '@/libs/Note';
+import type { HiddenNote } from '@/MusicTest/types/MusicTypes';
+import Error from 'next/error';
 import * as Tone from 'tone';
 import { CONFIG_HELPERS } from '@/config/gameConfig';
 import { midiNumberToNote } from '@/utils/musicUtils';
@@ -46,7 +48,7 @@ export class AudioEngine {
   /**
    * Generate a random set of notes for the game
    */
-  public generateNoteSet(count: number): Note[] {
+  public generateNoteSet(count: number): HiddenNote[] {
     if (count < 1) {
       throw new Error('Must be a positive integer');
     }
@@ -57,7 +59,10 @@ export class AudioEngine {
     // Shuffle available notes and take the first 'count' notes
     const shuffled = [...availableNotes].sort(() => Math.random() - 0.5);
     const generatedNotesMidiNumbers = shuffled.slice(0, count);
-    return generatedNotesMidiNumbers.map(midiNumberToNote);
+    return generatedNotesMidiNumbers.map(midiNumber => ({
+      midiNumber,
+      note: midiNumberToNote(midiNumber),
+    }));
   }
 
   /**

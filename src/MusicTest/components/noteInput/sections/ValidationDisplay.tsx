@@ -1,7 +1,7 @@
 'use client';
 
-import type { Note } from '@/types/note';
-import type { ValidationResult as AnswerValidationResult } from '@/utils/AnswerValidation';
+import type { Note } from '@/libs/Note';
+import type { ValidationResult as AnswerValidationResult, ValidationResult } from '@/utils/AnswerValidation';
 import React, { useEffect, useState } from 'react';
 
 export type ValidationDisplayProps = {
@@ -23,7 +23,7 @@ export const ValidationDisplay: React.FC<ValidationDisplayProps> = ({
   className = '',
 }) => {
   const [showMessage, setShowMessage] = useState(false);
-  const [messageType, setMessageType] = useState<'success' | 'error' | 'partial'>('success');
+  const [_, setMessageType] = useState<'success' | 'error' | 'partial'>('success');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -116,42 +116,47 @@ export const getValidationStats = (
  * Component to display detailed validation statistics
  */
 export const ValidationStats: React.FC<{
-  selectedNotes: Note[];
-  correctNotes: Note[];
+  validationResult: ValidationResult;
   className?: string;
-}> = ({ selectedNotes, correctNotes, className = '' }) => {
-  const stats = getValidationStats(selectedNotes, correctNotes);
-
+}> = ({ validationResult, className = '' }) => {
+  const {
+    correctlyIdentified,
+    correctNotes,
+    selectedNotes,
+    incorrectNotes,
+    missedNotes,
+    accuracy,
+  } = validationResult;
   return (
     <div className={`space-y-1 text-sm ${className}`}>
       <div className="flex justify-between">
         <span>Correct:</span>
         <span className="font-medium text-green-600">
-          {stats.correct}
+          {correctlyIdentified.length}
           /
-          {stats.total}
+          {correctNotes.length}
         </span>
       </div>
-      {stats.incorrect > 0 && (
+      {incorrectNotes.length > 0 && (
         <div className="flex justify-between">
           <span>Incorrect:</span>
-          <span className="font-medium text-red-600">{stats.incorrect}</span>
+          <span className="font-medium text-red-600">{incorrectNotes.length}</span>
         </div>
       )}
-      {stats.missing > 0 && (
+      {missedNotes.length > 0 && (
         <div className="flex justify-between">
           <span>Missing:</span>
-          <span className="font-medium text-orange-600">{stats.missing}</span>
+          <span className="font-medium text-orange-600">{missedNotes.length}</span>
         </div>
       )}
       <div className="flex justify-between border-t pt-1">
         <span>Accuracy:</span>
-        <span className={`font-medium ${stats.accuracy >= 80
+        <span className={`font-medium ${accuracy >= 80
           ? 'text-green-600'
-          : stats.accuracy >= 60 ? 'text-orange-600' : 'text-red-600'
+          : accuracy >= 60 ? 'text-orange-600' : 'text-red-600'
         }`}
         >
-          {stats.accuracy.toFixed(0)}
+          {accuracy}
           %
         </span>
       </div>

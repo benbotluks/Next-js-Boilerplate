@@ -2,35 +2,27 @@ import type { Octave } from '@/MusicTest/types/MusicTypes';
 import { RuntimeError } from 'vexflow';
 import { NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/libs/Note';
-import { ACCIDENTALS_MAP, NOTE_CLASS_NUMBER_MAP, OCTAVES, PITCH_CLASSES } from './MusicConstants';
+import { ACCIDENTALS_MAP, OCTAVES, PITCH_CLASSES } from './MusicConstants';
 
 export const toVexFlowFormat = (note: Note): string => {
   return `${note.noteClass.toLowerCase()}${ACCIDENTALS_MAP[note.accidental as keyof typeof ACCIDENTALS_MAP].vexFlowSymbol}/${note.octave}`;
 };
 
-export const noteToMidiNumber = (note: Note): number => {
-  const semitone
-    = NOTE_CLASS_NUMBER_MAP[note.noteClass as keyof typeof NOTE_CLASS_NUMBER_MAP]
-      + ACCIDENTALS_MAP[note.accidental as keyof typeof ACCIDENTALS_MAP].increment;
-
-  return (note.octave + 1) * 12 + semitone;
-};
-
 export const isTooLow = (note: Note, inclusive: boolean = true): boolean => {
   // "inclusive" means whether to accept note that IS the minimum
   if (inclusive) {
-    return (noteToMidiNumber(note) < NOTE_CONFIG.MIN_PITCH_MIDI);
+    return (note.midiNumber < NOTE_CONFIG.MIN_PITCH_MIDI);
   } else {
-    return (noteToMidiNumber(note) <= NOTE_CONFIG.MIN_PITCH_MIDI);
+    return (note.midiNumber <= NOTE_CONFIG.MIN_PITCH_MIDI);
   }
 };
 
 export const isTooHigh = (note: Note, inclusive: boolean = true): boolean => {
   // "inclusive" means whether to accept note that IS the minimum
   if (inclusive) {
-    return (noteToMidiNumber(note) > NOTE_CONFIG.MAX_PITCH_MIDI);
+    return (note.midiNumber > NOTE_CONFIG.MAX_PITCH_MIDI);
   } else {
-    return (noteToMidiNumber(note) >= NOTE_CONFIG.MAX_PITCH_MIDI);
+    return (note.midiNumber >= NOTE_CONFIG.MAX_PITCH_MIDI);
   }
 };
 

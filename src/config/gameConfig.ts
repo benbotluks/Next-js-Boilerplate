@@ -1,12 +1,12 @@
-import type { Note } from '@/libs/Note';
+import type { MidiNote } from 'tone/build/esm/core/type/NoteUnits';
 import { RuntimeError } from 'vexflow';
-import { noteToMidiNumber } from '@/utils/musicUtils';
+import { Note } from '@/libs/Note';
 
 // Note range configuration
 export const NOTE_CONFIG = {
 
-  DEFAULT_MIN_PITCH: { noteClass: 'C', octave: 3, accidental: 'natural' } as Note,
-  DEFAULT_MAX_PITCH: { noteClass: 'C', octave: 6, accidental: 'natural' } as Note,
+  DEFAULT_MIN_PITCH: new Note({ noteClass: 'C', octave: 2, accidental: 'natural' }),
+  DEFAULT_MAX_PITCH: new Note({ noteClass: 'C', octave: 6, accidental: 'natural' }),
 
   MIN_PITCH_MIDI: 36,
   MAX_PITCH_MIDI: 84,
@@ -197,12 +197,12 @@ export const CONFIG_HELPERS = {
    * Get available notes based on accidental settings
    */
 
-  getMidiNoteRange: (minPitch: Note = NOTE_CONFIG.DEFAULT_MIN_PITCH, maxPitch: Note = NOTE_CONFIG.DEFAULT_MAX_PITCH): number[] => {
-    const [minMidiNumber, maxMidiNumber] = [minPitch, maxPitch].map(pitch => noteToMidiNumber(pitch));
+  getMidiNoteRange: (minPitch: Note = NOTE_CONFIG.DEFAULT_MIN_PITCH, maxPitch: Note = NOTE_CONFIG.DEFAULT_MAX_PITCH): MidiNote[] => {
+    const [minMidiNumber, maxMidiNumber] = [minPitch, maxPitch].map(pitch => pitch.midiNumber);
     if (!(minMidiNumber && maxMidiNumber)) {
       throw new RuntimeError('At least one of the midi numbers is not defined', JSON.stringify([minMidiNumber, maxMidiNumber]));
     }
-    return Array.from({ length: maxMidiNumber - minMidiNumber + 1 }, (_, i) => minMidiNumber + i);
+    return Array.from({ length: maxMidiNumber - minMidiNumber + 1 }, (_, i) => minMidiNumber + i) as MidiNote[];
   },
 
   /**

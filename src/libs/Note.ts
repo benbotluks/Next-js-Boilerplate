@@ -1,7 +1,8 @@
+import type { MidiNote } from 'tone/build/esm/core/type/NoteUnits';
 import type { Accidental, NoteClass, Octave } from '@/MusicTest/types/MusicTypes';
 import type { NOTE_CLASS } from '@/utils/MusicConstants';
 import { nanoid } from 'nanoid';
-import { NOTE_CLASSES } from '@/utils/MusicConstants';
+import { ACCIDENTALS_MAP, NOTE_CLASS_NUMBER_MAP, NOTE_CLASSES } from '@/utils/MusicConstants';
 import { isTooHigh, isTooLow } from '@/utils/musicUtils';
 
 type NoteProps = {
@@ -48,6 +49,16 @@ export class Note {
 
   get vexFlowFormat(): string {
     return this.displayFormat;
+  }
+
+  get midiNumber(): MidiNote {
+    const semitone
+      = NOTE_CLASS_NUMBER_MAP[this.noteClass as keyof typeof NOTE_CLASS_NUMBER_MAP]
+        + ACCIDENTALS_MAP[this.accidental as keyof typeof ACCIDENTALS_MAP].increment;
+
+    const midiNote = (this.octave + 1) * 12 + semitone as MidiNote;
+
+    return midiNote;
   }
 
   // Immutable update methods

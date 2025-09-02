@@ -4,7 +4,6 @@ import { useCallback, useState } from 'react';
 import { DEFAULT_GAME_SETTINGS, NOTE_CONFIG } from '@/config/gameConfig';
 import { Note } from '@/libs/Note';
 import { NOTE_CLASSES } from '@/utils/MusicConstants';
-import { noteToMidiNumber } from '@/utils/musicUtils';
 
 export type MobileNoteInputState = {
   isActive: boolean;
@@ -28,7 +27,7 @@ export const useMobileNoteInput = (
     }
 
     let note = new Note({ noteClass, octave: optimalOctave as Octave, accidental: 'natural' });
-    const noteMidi = noteToMidiNumber(note);
+    const noteMidi = note.midiNumber;
     if (noteMidi < NOTE_CONFIG.MIN_PITCH_MIDI) {
       note = note.moveOctave(1) as Note;
     }

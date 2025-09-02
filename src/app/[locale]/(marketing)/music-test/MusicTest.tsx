@@ -96,17 +96,6 @@ export function MusicTestPage() {
             />
           </div>
         );
-      case 'statistics':
-        return (
-          <div className="mx-auto max-w-4xl">
-            {/* <StatisticsDisplay
-              onReset={handleStatisticsReset}
-              showRecentSessions={true}
-              maxRecentSessions={10}
-              className="rounded-lg border bg-white p-6 shadow-sm"
-            /> */}
-          </div>
-        );
       default:
         return null;
     }

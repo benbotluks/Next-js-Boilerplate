@@ -1,3 +1,4 @@
+import type { MidiNote } from 'tone/build/esm/core/type/NoteUnits';
 import type { Stave } from 'vexflow';
 import type { AudioMode } from '@/config/gameConfig';
 import type { Note } from '@/libs/Note';
@@ -23,7 +24,7 @@ export type StaffPosition = {
 export type GamePhase = 'setup' | 'listening' | 'answering' | 'feedback';
 
 export type GameState = {
-  currentNotes: Note[];
+  currentNotes: HiddenNote[];
   selectedNotes: Note[];
   gamePhase: GamePhase;
   score: number;
@@ -63,6 +64,11 @@ export type AudioEngine = {
   stopNotes: () => void;
   isSupported: () => boolean;
   setVolume: (volume: number) => void;
+};
+
+export type HiddenNote = {
+  midiNumber: MidiNote;
+  note: Note;
 };
 
 // Component prop types

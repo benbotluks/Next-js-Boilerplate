@@ -331,13 +331,11 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
           onClick={handleMouseClick}
           onKeyDown={(_) => { }}
           onContextMenu={staffHandleContextMenu}
-          // Accessibility attributes
           role="button"
           aria-label={ariaLabel}
           aria-describedby="staff-description"
           aria-disabled={disabled}
           tabIndex={disabled ? -1 : 0}
-          // Additional ARIA attributes for screen readers
           aria-keyshortcuts="Tab ArrowUp ArrowDown Enter Space Delete Escape"
           style={{
             cursor: getCursorStyle(),
@@ -385,8 +383,7 @@ const ClickableNoteInput: React.FC<ClickableNoteInputProps> = ({
       {(showCorrectAnswer || validationResult) && (
         <div className="mt-2 rounded border bg-gray-50 p-2">
           <ValidationStats
-            selectedNotes={selectedNotes}
-            correctNotes={correctNotes}
+            validationResult={validationResult!}
           />
         </div>
       )}

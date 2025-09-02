@@ -1,4 +1,5 @@
 import type { Note } from '@/libs/Note';
+import type { HiddenNote } from '@/MusicTest/types/MusicTypes';
 
 /**
  * Result of answer validation containing detailed feedback information
@@ -20,26 +21,28 @@ export type ValidationResult = {
  * @returns Detailed validation result with feedback information
  */
 export function validateAnswer(
-  correctNotes: Note[],
+  correctNotes: HiddenNote[],
   selectedNotes: Note[],
 ): ValidationResult {
   // Normalize arrays by sorting and removing duplicates
   const normalizedCorrect = [...new Set(correctNotes)].sort();
   const normalizedSelected = [...new Set(selectedNotes)].sort();
 
+  const midiNumbersCorrect = normalizedCorrect.map(note => note.midiNumber);
+  const midiNumbersSelected = normalizedSelected.map(note => note.midiNumber);
+
   // Find correctly identified notes (intersection)
-  const correctlyIdentified = normalizedSelected.filter(note =>
-    normalizedCorrect.includes(note),
-  );
+  const correctlyIdentified = normalizedSelected.filter((_, i) =>
+    midiNumbersCorrect.includes(midiNumbersSelected[i]));
 
   // Find missed notes (in correct but not selected)
-  const missedNotes = normalizedCorrect.filter(note =>
-    !normalizedSelected.includes(note),
+  const missedNotes = normalizedCorrect.filter((_, i) =>
+    !midiNumbersSelected.includes(midiNumbersCorrect[i]),
   );
 
   // Find incorrect notes (selected but not in correct)
-  const incorrectNotes = normalizedSelected.filter(note =>
-    !normalizedCorrect.includes(note),
+  const incorrectNotes = normalizedSelected.filter((_, i) =>
+    !midiNumbersCorrect.includes(midiNumbersSelected[i]),
   );
 
   // Calculate accuracy as percentage of correctly identified notes
@@ -54,10 +57,10 @@ export function validateAnswer(
 
   return {
     isCorrect,
-    correctNotes: normalizedCorrect,
+    correctNotes: normalizedCorrect.map(note => note.note),
     selectedNotes: normalizedSelected,
     correctlyIdentified,
-    missedNotes,
+    missedNotes: missedNotes.map(note => note.note),
     incorrectNotes,
     accuracy,
   };

@@ -110,7 +110,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
 
       // Play the notes using standard format
       setIsPlaying(true);
-      await audioEngine.playNotes(standardNotes);
+      await audioEngine.playNotes(standardNotes.map(n => n.note));
 
       // Transition to answering phase after notes finish playing
       setIsPlaying(false);
@@ -141,7 +141,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
       setAudioError(null);
       setIsPlaying(true);
 
-      await audioEngine.playNotes(gameState.currentNotes);
+      await audioEngine.playNotes(gameState.currentNotes.map(n => n.note));
 
       setTimeout(() => {
         setIsPlaying(false);
@@ -261,7 +261,7 @@ const MusicTestController: React.FC<GameControllerProps> = ({
         startNewRound={startNewRound}
         validationResult={validationResult}
         selectedNotes={gameState.selectedNotes}
-        currentNotes={gameState.currentNotes}
+        currentNotes={gameState.currentNotes.map(note => note.note)}
         limitNotes={gameState.limitNotes}
         noteHandlers={noteHandlers}
       />
